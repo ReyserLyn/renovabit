@@ -1,8 +1,16 @@
 {
-  "extends": "@repo/typescript-config/react-library.json",
+  "extends": "@renovabit/tsconfig/react-library.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "baseUrl": ".",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@renovabit/ui/*": ["./src/*"]
+    }
   },
-  "include": ["src"],
+  "include": ["**/*.ts", "**/*.tsx", "postcss.config.ts", "tailwind.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

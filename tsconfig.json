@@ -1,0 +1,3 @@
+{
+  "extends": "@renovabit/tsconfig/base.json"
+}

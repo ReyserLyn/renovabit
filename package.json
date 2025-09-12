@@ -1,15 +1,20 @@
 {
-  "name": "monorepo",
+  "name": "renovabit",
   "private": true,
+  "author": "ReyserLyn",
   "scripts": {
     "build": "turbo run build",
+    "clean": "git clean -xdf node_modules",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "lint": "turbo lint && manypkg check",
+    "check": "biome check .",
+    "check:fix": "biome check . --write",
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "prettier": "^3.6.2",
+    "@biomejs/biome": "^2.2.4",
+    "@manypkg/cli": "^0.25.1",
+    "@renovabit/tsconfig": "workspace:*",
     "turbo": "^2.5.6",
     "typescript": "5.9.2"
   },
