@@ -13,7 +13,7 @@ const services = [
   {
     id: 2,
     title: "Soporte técnico remoto",
-    image: "/images/services/reparacion.png",
+    image: "/images/services/soporte.png",
     features: [
       "Instalación de programas",
       "Optimización de equipos",
@@ -24,7 +24,7 @@ const services = [
   {
     id: 3,
     title: "Mantenimiento y mejoras",
-    image: "/images/services/reparacion.png",
+    image: "/images/services/mantenimiento.webp",
     features: ["Cambio SSD", "Cambio de memoria RAM", "Limpieza profunda"],
     isMiddle: false,
   },
