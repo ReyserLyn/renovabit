@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatedThemeToggler } from "@renovabit/ui/components/magicui/animated-theme-toggler";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { Menu, X } from "lucide-react";
 import Image from "next/image";
@@ -18,7 +19,7 @@ export default function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <nav className="sticky top-4 z-40 mx-4 my-2 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-2xl shadow-lg flex items-center justify-between">
+    <nav className="sticky top-4 z-40 mx-4 my-2 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-2xl shadow-lg flex items-center justify-between navbar-container">
       <Link href="/" className="flex-shrink-0">
         <Image
           src="/logo/ts/light/horizontal.webp"
@@ -41,34 +42,40 @@ export default function Navbar() {
         ))}
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden md:flex gap-4 items-center justify-center">
+        <AnimatedThemeToggler />
+
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
           Contáctanos
         </Button>
       </div>
 
       {/* Mobile Menu Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="md:hidden h-9 w-9"
-        onClick={toggleMenu}
-        aria-label="Toggle menu"
-      >
-        <div className="relative w-5 h-5">
-          <Menu
-            className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
-              isMenuOpen ? "opacity-0 rotate-90" : "opacity-100 rotate-0"
-            }`}
-          />
-          <X
-            className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
-              isMenuOpen ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
-            }`}
-          />
+      <div className="md:hidden flex gap-2 items-center justify-center">
+        <div className="w-9 h-9 flex items-center justify-center">
+          <AnimatedThemeToggler size={20} />
         </div>
-      </Button>
-
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          <div className="relative w-5 h-5">
+            <Menu
+              className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
+                isMenuOpen ? "opacity-0 rotate-90" : "opacity-100 rotate-0"
+              }`}
+            />
+            <X
+              className={`absolute inset-0 h-5 w-5 transition-all duration-300 ${
+                isMenuOpen ? "opacity-100 rotate-0" : "opacity-0 -rotate-90"
+              }`}
+            />
+          </div>
+        </Button>
+      </div>
       {/* Mobile Menu Overlay */}
       <div
         className={`absolute top-full left-0 right-0 mt-3 mx-4 bg-background/98 backdrop-blur-xl border border-border/50 rounded-3xl shadow-2xl z-50 md:hidden transition-all duration-500 ease-out ${
