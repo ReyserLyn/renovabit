@@ -29,6 +29,9 @@ importers:
       '@renovabit/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      lucide-react:
+        specifier: ^0.543.0
+        version: 0.543.0(react@19.1.1)
       next:
         specifier: ^15.5.0
         version: 15.5.0(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
