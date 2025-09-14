@@ -213,8 +213,15 @@
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    scrollbar-color: color-mix(in oklab, var(--primary) 40%, transparent)
+      transparent;
     @apply border-border outline-ring/50;
+  }
+
+  /* Firefox scrollbar más visible en light mode */
+  :root:not(.dark) * {
+    scrollbar-color: color-mix(in oklab, var(--primary) 45%, transparent)
+      transparent;
   }
 
   html {
@@ -311,12 +318,23 @@
 }
 ::-webkit-scrollbar-thumb {
   border-radius: 100vw;
-  background: color-mix(in oklab, var(--primary) 25%, transparent);
+  background: color-mix(in oklab, var(--primary) 40%, transparent);
   transition: background 0.15s ease-in-out;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in oklab, var(--primary) 30%, transparent);
+  background: color-mix(in oklab, var(--primary) 50%, transparent);
 }
 ::-webkit-scrollbar-thumb:active {
-  background: color-mix(in oklab, var(--primary) 50%, transparent);
+  background: color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
+/* Scrollbar más visible en light mode */
+:root:not(.dark) ::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--primary) 45%, transparent);
+}
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--primary) 55%, transparent);
+}
+:root:not(.dark) ::-webkit-scrollbar-thumb:active {
+  background: color-mix(in oklab, var(--primary) 65%, transparent);
 }
