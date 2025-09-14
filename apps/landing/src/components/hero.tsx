@@ -1,3 +1,4 @@
+import { Highlighter } from "@renovabit/ui/src/components/magicui/highlighter";
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import Image from "next/image";
@@ -25,10 +26,10 @@ export default function Hero() {
       <div>
         {/* Título con efecto neon */}
         <div className="relative">
-          <h1 className="absolute inset-0 text-2xl font-bold text-center text-primary/60 blur-lg md:text-3xl lg:text-4xl lg:text-secondary/60 xl:text-5xl 2xl:text-6xl [@media(max-height:750px)]:text-primary/60">
+          <h1 className="absolute inset-0 text-2xl font-bold text-center text-primary/60 blur-lg md:text-3xl lg:text-4xl lg:text-secondary/60 dark:lg:text-primary/60 xl:text-5xl 2xl:text-6xl [@media(max-height:750px)]:text-primary/60">
             Servicio Técnico
           </h1>
-          <h1 className="relative text-2xl font-bold text-center text-primary drop-shadow-2xl md:text-3xl lg:text-4xl lg:text-secondary xl:text-5xl 2xl:text-6xl [@media(max-height:750px)]:text-primary [@media(max-height:750px)]:drop-shadow-none">
+          <h1 className="relative text-2xl font-bold text-center text-primary drop-shadow-2xl md:text-3xl lg:text-4xl lg:text-secondary dark:lg:text-primary xl:text-5xl 2xl:text-6xl [@media(max-height:750px)]:text-primary [@media(max-height:750px)]:drop-shadow-none">
             Servicio Técnico
           </h1>
         </div>
@@ -56,7 +57,7 @@ export default function Hero() {
             alt="Logo Renovabit"
             width={600}
             height={85}
-            className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] block lg:hidden [@media(max-height:750px)]:block"
+            className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] block lg:hidden dark:hidden [@media(max-height:750px)]:block [@media(max-height:750px)]:dark:hidden"
             style={logoNeonStyleLight}
           />
 
@@ -66,7 +67,7 @@ export default function Hero() {
             alt="Logo Renovabit"
             width={600}
             height={85}
-            className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] hidden lg:block [@media(max-height:750px)]:hidden"
+            className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] hidden lg:block dark:block [@media(max-height:750px)]:hidden [@media(max-height:750px)]:dark:block"
             style={logoNeonStyleDark}
           />
         </div>
@@ -74,9 +75,17 @@ export default function Hero() {
 
       {/* Contenido */}
       <div className="relative flex flex-col items-center justify-center gap-4 lg:gap-3 xl:gap-6">
-        <p className="px-4 text-base text-center max-w-sm sm:text-accent md:text-lg lg:text-xl lg:max-w-lg xl:max-w-xl [@media(max-height:750px)]:text-foreground">
-          "Reparamos tu laptop, mejoramos tu equipo y cuidamos tu inversión con
-          la más alta calidad"
+        <p className="px-4 text-base text-center max-w-sm sm:text-accent dark:sm:text-accent-foreground md:text-lg lg:text-xl lg:max-w-lg xl:max-w-xl [@media(max-height:750px)]:text-foreground">
+          "Reparamos tu laptop, mejoramos tu equipo y{" "}
+          <Highlighter action="highlight" color="#654fcc">
+            <span className="text-accent dark:text-accent-foreground">
+              cuidamos tu inversión
+            </span>
+          </Highlighter>{" "}
+          con la más{" "}
+          <Highlighter action="underline" color="#cec7ff">
+            alta calidad
+          </Highlighter>
         </p>
 
         <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-4 xl:gap-6">
@@ -96,8 +105,10 @@ export default function Hero() {
           <div className="w-4 h-4 border border-primary rounded-full md:w-5 md:h-5"></div>
           <div className="w-4 h-4 border border-primary rounded-full md:w-5 md:h-5"></div>
           <div className="w-4 h-4 border border-primary rounded-full md:w-5 md:h-5"></div>
-          <span className="text-lg font-bold sm:text-secondary xl:text-2xl [@media(max-height:750px)]:text-foreground">
-            987 471 074
+          <span className="text-lg font-bold sm:text-accent dark:sm:text-accent-foreground xl:text-2xl [@media(max-height:750px)]:text-foreground">
+            <Highlighter action="box" color="#654fcc">
+              987 471 074
+            </Highlighter>
           </span>
         </div>
       </div>
