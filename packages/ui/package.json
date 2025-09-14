@@ -15,7 +15,8 @@
   "exports": {
     "./*": "./src/*.tsx",
     "./globals.css": "./src/styles/globals.css",
-    "./postcss": "./postcss.config.mjs"
+    "./postcss": "./postcss.config.mjs",
+    "./src/utils/cn": "./src/utils/cn.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

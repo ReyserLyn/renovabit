@@ -1,6 +1,8 @@
+import { AnimatedGridPattern } from "@renovabit/ui/src/components/magicui/animated-grid-pattern";
 import { Highlighter } from "@renovabit/ui/src/components/magicui/highlighter";
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Button } from "@renovabit/ui/src/components/ui/button";
+import { cn } from "@renovabit/ui/src/utils/cn";
 import Image from "next/image";
 
 export default function Hero() {
@@ -117,6 +119,32 @@ export default function Hero() {
 
   return (
     <div className="container min-h-[calc(100vh-300px)] sm:min-h-screen">
+      {/* Circulos decorativos con blur */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-48 h-48 md:w-64 md:h-64 lg:w-96 lg:h-96 bg-purple-500/55 dark:bg-primary/50 rounded-full blur-3xl animate-pulse" />
+
+        <div className="absolute top-7/10 right-1/4 w-30 h-30 md:w-40 md:h-40 lg:w-56 lg:h-56 bg-purple-400/45 dark:bg-secondary/40 rounded-full blur-2xl animate-pulse [animation-delay:1s]" />
+
+        <div className="absolute top-1/2 right-1/6 w-36 h-36 md:w-48 md:h-48 lg:w-64 lg:h-64 bg-violet-400/40 dark:bg-accent/35 rounded-full blur-xl animate-pulse [animation-delay:2s]" />
+
+        <div className="absolute top-3/4 left-1/6 w-32 h-32 md:w-40 md:h-40 lg:w-56 lg:h-56 bg-purple-300/45 dark:bg-muted/45 rounded-full blur-lg animate-pulse [animation-delay:0.5s]" />
+      </div>
+
+      {/* Animated Grid Pattern Background */}
+      <AnimatedGridPattern
+        numSquares={30}
+        maxOpacity={0.1}
+        duration={3}
+        repeatDelay={1}
+        className={cn(
+          "absolute inset-0 z-0",
+          "[mask-image:radial-gradient(350px_circle_at_center,white,transparent)]",
+          "md:[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
+          "xl:[mask-image:radial-gradient(700px_circle_at_center,white,transparent)]",
+          "h-full w-full skew-y-12",
+        )}
+      />
+
       {/* Laptop background - Solo visible en pantallas sm+ */}
       <div className="absolute inset-0 z-0 container items-center justify-center hidden sm:flex [@media(max-height:750px)]:hidden">
         <div className="w-full max-w-[1440px] px-4 mx-auto">
@@ -125,8 +153,10 @@ export default function Hero() {
               src="/images/hero/laptop.webp"
               alt="Laptop de fondo"
               fill
-              className="object-cover rounded-2xl md:translate-y-[35px]"
-              style={{ transform: "translateX(6px)" }}
+              className="object-cover rounded-2xl md:translate-y-[35px] [filter:drop-shadow(0_10px_20px_rgba(88,28,135,0.6))] dark:[filter:drop-shadow(0_10px_20px_rgba(109,40,217,0.4))]"
+              style={{
+                transform: "translateX(6px)",
+              }}
             />
           </AspectRatio>
         </div>
