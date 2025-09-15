@@ -1,1 +1,1 @@
-export { default } from "@renovabit/ui/postcss.config.mjs";
+export { default } from "@renovabit/ui/postcss";
