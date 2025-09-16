@@ -55,6 +55,12 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#8b5cf6" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
 
+        {/* Open Graph Logo */}
+        <meta
+          property="og:logo"
+          content="https://www.renovabit.com/logo/ts/dark/horizontal.svg"
+        />
+
         {/* Iconos adicionales */}
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6" />
 
