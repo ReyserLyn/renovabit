@@ -9,7 +9,7 @@ import { featuresData } from "./features/features-data";
 
 export function Features() {
   return (
-    <div className="relative z-20 py-10 lg:py-40 max-w-7xl mx-auto">
+    <section className="relative overflow-hidden py-16 md:py-24 max-w-7xl mx-auto">
       <TitleSection
         title="Servicios"
         subtitle="Te ofrecemos los mejores servicios"
@@ -44,6 +44,6 @@ export function Features() {
           Ver todos los servicios
         </Button>
       </div>
-    </div>
+    </section>
   );
 }
