@@ -124,7 +124,7 @@ export default function Hero() {
             iconPlacement="right"
             asChild
           >
-            <Link href="/services">Ver servicios</Link>
+            <Link href="/#todos-los-servicios">Ver servicios</Link>
           </Button>
         </div>
 

@@ -126,7 +126,7 @@ export default function Presentation() {
                 iconPlacement="right"
                 asChild
               >
-                <Link href="#all-services">Ver nuestros servicios</Link>
+                <Link href="/#todos-los-servicios">Ver nuestros servicios</Link>
               </Button>
             </div>
           </div>

@@ -52,7 +52,7 @@ export function Features() {
           iconPlacement="right"
           asChild
         >
-          <Link href="#all-services">Ver todos los servicios</Link>
+          <Link href="/#todos-los-servicios">Ver todos los servicios</Link>
         </Button>
       </div>
     </section>

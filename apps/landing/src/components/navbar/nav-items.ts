@@ -1,5 +1,7 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
+
 export const navItems = [
   { href: "/", label: "Inicio" },
-  { href: "/servicios", label: "Servicios" },
-  { href: "/contacto", label: "Contacto" },
+  { href: "/#todos-los-servicios", label: "Servicios" },
+  { href: socialLinks.whatsapp, label: "Contacto" },
 ];

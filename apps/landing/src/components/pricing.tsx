@@ -198,7 +198,8 @@ const PricingCard = ({ plan }: { plan: PricingPlan }) => (
 
 export default function Pricing() {
   return (
-    <section className="relative py-16 md:py-24">
+    // biome-ignore lint/correctness/useUniqueElementIds: <Es temporal>
+    <section className="relative py-16 md:py-24" id="todos-los-servicios">
       <div className="max-w-7xl mx-auto px-4">
         <TitleSection
           title="Precios"
