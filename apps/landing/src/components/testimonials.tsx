@@ -26,7 +26,7 @@ interface Testimonial {
 const testimonialsData: Testimonial[] = [
   {
     id: "cliente-1",
-    name: "Javuer Montoya",
+    name: "Javier Montoya",
     role: "Estudiante de Administración",
     image: "/images/services/soporte.png",
     testimonial:
@@ -70,14 +70,23 @@ const TestimonialCard = ({
       >
         <CardHeader>
           {testimonial.image && (
-            <div className="w-full h-auto rounded-2xl">
-              <AspectRatio ratio={16 / 9}>
+            <div className="w-full h-auto rounded-2xl group">
+              <AspectRatio
+                ratio={16 / 9}
+                className="overflow-hidden rounded-2xl"
+              >
                 <Image
-                  className="object-cover rounded-2xl "
+                  className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
                   src={testimonial.image}
                   alt={`${testimonial.name} Imagen`}
                   fill
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="text-sm font-medium">
+                    Testimonio de {testimonial.name}
+                  </p>
+                </div>
               </AspectRatio>
             </div>
           )}
