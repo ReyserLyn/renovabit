@@ -10,8 +10,9 @@ import { Highlighter } from "@renovabit/ui/src/components/magicui/highlighter";
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import { cn } from "@renovabit/ui/src/utils/cn";
-
+import { ArrowRight, MessageCircle } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { SocialLinks } from "./common/social-link";
 
 export default function Hero() {
@@ -106,23 +107,37 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-4 xl:gap-6">
-          <Button className={buttonClasses} effect="ringHover">
-            Contáctanos
+          <Button
+            className={buttonClasses}
+            effect="expandIconRing"
+            icon={MessageCircle}
+            iconPlacement="right"
+            asChild
+          >
+            <Link href={socialLinks.whatsapp}>Contáctanos</Link>
           </Button>
           <Button
             variant="outline"
             className={buttonClasses}
-            effect="ringHover"
+            effect="expandIconRing"
+            icon={ArrowRight}
+            iconPlacement="right"
+            asChild
           >
-            Ver servicios
+            <Link href="/services">Ver servicios</Link>
           </Button>
         </div>
 
         <div className="flex items-center justify-center gap-3 md:gap-4">
           <SocialLinks socialLinks={heroSocialLinks} />
-          <span className="text-lg font-bold sm:text-accent dark:sm:text-accent-foreground xl:text-2xl [@media(max-height:750px)]:text-foreground">
+          <span className="text-lg font-bold sm:text-accent dark:sm:text-accent-foreground xl:text-2xl [@media(max-height:750px)]:text-foreground ">
             <Highlighter action="box" color="#654fcc">
-              987 471 074
+              <Link
+                href={socialLinks.whatsapp}
+                className="hover:text-primary-foreground dark:hover:text-secondary-foreground"
+              >
+                987 471 074
+              </Link>
             </Highlighter>
           </span>
         </div>

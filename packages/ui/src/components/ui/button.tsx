@@ -36,6 +36,8 @@ const buttonVariants = cva(
           "!no-underline relative after:absolute after:bottom-2 after:h-[1px] after:w-2/3 after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 after:ease-in-out hover:after:origin-bottom-left hover:after:scale-x-100",
         gradientSlideShow:
           "animate-gradient-flow bg-[linear-gradient(-45deg,var(--gradient-lime),var(--gradient-ocean),var(--gradient-wine),var(--gradient-rust))] bg-[size:400%]",
+        expandIconRing:
+          "group relative gap-0 transition-all duration-300 hover:ring-2 hover:ring-primary/90 hover:ring-offset-2",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -95,7 +97,7 @@ const Button = React.forwardRef<
       >
         {Icon &&
           iconPlacement === "left" &&
-          (effect === "expandIcon" ? (
+          (effect === "expandIcon" || effect === "expandIconRing" ? (
             <div className="w-0 translate-x-[0%] pr-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-100 group-hover:pr-2 group-hover:opacity-100">
               <Icon />
             </div>
@@ -105,7 +107,7 @@ const Button = React.forwardRef<
         <Slottable>{props.children}</Slottable>
         {Icon &&
           iconPlacement === "right" &&
-          (effect === "expandIcon" ? (
+          (effect === "expandIcon" || effect === "expandIconRing" ? (
             <div className="w-0 translate-x-[100%] pl-0 opacity-0 transition-all duration-200 group-hover:w-5 group-hover:translate-x-0 group-hover:pl-2 group-hover:opacity-100">
               <Icon />
             </div>
