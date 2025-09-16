@@ -1,3 +1,4 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
 import {
   Accordion,
   AccordionContent,
@@ -100,9 +101,9 @@ export default function FAQs() {
               ))}
             </Accordion>
 
-            <Button className="w-full mt-4" asChild size="lg">
+            <Button className="w-full mt-4" size="lg" effect="shine" asChild>
               <Link
-                href="https://wa.me/51987654321"
+                href={socialLinks.whatsapp}
                 className="flex items-center justify-center gap-2"
               >
                 <MessageCircle className="w-4 h-4 shrink-0" />
