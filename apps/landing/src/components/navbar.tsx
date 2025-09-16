@@ -19,7 +19,7 @@ export default function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <nav className="sticky top-4 z-40 mx-4 my-2 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-2xl shadow-lg flex items-center justify-between navbar-container">
+    <nav className="container sticky top-4 z-40 mx-4 my-2 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-2xl shadow-lg flex items-center justify-between navbar-container">
       <Link href="/" className="flex-shrink-0">
         <Image
           src="/logo/ts/dark/horizontal.svg"
