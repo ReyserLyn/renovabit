@@ -1,4 +1,5 @@
 import Domicile from "@/components/domicile";
+import FAQs from "@/components/faqs";
 import { Features } from "@/components/features";
 import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
@@ -13,9 +14,10 @@ export default function Home() {
       <Hero />
       <Features />
       <Presentation />
-      <Pricing />
+      <Pricing />t
       <Domicile />
       <Testimonials />
+      <FAQs />
     </main>
   );
 }
