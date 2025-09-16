@@ -10,6 +10,13 @@ import {
 import Image from "next/image";
 import type { Service } from "./types";
 
+const SKELETON_TWO_CONFIG = {
+  image: "/images/services/soporte.png",
+  alt: "Soporte técnico remoto",
+  description:
+    "Soporte técnico especializado desde cualquier lugar con total seguridad.",
+};
+
 export const SkeletonTwo = () => {
   const services: Service[] = [
     {
@@ -36,15 +43,21 @@ export const SkeletonTwo = () => {
 
   return (
     <div className="relative flex flex-col items-center p-5 gap-4 h-full overflow-hidden bg-gradient-to-br from-primary/8 via-secondary/5 to-accent/8 rounded-2xl border-2 border-primary/20 shadow-lg">
-      <div className="relative w-[70%] mx-auto mb-2 rounded-2xl">
+      <div className="relative w-[70%] mx-auto mb-2 rounded-2xl group">
         <AspectRatio ratio={1 / 1} className="z-0">
           <Image
-            src="/images/services/soporte.png"
-            alt="Soporte técnico remoto"
+            src={SKELETON_TWO_CONFIG.image}
+            alt={SKELETON_TWO_CONFIG.alt}
             fill
-            className="object-cover rounded-2xl"
+            className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground rounded-full p-1 z-10">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <p className="text-sm font-medium">
+              {SKELETON_TWO_CONFIG.description}
+            </p>
+          </div>
+          <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground rounded-full p-1 z-10 group-hover:scale-110 transition-transform duration-500">
             <IconWorld size={12} />
           </div>
         </AspectRatio>

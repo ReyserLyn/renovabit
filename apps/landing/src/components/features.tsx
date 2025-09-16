@@ -1,4 +1,7 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
 import { Button } from "@renovabit/ui/src/components/ui/button";
+import { ArrowRight, MessageCircle } from "lucide-react";
+import Link from "next/link";
 import TitleSection from "./common/title-section";
 import {
   FeatureCard,
@@ -33,15 +36,23 @@ export function Features() {
         <Button
           size="lg"
           className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-300 shadow-lg hover:shadow-xl"
+          effect="expandIcon"
+          icon={MessageCircle}
+          iconPlacement="right"
+          asChild
         >
-          Consultar por otro servicio
+          <Link href={socialLinks.whatsapp}>Consultar por otro servicio</Link>
         </Button>
         <Button
           variant="outline"
           size="lg"
           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 shadow-lg hover:shadow-xl"
+          effect="expandIcon"
+          icon={ArrowRight}
+          iconPlacement="right"
+          asChild
         >
-          Ver todos los servicios
+          <Link href="#all-services">Ver todos los servicios</Link>
         </Button>
       </div>
     </section>

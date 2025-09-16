@@ -3,20 +3,36 @@ import { IconCpu, IconDeviceLaptop, IconSettings } from "@tabler/icons-react";
 import { CheckCircle, Wrench } from "lucide-react";
 import Image from "next/image";
 
+const SKELETON_ONE_CONFIG = {
+  image: "/images/services/reparacion.png",
+  alt: "Reparación de laptops",
+  description:
+    "Especialistas en reparación de laptops con tecnología avanzada y garantía completa.",
+};
+
 export const SkeletonOne = () => {
   return (
     <div className="relative flex gap-10 h-full">
-      <div className="w-full p-6 mx-auto bg-gradient-to-br from-card via-card to-muted/20 group h-full rounded-2xl border-2 border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300">
+      <div className="w-full p-6 mx-auto bg-gradient-to-br from-card via-card to-muted/20 h-full rounded-2xl border-2 border-primary/20 shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="flex flex-1 w-full h-full flex-col space-y-5">
-          <div className="relative overflow-hidden rounded-xl flex items-center justify-center">
-            <AspectRatio ratio={16 / 9} className="w-full h-full z-0">
+          <div className="relative w-full mx-auto mb-2 rounded-2xl group">
+            <AspectRatio
+              ratio={16 / 9}
+              className="z-0 overflow-hidden rounded-2xl"
+            >
               <Image
-                src="/images/services/reparacion.png"
-                alt="Reparación de laptops"
+                src={SKELETON_ONE_CONFIG.image}
+                alt={SKELETON_ONE_CONFIG.alt}
                 fill
-                className="object-cover rounded-2xl"
+                className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground rounded-full p-2 z-10">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-sm font-medium">
+                  {SKELETON_ONE_CONFIG.description}
+                </p>
+              </div>
+              <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground rounded-full p-2 z-10 group-hover:scale-110 transition-transform duration-500">
                 <IconDeviceLaptop size={16} />
               </div>
             </AspectRatio>

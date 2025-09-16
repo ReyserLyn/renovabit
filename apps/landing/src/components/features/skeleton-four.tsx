@@ -1,10 +1,13 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
+import { Button } from "@renovabit/ui/src/components/ui/button";
 import {
   IconCpu2,
   IconInfoCircle,
   IconShoppingCart,
   IconTool,
 } from "@tabler/icons-react";
-import { HardDrive, MemoryStick } from "lucide-react";
+import { HardDrive, MemoryStick, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 import type { Component } from "./types";
 
 export const SkeletonFour = () => {
@@ -101,6 +104,21 @@ export const SkeletonFour = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          size="lg"
+          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 shadow-lg hover:shadow-xl"
+          icon={ShoppingCart}
+          iconPlacement="left"
+          asChild
+        >
+          <Link href={socialLinks.whatsapp}>
+            Preguntar por otro componente o ensamblado
+          </Link>
+        </Button>
       </div>
     </div>
   );
