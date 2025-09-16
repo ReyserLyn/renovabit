@@ -113,6 +113,7 @@ export const SkeletonFour = () => {
           className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors duration-300 shadow-lg hover:shadow-xl"
           icon={ShoppingCart}
           iconPlacement="left"
+          effect="shineHover"
           asChild
         >
           <Link href={socialLinks.whatsapp}>
