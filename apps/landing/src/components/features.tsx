@@ -1,4 +1,5 @@
 import { Button } from "@renovabit/ui/src/components/ui/button";
+import TitleSection from "./common/title-section";
 import {
   FeatureCard,
   FeatureDescription,
@@ -9,20 +10,12 @@ import { featuresData } from "./features/features-data";
 export function Features() {
   return (
     <div className="relative z-20 py-10 lg:py-40 max-w-7xl mx-auto">
-      <div className="px-8 text-center">
-        <h2 className="text-sm md:text-base font-medium text-primary uppercase tracking-wider">
-          Servicios
-        </h2>
-
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight">
-          Te ofrecemos los mejores servicios
-        </h1>
-
-        <p className="text-sm md:text-base my-4 lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-          Reparamos tu laptop, mejoramos tu equipo y cuidamos tu inversión con
-          la más alta calidad.
-        </p>
-      </div>
+      <TitleSection
+        title="Servicios"
+        subtitle="Te ofrecemos los mejores servicios"
+        description="Reparamos tu laptop, mejoramos tu equipo y cuidamos tu inversión con
+          la más alta calidad."
+      />
 
       <div className="relative ">
         <div className="grid grid-cols-1 lg:grid-cols-6 mt-12 xl:border rounded-md border-border">

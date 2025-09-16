@@ -1,66 +1,186 @@
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
-
+import { Badge } from "@renovabit/ui/src/components/ui/badge";
+import { Button } from "@renovabit/ui/src/components/ui/button";
+import { Card } from "@renovabit/ui/src/components/ui/card";
+import {
+  ArrowRight,
+  Award,
+  CheckCircle,
+  Laptop,
+  MapPin,
+  Shield,
+  Star,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
+import TitleSection from "./common/title-section";
 
 export default function Presentation() {
+  const stats = [
+    { icon: Users, value: "5+", label: "Clientes iniciales satisfechos" },
+    { icon: Laptop, value: "100%", label: "Enfoque en laptops y PCs" },
+    { icon: Award, value: "Compromiso", label: "Calidad garantizada" },
+    {
+      icon: MapPin,
+      value: "Arequipa - Miraflores",
+      label: "Atención local y remota",
+    },
+  ];
+
   return (
-    <section className="text-center space-y-8 md:space-y-16 py-8 md:py-16 ">
-      <div className="space-y-3 md:space-y-4">
-        <h2 className="text-sm md:text-base font-medium text-primary uppercase tracking-wider">
-          Conócenos
-        </h2>
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight">
-          RenovaBit
-        </h1>
-        <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto">
-          Cónoce quienes somos y por qué somos tu mejor opción en Arequipa.
-        </p>
-      </div>
+    <section className="relative overflow-hidden py-16 md:py-24">
+      <div className="relative z-10 max-w-7xl mx-auto px-4">
+        <TitleSection
+          title="Conócenos"
+          subtitle="RenovaBit"
+          description="Conoce quiénes somos y por qué somos tu mejor opción en Arequipa."
+        />
 
-      <div className="flex flex-col lg:flex-row items-center justify-center gap-8 px-4">
-        {/* Texto - 50% */}
-        <div className="w-full lg:w-1/2 flex justify-center lg:justify-end">
-          <div className="max-w-lg">
-            <span className="text-sm md:text-base lg:text-lg text-center lg:text-left">
-              Somos un servicio técnico especializado en laptops y PCs, con foco
-              en soluciones modernas como microsoldadura y upgrades. Tras años
-              de estudio y experiencia, decidimos abrir Renovabit para dar
-              soluciones reales a los problemas tecnológicos de hoy
-            </span>
-          </div>
-        </div>
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="space-y-8">
+            {/* Contenido de texto */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 justify-center lg:justify-start">
+                <Badge
+                  variant="secondary"
+                  className="bg-primary/10 text-primary border-primary/20"
+                >
+                  <Shield className="w-3 h-3 mr-1" />
+                  Servicio y Soporte Técnico
+                </Badge>
+              </div>
 
-        {/* Cuadrado dividido en 4 - solo esquinas 1 y 4 - 50% */}
-        <div className="w-full lg:w-1/2 flex justify-center lg:justify-start">
-          <div className="relative w-64 h-64 md:w-80 md:h-80">
-            {/* Esquina 1 - Superior izquierda */}
-            <div className="absolute top-0 left-0 w-36 h-36 md:w-44 md:h-44 z-10">
-              <AspectRatio
-                ratio={1}
-                className="w-full h-full rounded-2xl shadow-lg"
-              >
-                <Image
-                  src="/images/services/mantenimiento.webp"
-                  alt="Servicio técnico"
-                  fill
-                  className="rounded-2xl object-cover"
-                />
-              </AspectRatio>
+              <h3 className="text-xl md:text-2xl font-bold text-center lg:text-left">
+                Soluciones confiables para{" "}
+                <span className="text-primary">Laptops y PCs</span>
+              </h3>
+
+              <p className="text-base md:text-lg text-muted-foreground text-center lg:text-left leading-relaxed">
+                En <strong>RenovaBit</strong> creemos que cada equipo merece una
+                segunda vida. Ofrecemos mantenimiento, reparaciones y mejoras de
+                rendimiento con un enfoque práctico y accesible. Nuestro
+                compromiso es brindar un servicio cercano y confiable, pensado
+                para las necesidades reales de cada cliente.
+              </p>
             </div>
 
-            {/* Esquina 4 - Inferior derecha superpuesta */}
-            <div className="absolute bottom-0 right-0 w-36 h-36 md:w-44 md:h-44 z-20">
-              <AspectRatio
-                ratio={1}
-                className="w-full h-full rounded-2xl shadow-lg"
+            {/* Características destacadas */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-sm md:text-base">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span>Atención personalizada y diagnósticos claros</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm md:text-base">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span>Soporte remoto para resolver problemas al instante</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm md:text-base">
+                <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                <span>Venta de componentes originales con garantía</span>
+              </div>
+            </div>
+
+            {/* Estadísticas */}
+            <div className="grid grid-cols-2 gap-4 pt-6">
+              {stats.map((stat, index) => (
+                <Card
+                  key={index}
+                  className="p-4 bg-gradient-to-br from-card to-muted/20 border-primary/20 hover:border-primary/40 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <stat.icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold">{stat.value}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {stat.label}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
+              <Button
+                size="lg"
+                className="bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl"
+                effect={"shineHover"}
+                icon={Star}
+                iconPlacement="left"
               >
-                <Image
-                  src="/images/services/reparacion.png"
-                  alt="Servicio técnico"
-                  fill
-                  className="rounded-2xl object-cover"
-                />
-              </AspectRatio>
+                Solicitar diagnóstico
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-primary/30 hover:bg-primary/10 transition-all duration-300"
+                effect={"expandIcon"}
+                icon={ArrowRight}
+                iconPlacement="right"
+              >
+                Ver nuestros servicios
+              </Button>
+            </div>
+          </div>
+
+          {/* Imágenes */}
+          <div className="flex justify-center">
+            <div className="relative w-80 h-80 md:w-96 md:h-96 lg:w-108 lg:h-108">
+              <div className="absolute top-0 left-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-20 group">
+                <div className="relative w-full h-full">
+                  <AspectRatio
+                    ratio={1}
+                    className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
+                  >
+                    <Image
+                      src="/images/services/mantenimiento.webp"
+                      alt="Mantenimiento especializado de equipos"
+                      fill
+                      className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <p className="text-sm font-medium">
+                        Equipo especializado
+                      </p>
+                    </div>
+                  </AspectRatio>
+
+                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-2 shadow-lg z-10">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-0 right-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-10 group">
+                <div className="relative w-full h-full">
+                  <AspectRatio
+                    ratio={1}
+                    className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
+                  >
+                    <Image
+                      src="/images/services/reparacion.png"
+                      alt="Reparación avanzada con microsoldadura"
+                      fill
+                      className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <p className="text-sm font-medium">
+                        Siempre a disposición
+                      </p>
+                    </div>
+                  </AspectRatio>
+
+                  <div className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground rounded-full p-2 shadow-lg z-10">
+                    <Award className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl -z-10" />
             </div>
           </div>
         </div>

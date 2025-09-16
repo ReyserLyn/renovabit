@@ -3,7 +3,7 @@
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 import { useTouchPrimary } from "@renovabit/ui/hooks/use-has-primary-touch";
 
-import { cn } from "@renovabit/ui/src/utils/cn";
+import { cn } from "@renovabit/ui/utils/cn";
 import * as React from "react";
 
 const ScrollAreaContext = React.createContext<boolean>(false);
