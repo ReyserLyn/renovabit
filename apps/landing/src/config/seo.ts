@@ -5,7 +5,7 @@ export const siteConfig = {
   name: "RenovaBit",
   title: "RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa",
   description:
-    "Servicio técnico especializado en Arequipa. Reparación de laptops, mantenimiento a domicilio, soporte remoto y armado de PCs. Confianza y transparencia garantizada.",
+    "Servicio técnico especializado en Arequipa. Reparación laptops, mantenimiento a domicilio, soporte remoto y armado de PCs.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.renovabit.com",
   ogImage: "/og-image.jpg",
 

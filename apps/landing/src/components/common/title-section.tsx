@@ -15,9 +15,9 @@ export default function TitleSection({
         {title}
       </h2>
 
-      <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight">
+      <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight">
         {subtitle}
-      </h1>
+      </h2>
 
       <p className="text-sm md:text-base my-4 lg:text-lg text-muted-foreground max-w-2xl mx-auto">
         {description}
