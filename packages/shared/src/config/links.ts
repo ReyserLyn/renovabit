@@ -1,4 +1,5 @@
 export const socialLinks = {
+  whatsapp: "https://wa.me/51987471074",
   facebook: "https://www.facebook.com/renovabit",
   tiktok: "https://www.tiktok.com/@renovabit",
   instagram: "https://www.instagram.com/renovabit",

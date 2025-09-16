@@ -22,8 +22,18 @@ export const AnimatedThemeToggler = ({ className, size = 20 }: props) => {
 
   if (!mounted) {
     return (
-      <button className={cn(className)} type="button" disabled>
-        <div style={{ width: size, height: size }} />
+      <button
+        className={cn(
+          className,
+          "hover:cursor-pointer hover:bg-primary/10 transition-all duration-200 rounded-full p-2 hover:text-primary",
+        )}
+        type="button"
+        disabled
+      >
+        <div
+          style={{ width: size, height: size }}
+          className="bg-muted animate-pulse rounded-full"
+        />
       </button>
     );
   }
@@ -67,7 +77,10 @@ export const AnimatedThemeToggler = ({ className, size = 20 }: props) => {
     <button
       ref={buttonRef}
       onClick={changeTheme}
-      className={cn(className)}
+      className={cn(
+        className,
+        "hover:cursor-pointer hover:bg-primary/10 transition-all duration-200 rounded-full p-2 hover:text-primary",
+      )}
       type="button"
     >
       {resolvedTheme === "dark" ? <SunDim size={size} /> : <Moon size={size} />}
