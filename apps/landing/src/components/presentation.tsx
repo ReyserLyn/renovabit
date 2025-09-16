@@ -1,3 +1,4 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Badge } from "@renovabit/ui/src/components/ui/badge";
 import { Button } from "@renovabit/ui/src/components/ui/button";
@@ -13,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import TitleSection from "./common/title-section";
 
 export default function Presentation() {
@@ -111,8 +113,9 @@ export default function Presentation() {
                 effect={"shineHover"}
                 icon={Star}
                 iconPlacement="left"
+                asChild
               >
-                Solicitar diagnóstico
+                <Link href={socialLinks.whatsapp}>Solicitar diagnóstico</Link>
               </Button>
               <Button
                 variant="outline"
@@ -121,8 +124,9 @@ export default function Presentation() {
                 effect={"expandIcon"}
                 icon={ArrowRight}
                 iconPlacement="right"
+                asChild
               >
-                Ver nuestros servicios
+                <Link href="#all-services">Ver nuestros servicios</Link>
               </Button>
             </div>
           </div>
