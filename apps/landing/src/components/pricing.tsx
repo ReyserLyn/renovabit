@@ -184,7 +184,7 @@ const PricingCard = ({ plan }: { plan: PricingPlan }) => (
         effect={plan.buttonEffect}
         icon={plan.buttonIcon}
         iconPlacement={plan.buttonIconPlacement}
-        className={`w-full transition-all duration-300 ${
+        className={`w-full transition-all duration-300 hover:scale-105 ${
           plan.isPopular
             ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl"
             : "border-primary/30 hover:bg-primary/10"
