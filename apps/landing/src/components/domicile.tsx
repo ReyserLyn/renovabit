@@ -1,3 +1,4 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Badge } from "@renovabit/ui/src/components/ui/badge";
 import { Button } from "@renovabit/ui/src/components/ui/button";
@@ -15,6 +16,7 @@ import {
   Wrench,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import TitleSection from "./common/title-section";
 
 export default function Domicile() {
@@ -160,10 +162,13 @@ export default function Domicile() {
             <div className="flex justify-center lg:justify-start pt-4">
               <Button
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl"
+                className="bg-primary hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                effect={"shineHover"}
+                icon={MessageCircle}
+                iconPlacement="left"
+                asChild
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Agendar por WhatsApp
+                <Link href={socialLinks.whatsapp}>Agendar por WhatsApp</Link>
               </Button>
             </div>
           </div>
@@ -182,7 +187,7 @@ export default function Domicile() {
                 <Badge
                   key={index}
                   variant="secondary"
-                  className="bg-secondary/10 text-secondary-foreground border-secondary/20 text-xs px-3 py-1"
+                  className="bg-secondary/10 text-secondary-foreground border-secondary/20 text-xs px-3 py-1 hover:cursor-pointer"
                 >
                   <badge.icon className="w-3 h-3 mr-1" />
                   {badge.text}
