@@ -1,3 +1,4 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
 import { Badge } from "@renovabit/ui/src/components/ui/badge";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import {
@@ -8,7 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@renovabit/ui/src/components/ui/card";
-import { Check, Star } from "lucide-react";
+import {
+  BrushCleaning,
+  Check,
+  LaptopMinimalCheck,
+  Microchip,
+  Star,
+} from "lucide-react";
 import Link from "next/link";
 import TitleSection from "./common/title-section";
 
@@ -24,6 +31,18 @@ interface PricingPlan {
   buttonText: string;
   buttonVariant: "default" | "outline";
   href: string;
+  buttonEffect:
+    | "shineHover"
+    | "expandIcon"
+    | "expandIconRing"
+    | "underline"
+    | "gradientSlideShow"
+    | "gooeyRight"
+    | "gooeyLeft"
+    | "ringHover"
+    | "hoverUnderline";
+  buttonIcon: React.ElementType;
+  buttonIconPlacement: "left" | "right";
 }
 
 const pricingPlans: PricingPlan[] = [
@@ -45,7 +64,10 @@ const pricingPlans: PricingPlan[] = [
     ],
     buttonText: "Solicitar soporte",
     buttonVariant: "outline",
-    href: "/contacto",
+    buttonEffect: "shineHover",
+    buttonIcon: LaptopMinimalCheck,
+    buttonIconPlacement: "left",
+    href: socialLinks.whatsapp,
   },
   {
     id: "mantenimiento-fisico-logico",
@@ -70,7 +92,10 @@ const pricingPlans: PricingPlan[] = [
     isPopular: true,
     buttonText: "Contratar mantenimiento",
     buttonVariant: "default",
-    href: "/contacto",
+    href: socialLinks.whatsapp,
+    buttonEffect: "shineHover",
+    buttonIcon: BrushCleaning,
+    buttonIconPlacement: "left",
   },
   {
     id: "reparacion",
@@ -91,7 +116,10 @@ const pricingPlans: PricingPlan[] = [
     ],
     buttonText: "Solicitar reparación",
     buttonVariant: "outline",
-    href: "/contacto",
+    href: socialLinks.whatsapp,
+    buttonEffect: "shineHover",
+    buttonIcon: Microchip,
+    buttonIconPlacement: "left",
   },
 ];
 
@@ -153,6 +181,9 @@ const PricingCard = ({ plan }: { plan: PricingPlan }) => (
       <Button
         asChild
         variant={plan.buttonVariant}
+        effect={plan.buttonEffect}
+        icon={plan.buttonIcon}
+        iconPlacement={plan.buttonIconPlacement}
         className={`w-full transition-all duration-300 ${
           plan.isPopular
             ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl"
