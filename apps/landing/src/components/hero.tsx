@@ -1,4 +1,4 @@
-import { socialLinks } from "@renovabit/shared/src/config/links";
+import { contact, socialLinks } from "@renovabit/shared/src/config/links";
 import {
   FacebookIcon,
   TikTokIcon,
@@ -136,7 +136,7 @@ export default function Hero() {
                 href={socialLinks.whatsapp}
                 className="hover:text-primary-foreground dark:hover:text-secondary-foreground"
               >
-                987 471 074
+                {contact.phone}
               </Link>
             </Highlighter>
           </span>
