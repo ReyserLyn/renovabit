@@ -1,6 +1,8 @@
 import "@renovabit/ui/globals.css";
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
+import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
 import { ThemeProvider } from "@/providers/theme-provider";
 
 const outfit = Outfit({ subsets: ["latin"] });
@@ -24,7 +26,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Navbar />
           {children}
+          <Footer />
         </ThemeProvider>
       </body>
     </html>

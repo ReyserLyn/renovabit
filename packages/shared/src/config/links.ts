@@ -9,8 +9,12 @@ export const socialLinks = {
 
 export const contact = {
   phone: "987 471 074",
-  email: "info@renovabit.com",
-  address: "Av. de la Paz, 123, Ciudad de México, México",
+  emails: [
+    "info@renovabit.com",
+    "contacto@renovabit.com",
+    "soporte@renovabit.com",
+  ],
+  address: "Av. Goyeneche 1602, Miraflores, Arequipa - 04004",
   website: "https://www.renovabit.com",
   hours: "Lunes a Viernes, 8:00 AM - 8:00 PM",
 };

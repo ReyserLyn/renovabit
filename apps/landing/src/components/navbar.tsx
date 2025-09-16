@@ -22,11 +22,18 @@ export default function Navbar() {
     <nav className="sticky top-4 z-40 mx-4 my-2 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-2xl shadow-lg flex items-center justify-between navbar-container">
       <Link href="/" className="flex-shrink-0">
         <Image
-          src="/logo/ts/light/horizontal.webp"
+          src="/logo/ts/dark/horizontal.svg"
           alt="RenovaBit Logo"
           width={165.16}
           height={40}
-          className="h-8 w-auto md:h-10"
+          className="h-8 w-auto md:h-10 hidden dark:block"
+        />
+        <Image
+          src="/logo/ts/light/horizontal.svg"
+          alt="RenovaBit Logo"
+          width={165.16}
+          height={40}
+          className="h-8 w-auto md:h-10 dark:hidden"
         />
       </Link>
 

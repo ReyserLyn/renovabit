@@ -9,7 +9,7 @@
     "check-types": "tsc --noEmit"
   },
   "exports": {
-    "./*": "./src/*.tsx"
+    "./*": "./src/*"
   },
   "devDependencies": {
     "@renovabit/tsconfig": "workspace:*",

@@ -1,7 +1,8 @@
 "use client";
 
 import { Moon, SunDim } from "lucide-react";
-import { useRef, useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { cn } from "../../utils/cn";
 
@@ -11,15 +12,30 @@ type props = {
 };
 
 export const AnimatedThemeToggler = ({ className, size = 20 }: props) => {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <button className={cn(className)} type="button" disabled>
+        <div style={{ width: size, height: size }} />
+      </button>
+    );
+  }
+
   const changeTheme = async () => {
     if (!buttonRef.current) return;
 
+    const newTheme = theme === "dark" ? "light" : "dark";
+
     await document.startViewTransition(() => {
       flushSync(() => {
-        const dark = document.documentElement.classList.toggle("dark");
-        setIsDarkMode(dark);
+        setTheme(newTheme);
       });
     }).ready;
 
@@ -46,6 +62,7 @@ export const AnimatedThemeToggler = ({ className, size = 20 }: props) => {
       },
     );
   };
+
   return (
     <button
       ref={buttonRef}
@@ -53,7 +70,7 @@ export const AnimatedThemeToggler = ({ className, size = 20 }: props) => {
       className={cn(className)}
       type="button"
     >
-      {isDarkMode ? <SunDim size={size} /> : <Moon size={size} />}
+      {theme === "dark" ? <SunDim size={size} /> : <Moon size={size} />}
     </button>
   );
 };
