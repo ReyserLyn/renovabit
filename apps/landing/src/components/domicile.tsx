@@ -3,7 +3,6 @@ import { Badge } from "@renovabit/ui/src/components/ui/badge";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import { Card } from "@renovabit/ui/src/components/ui/card";
 import {
-  CheckCircle,
   Clock,
   Home,
   MapPin,
@@ -221,9 +220,6 @@ export default function Domicile() {
               <div className="w-full md:w-1/2 lg:w-2/5">
                 <Card className="p-6 bg-gradient-to-br from-card to-muted/20 border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
                   <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                    </div>
                     <div className="p-3 bg-primary/10 rounded-lg flex-shrink-0">
                       {(() => {
                         const IconComponent = availableServices[2].icon;
