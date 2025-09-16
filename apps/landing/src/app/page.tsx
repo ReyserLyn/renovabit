@@ -4,6 +4,7 @@ import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
 import Presentation from "@/components/presentation";
 import Pricing from "@/components/pricing";
+import Testimonials from "@/components/testimonials";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <Presentation />
       <Pricing />
       <Domicile />
+      <Testimonials />
     </main>
   );
 }
