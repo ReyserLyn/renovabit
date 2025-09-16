@@ -50,7 +50,7 @@ const contactInfo = [
 
 const navigationLinks = [
   { href: "/", name: "Inicio" },
-  { href: "/contacto", name: "Contacto" },
+  { href: socialLinks.whatsapp, name: "Contacto" },
 ];
 
 const footerSocialLinks = [
