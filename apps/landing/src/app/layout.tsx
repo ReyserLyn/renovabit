@@ -1,6 +1,7 @@
 import "@renovabit/ui/globals.css";
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -15,8 +16,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
-      <body className={`${outfit.className}`}>{children}</body>
+    <html lang="es" suppressHydrationWarning>
+      <body className={`${outfit.className}`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
