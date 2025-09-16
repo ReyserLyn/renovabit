@@ -9,6 +9,10 @@ import Testimonials from "@/components/testimonials";
 export default function Home() {
   return (
     <main className="container">
+      <h1 className="sr-only">
+        RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa
+      </h1>
+
       <Hero />
       <Features />
       <Presentation />

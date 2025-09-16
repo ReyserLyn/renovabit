@@ -42,10 +42,6 @@ export default function Hero() {
   const heroContent = (
     <>
       <div>
-        <h1 className="sr-only">
-          RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa
-        </h1>
-
         <div className="relative" aria-hidden="true">
           <div className="absolute inset-0 text-2xl font-bold text-center text-primary/60 blur-lg md:text-3xl lg:text-4xl lg:text-secondary/60 dark:lg:text-primary/60 xl:text-5xl 2xl:text-6xl [@media(max-height:750px)]:text-primary/60">
             Servicio Técnico
