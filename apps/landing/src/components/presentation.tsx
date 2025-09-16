@@ -81,19 +81,21 @@ export default function Presentation() {
             </div>
 
             {/* Estadísticas */}
-            <div className="grid grid-cols-2 gap-4 pt-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-4 pt-6">
               {stats.map((stat, index) => (
                 <Card
                   key={index}
-                  className="p-4 bg-gradient-to-br from-card to-muted/20 border-primary/20 hover:border-primary/40 transition-all duration-300"
+                  className="p-3 sm:p-4 bg-gradient-to-br from-card to-muted/20 border-primary/20 hover:border-primary/40 transition-all duration-300"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <stat.icon className="w-4 h-4 text-primary" />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                      <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
                     </div>
-                    <div>
-                      <div className="text-lg font-bold">{stat.value}</div>
-                      <div className="text-xs text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm sm:text-base md:text-lg font-bold truncate">
+                        {stat.value}
+                      </div>
+                      <div className="text-xs sm:text-xs text-muted-foreground leading-tight">
                         {stat.label}
                       </div>
                     </div>
