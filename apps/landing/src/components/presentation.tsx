@@ -142,8 +142,9 @@ export default function Presentation() {
                   >
                     <Image
                       src="/images/services/mantenimiento.webp"
-                      alt="Mantenimiento especializado de equipos"
+                      alt="Mantenimiento preventivo de laptops y PCs en Arequipa - RenovaBit limpieza profesional"
                       fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -168,8 +169,9 @@ export default function Presentation() {
                   >
                     <Image
                       src="/images/services/reparacion.png"
-                      alt="Reparación avanzada con microsoldadura"
+                      alt="Reparación electrónica avanzada de laptops en Arequipa - Microsoldadura SMD especializada"
                       fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
                       className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

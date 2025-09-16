@@ -1,0 +1,19 @@
+# *
+User-agent: *
+Allow: /
+
+# Googlebot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Host
+Host: https://www.renovabit.com
+
+# Sitemaps
+Sitemap: https://www.renovabit.com/sitemap.xml

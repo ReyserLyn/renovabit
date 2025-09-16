@@ -72,9 +72,10 @@ export default function Hero() {
           {/* Logo light */}
           <Image
             src="/logo/ts/light/horizontal.svg"
-            alt="Logo Renovabit"
+            alt="RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa, reparación a domicilio"
             width={600}
             height={146}
+            priority={true}
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] block lg:hidden dark:hidden [@media(max-height:750px)]:block [@media(max-height:750px)]:dark:hidden"
             style={logoNeonStyleLight}
           />
@@ -82,9 +83,10 @@ export default function Hero() {
           {/* Logo dark */}
           <Image
             src="/logo/ts/dark/horizontal.svg"
-            alt="Logo Renovabit"
+            alt="RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa, reparación a domicilio"
             width={600}
             height={146}
+            priority={true}
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] hidden lg:block dark:block [@media(max-height:750px)]:hidden [@media(max-height:750px)]:dark:block"
             style={logoNeonStyleDark}
           />
@@ -179,8 +181,9 @@ export default function Hero() {
           <AspectRatio ratio={16 / 10}>
             <Image
               src="/images/hero/laptop.webp"
-              alt="Laptop de fondo"
+              alt="Laptop moderna siendo reparada por técnicos especializados de RenovaBit en Arequipa"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
               className="object-cover rounded-2xl md:translate-y-[35px] [filter:drop-shadow(0_10px_20px_rgba(88,28,135,0.6))] dark:[filter:drop-shadow(0_10px_20px_rgba(109,40,217,0.4))]"
               style={{
                 transform: "translateX(6px)",
