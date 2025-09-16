@@ -4,7 +4,7 @@ export const socialLinks = {
   tiktok: "https://www.tiktok.com/@renovabit",
   instagram: "https://www.instagram.com/renovabit",
   github: "https://www.github.com/renovabit",
-  twitter: "https://www.twitter.com/renovabit",
+  x: "https://www.x.com/renovabit",
   telegram: "https://www.telegram.com/renovabit",
 };
 

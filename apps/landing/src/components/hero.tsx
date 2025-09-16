@@ -1,9 +1,18 @@
+import { socialLinks } from "@renovabit/shared/src/config/links";
+import {
+  FacebookIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+} from "@renovabit/ui/src/components/icons";
+
 import { AnimatedGridPattern } from "@renovabit/ui/src/components/magicui/animated-grid-pattern";
 import { Highlighter } from "@renovabit/ui/src/components/magicui/highlighter";
 import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import { cn } from "@renovabit/ui/src/utils/cn";
+
 import Image from "next/image";
+import { SocialLinks } from "./common/social-link";
 
 export default function Hero() {
   const logoNeonStyleDark = {
@@ -22,6 +31,12 @@ export default function Hero() {
     background: "linear-gradient(45deg, #8b5cf6, #a855f7, #c084fc)",
     borderRadius: "12px",
   };
+
+  const heroSocialLinks = [
+    { icon: WhatsAppIcon, name: "WhatsApp", href: socialLinks.whatsapp },
+    { icon: FacebookIcon, name: "Facebook", href: socialLinks.facebook },
+    { icon: TikTokIcon, name: "TikTok", href: socialLinks.tiktok },
+  ];
 
   const heroContent = (
     <>
@@ -104,9 +119,7 @@ export default function Hero() {
         </div>
 
         <div className="flex items-center justify-center gap-3 md:gap-4">
-          <div className="w-4 h-4 border border-primary rounded-full md:w-5 md:h-5"></div>
-          <div className="w-4 h-4 border border-primary rounded-full md:w-5 md:h-5"></div>
-          <div className="w-4 h-4 border border-primary rounded-full md:w-5 md:h-5"></div>
+          <SocialLinks socialLinks={heroSocialLinks} />
           <span className="text-lg font-bold sm:text-accent dark:sm:text-accent-foreground xl:text-2xl [@media(max-height:750px)]:text-foreground">
             <Highlighter action="box" color="#654fcc">
               987 471 074

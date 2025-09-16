@@ -1,15 +1,15 @@
 import { contact, socialLinks } from "@renovabit/shared/src/config/links";
 import {
-  Clock,
-  Facebook,
-  Instagram,
-  Mail,
-  MapPin,
-  MessageCircle,
-  Phone,
-} from "lucide-react";
+  FacebookIcon,
+  InstagramIcon,
+  TikTokIcon,
+  WhatsAppIcon,
+  XIcon,
+} from "@renovabit/ui/src/components/icons";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SocialLinks } from "./common/social-link";
 import MapRenovaBit from "./footer/map";
 
 const contactInfo = [
@@ -54,33 +54,16 @@ const navigationLinks = [
 ];
 
 const footerSocialLinks = [
-  { icon: Facebook, name: "Facebook", href: socialLinks.facebook },
-  { icon: Instagram, name: "Instagram", href: socialLinks.instagram },
+  { icon: FacebookIcon, name: "Facebook", href: socialLinks.facebook },
+  { icon: InstagramIcon, name: "Instagram", href: socialLinks.instagram },
+  { icon: TikTokIcon, name: "TikTok", href: socialLinks.tiktok },
+  { icon: XIcon, name: "X", href: socialLinks.x },
   {
-    icon: MessageCircle,
+    icon: WhatsAppIcon,
     name: "WhatsApp",
-    href: `https://wa.me/51${contact.phone.replace(/\s/g, "")}`,
+    href: socialLinks.whatsapp,
   },
 ];
-
-function SocialLinks({ className = "" }: { className?: string }) {
-  return (
-    <div className={`flex gap-2 ${className}`}>
-      {footerSocialLinks.map(({ icon: Icon, name, href }, idx) => (
-        <Link
-          key={idx}
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          aria-label={name}
-          className="w-8 h-8 bg-card border border-border rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 transition-all duration-200"
-        >
-          <Icon className="w-3 h-3" />
-        </Link>
-      ))}
-    </div>
-  );
-}
 
 export default function Footer() {
   return (
@@ -120,7 +103,7 @@ export default function Footer() {
               ))}
             </nav>
 
-            <SocialLinks />
+            <SocialLinks socialLinks={footerSocialLinks} />
           </div>
         </div>
 
@@ -166,7 +149,7 @@ export default function Footer() {
               <h4 className="text-sm font-medium text-foreground mb-4">
                 Redes sociales:
               </h4>
-              <SocialLinks />
+              <SocialLinks socialLinks={footerSocialLinks} />
             </div>
           </div>
 
