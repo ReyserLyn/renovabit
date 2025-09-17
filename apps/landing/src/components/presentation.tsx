@@ -136,24 +136,18 @@ export default function Presentation() {
             <div className="relative w-80 h-80 md:w-96 md:h-96 lg:w-108 lg:h-108">
               <div className="absolute top-0 left-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-20 group">
                 <div className="relative w-full h-full">
-                  <AspectRatio
-                    ratio={1}
-                    className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
-                  >
-                    <Image
-                      src="/images/services/mantenimiento.webp"
-                      alt="Mantenimiento preventivo de laptops y PCs en Arequipa - RenovaBit limpieza profesional"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-sm font-medium">
-                        Equipo especializado
-                      </p>
-                    </div>
-                  </AspectRatio>
+                  <Image
+                    src="/images/about/conocenos-1.webp"
+                    alt="Mantenimiento preventivo de laptops y PCs en Arequipa - RenovaBit limpieza profesional"
+                    width={240}
+                    height={240}
+                    loading="lazy"
+                    className="rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500 object-cover group-hover:scale-105  aspect-square"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p className="text-sm font-medium">Equipo especializado</p>
+                  </div>
 
                   <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-2 shadow-lg z-10">
                     <Shield className="w-4 h-4" />
@@ -168,10 +162,10 @@ export default function Presentation() {
                     className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
                   >
                     <Image
-                      src="/images/services/reparacion.png"
+                      src="/images/services/taller.avif"
                       alt="Reparación electrónica avanzada de laptops en Arequipa - Microsoldadura SMD especializada"
                       fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
+                      loading="lazy"
                       className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

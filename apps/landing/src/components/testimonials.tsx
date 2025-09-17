@@ -28,7 +28,7 @@ const testimonialsData: Testimonial[] = [
     id: "cliente-1",
     name: "Javier Montoya",
     role: "Estudiante de Administración",
-    image: "/images/services/soporte.png",
+    image: "/images/services/soporte-remoto.avif",
     testimonial:
       "Me hicieron el mantenimiento completo de mi laptop, además de actualizarla de Windows 10 a Windows 11 y ampliar el almacenamiento con un SSD y más RAM. Ahora corre mucho más rápido y puedo trabajar sin problemas. Muy agradecido con el servicio.",
     featured: true,

@@ -67,7 +67,7 @@ export default function Domicile() {
                   className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
                 >
                   <Image
-                    src="/images/services/soporte.png"
+                    src="/images/services/soporte-remoto.avif"
                     alt="Servicio técnico de laptops a domicilio en Arequipa - Atención profesional en casa"
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"

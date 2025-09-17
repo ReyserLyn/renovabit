@@ -1,4 +1,3 @@
-import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import {
   IconBulb,
   IconDatabase,
@@ -6,14 +5,13 @@ import {
   IconTool,
 } from "@tabler/icons-react";
 import { Monitor, Zap } from "lucide-react";
-import Image from "next/image";
+import { ImageCard } from "../common/image-card";
 import type { Problem } from "./types";
 
 const SKELETON_THREE_CONFIG = {
-  image: "/images/services/mantenimiento.webp",
-  alt: "Mantenimiento y mejoras",
-  description:
-    "Diagnóstico profesional para identificar y solucionar cualquier problema técnico.",
+  image: "/images/services/mantenimiento.avif",
+  alt: "Antes y después de un mantenimiento con RenovaBit",
+  description: "Antes y después de un mantenimiento con RenovaBit.",
 };
 
 export const SkeletonThree = () => {
@@ -38,25 +36,17 @@ export const SkeletonThree = () => {
 
   return (
     <div className="relative flex flex-col gap-4 h-full p-6 bg-gradient-to-br from-muted/20 via-accent/5 to-secondary/10 rounded-2xl border-2 border-accent/30 shadow-lg">
-      <div className="relative w-full mx-auto mb-2 rounded-2xl group">
-        <AspectRatio ratio={16 / 9} className="z-0 overflow-hidden rounded-2xl">
-          <Image
-            src={SKELETON_THREE_CONFIG.image}
-            alt={SKELETON_THREE_CONFIG.alt}
-            fill
-            className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <p className="text-sm font-medium">
-              {SKELETON_THREE_CONFIG.description}
-            </p>
-          </div>
-          <div className="absolute top-2 right-2 bg-accent/90 text-accent-foreground rounded-full p-1.5 z-10 group-hover:scale-110 transition-transform duration-500">
-            <IconTool size={14} />
-          </div>
-        </AspectRatio>
-      </div>
+      <ImageCard
+        image={SKELETON_THREE_CONFIG.image}
+        alt={SKELETON_THREE_CONFIG.alt}
+        description={SKELETON_THREE_CONFIG.description}
+        icon={IconTool}
+        iconSize={14}
+        aspectRatio="video"
+        width={550}
+        height={344}
+        iconBgColor="bg-accent/90 text-accent-foreground"
+      />
 
       <div className="space-y-3">
         <div className="flex items-center gap-2 pb-2 border-b border-border/50">

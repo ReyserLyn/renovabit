@@ -1,4 +1,3 @@
-import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import {
   IconBolt,
   IconDeviceDesktop,
@@ -7,14 +6,13 @@ import {
   IconWorld,
 } from "@tabler/icons-react";
 
-import Image from "next/image";
+import { ImageCard } from "../common/image-card";
 import type { Service } from "./types";
 
 const SKELETON_TWO_CONFIG = {
-  image: "/images/services/soporte.png",
-  alt: "Soporte técnico remoto",
-  description:
-    "Soporte técnico especializado desde cualquier lugar con total seguridad.",
+  image: "/images/services/soporte-remoto.avif",
+  alt: "Soporte técnico remoto usando RustDesk",
+  description: "Soporte técnico desde cualquier lugar con total seguridad.",
 };
 
 export const SkeletonTwo = () => {
@@ -43,25 +41,18 @@ export const SkeletonTwo = () => {
 
   return (
     <div className="relative flex flex-col items-center p-5 gap-4 h-full overflow-hidden bg-gradient-to-br from-primary/8 via-secondary/5 to-accent/8 rounded-2xl border-2 border-primary/20 shadow-lg">
-      <div className="relative w-[70%] mx-auto mb-2 rounded-2xl group">
-        <AspectRatio ratio={1 / 1} className="z-0">
-          <Image
-            src={SKELETON_TWO_CONFIG.image}
-            alt={SKELETON_TWO_CONFIG.alt}
-            fill
-            className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <p className="text-sm font-medium">
-              {SKELETON_TWO_CONFIG.description}
-            </p>
-          </div>
-          <div className="absolute top-2 right-2 bg-primary/90 text-primary-foreground rounded-full p-1 z-10 group-hover:scale-110 transition-transform duration-500">
-            <IconWorld size={12} />
-          </div>
-        </AspectRatio>
-      </div>
+      <ImageCard
+        image={SKELETON_TWO_CONFIG.image}
+        alt={SKELETON_TWO_CONFIG.alt}
+        description={SKELETON_TWO_CONFIG.description}
+        icon={IconWorld}
+        iconSize={12}
+        aspectRatio="square"
+        width={224}
+        height={224}
+        containerClassName="w-[70%]"
+        iconBgColor="bg-primary/90 text-primary-foreground"
+      />
 
       <div className="w-full space-y-3">
         {services.map((service, idx) => {
