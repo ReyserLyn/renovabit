@@ -74,7 +74,6 @@ export default function Hero() {
             width={600}
             height={146}
             priority={true}
-            fetchPriority="high"
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] block lg:hidden dark:hidden [@media(max-height:750px)]:block [@media(max-height:750px)]:dark:hidden"
             style={logoNeonStyleLight}
           />
@@ -180,6 +179,7 @@ export default function Hero() {
           <Image
             priority={true}
             loading="eager"
+            fetchPriority="high"
             src="/images/hero/laptop-msi.avif"
             alt="Laptop MSI "
             width={1376}
