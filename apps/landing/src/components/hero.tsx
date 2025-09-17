@@ -179,11 +179,13 @@ export default function Hero() {
         <div className="w-full max-w-[1440px] px-4 mx-auto">
           <AspectRatio ratio={16 / 10}>
             <Image
-              src="/images/hero/laptop.webp"
-              alt="Laptop moderna siendo reparada por técnicos especializados de RenovaBit en Arequipa"
+              src="/images/hero/laptop-msi.avif"
+              alt="Laptop MSI "
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
               className="object-cover rounded-2xl md:translate-y-[35px] [filter:drop-shadow(0_10px_20px_rgba(88,28,135,0.6))] dark:[filter:drop-shadow(0_10px_20px_rgba(109,40,217,0.4))]"
+              priority={true}
+              loading="eager"
               style={{
                 transform: "translateX(6px)",
               }}
