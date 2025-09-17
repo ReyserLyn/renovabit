@@ -73,7 +73,9 @@ export default function Hero() {
             alt="RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa, reparación a domicilio"
             width={600}
             height={146}
+            fetchPriority="high"
             priority={true}
+            loading="eager"
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] block lg:hidden dark:hidden [@media(max-height:750px)]:block [@media(max-height:750px)]:dark:hidden"
             style={logoNeonStyleLight}
           />
@@ -84,7 +86,9 @@ export default function Hero() {
             alt="RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa, reparación a domicilio"
             width={600}
             height={146}
+            fetchPriority="high"
             priority={true}
+            loading="eager"
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] hidden lg:block dark:block [@media(max-height:750px)]:hidden [@media(max-height:750px)]:dark:block"
             style={logoNeonStyleDark}
           />

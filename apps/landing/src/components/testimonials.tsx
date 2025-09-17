@@ -1,4 +1,3 @@
-import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import {
   Avatar,
   AvatarFallback,
@@ -9,8 +8,8 @@ import {
   CardContent,
   CardHeader,
 } from "@renovabit/ui/src/components/ui/card";
-import { Quote } from "lucide-react";
-import Image from "next/image";
+import { BrushCleaning, Quote } from "lucide-react";
+import { ImageCard } from "./common/image-card";
 import TitleSection from "./common/title-section";
 
 interface Testimonial {
@@ -19,6 +18,7 @@ interface Testimonial {
   role: string;
   company?: string;
   image?: string;
+  description?: string;
   testimonial: string;
   featured?: boolean;
 }
@@ -26,27 +26,30 @@ interface Testimonial {
 const testimonialsData: Testimonial[] = [
   {
     id: "cliente-1",
-    name: "Javier Montoya",
-    role: "Estudiante de Administración",
-    image: "/images/services/soporte-remoto.avif",
+    name: "Sr. Lucio",
+    role: "Ingeniero de Minas – Jefe de Departamento",
+    image: "/images/testimonials/testimonial.avif",
+    description:
+      "Imagen de la pc de Sr. Lucio después de un mantenimiento a domicilio",
     testimonial:
-      "Me hicieron el mantenimiento completo de mi laptop, además de actualizarla de Windows 10 a Windows 11 y ampliar el almacenamiento con un SSD y más RAM. Ahora corre mucho más rápido y puedo trabajar sin problemas. Muy agradecido con el servicio.",
+      "Solicité el servicio a domicilio y quedé sorprendido con la puntualidad y profesionalismo. Me hicieron mantenimiento, revisión de la tarjeta gráfica e instalación de programas. Tener todo resuelto en mi hogar fue una gran ayuda.",
     featured: true,
   },
   {
     id: "cliente-2",
+    name: "Javier Montoya",
+    role: "Estudiante de Administración",
+    testimonial:
+      "Me hicieron el mantenimiento completo de mi laptop, además de actualizarla de Windows 10 a Windows 11 y ampliar el almacenamiento con un SSD y más RAM. Ahora corre mucho más rápido y puedo trabajar sin problemas. Muy agradecido con el servicio.",
+  },
+  {
+    id: "cliente-3",
     name: "Mariana Cáceres",
     role: "Estudiante de Arquitectura",
     testimonial:
       "Tenía mi computadora lenta y con poco espacio. Me ayudaron con la limpieza, instalación de programas de arquitectura y ampliación de memoria. Todo quedó funcionando de maravilla y pude seguir con mis proyectos sin perder tiempo.",
   },
-  {
-    id: "cliente-3",
-    name: "Sr. Lucio",
-    role: "Ingeniero de Minas – Jefe de Departamento",
-    testimonial:
-      "Solicité el servicio a domicilio y quedé sorprendido con la puntualidad y profesionalismo. Me hicieron mantenimiento, revisión de la tarjeta gráfica e instalación de programas. Tener todo resuelto en mi oficina fue una gran ventaja.",
-  },
+
   {
     id: "cliente-4",
     name: "Paola Rivera",
@@ -66,28 +69,23 @@ const TestimonialCard = ({
   if (testimonial.featured) {
     return (
       <Card
-        className={`grid grid-rows-[auto_1fr] gap-8 sm:p-6 bg-gradient-to-br from-card to-muted/20 border-primary/10 hover:border-primary/20 transition-all duration-300 hover:shadow-lg ${className}`}
+        className={`grid grid-rows-[auto_1fr] sm:p-6 bg-gradient-to-br from-card to-muted/20 border-primary/10 hover:border-primary/20 transition-all duration-300 hover:shadow-lg ${className}`}
       >
         <CardHeader>
           {testimonial.image && (
-            <div className="w-full h-auto rounded-2xl group">
-              <AspectRatio
-                ratio={16 / 9}
-                className="overflow-hidden rounded-2xl"
-              >
-                <Image
-                  className="object-cover rounded-2xl group-hover:scale-105 transition-transform duration-500"
-                  src={testimonial.image}
-                  alt={`${testimonial.name} Imagen`}
-                  fill
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <p className="text-sm font-medium">
-                    Testimonio de {testimonial.name}
-                  </p>
-                </div>
-              </AspectRatio>
+            <div className="w-full h-auto rounded-2xl">
+              <ImageCard
+                image={testimonial.image}
+                alt={testimonial.description || ""}
+                description={testimonial.description || ""}
+                icon={BrushCleaning}
+                iconSize={16}
+                aspectRatio="square"
+                width={517}
+                height={517}
+                containerClassName="w-[70%]"
+                className="overflow-hidden"
+              />
             </div>
           )}
         </CardHeader>

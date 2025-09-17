@@ -76,7 +76,8 @@ export default function Footer() {
                 src="/logo/ts/light/horizontal.svg"
                 alt="RenovaBit Logo"
                 width={300}
-                height={73.44}
+                height={73}
+                loading="lazy"
                 className="block dark:hidden"
               />
 
@@ -84,7 +85,8 @@ export default function Footer() {
                 src="/logo/ts/dark/horizontal.svg"
                 alt="RenovaBit Logo"
                 width={300}
-                height={73.44}
+                height={73}
+                loading="lazy"
                 className="hidden dark:block"
               />
             </Link>
