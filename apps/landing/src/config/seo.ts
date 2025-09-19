@@ -7,7 +7,7 @@ export const siteConfig = {
   description:
     "Servicio técnico especializado en Arequipa. Reparación laptops, mantenimiento a domicilio, soporte remoto y armado de PCs.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.renovabit.com",
-  ogImage: "/og-image.jpg",
+  ogImage: "/og-image.jpg?v=1",
 
   // Información de contacto y ubicación
   business: {
@@ -125,7 +125,7 @@ export const baseMetadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
-    images: ["/twitter-card.jpg"],
+    images: ["/twitter-card.jpg?v=1"],
     creator: "@RenovaBit",
   },
 
@@ -217,7 +217,7 @@ export const localBusinessStructuredData = {
   name: siteConfig.business.name,
   image: [
     `${siteConfig.url}/logo/ts/dark/horizontal.svg`,
-    `${siteConfig.url}/og-image.jpg`,
+    `${siteConfig.url}/og-image.jpg?v=1`,
   ],
   description: siteConfig.description,
   url: siteConfig.url,
