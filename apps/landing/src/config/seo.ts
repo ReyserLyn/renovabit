@@ -258,7 +258,7 @@ export const localBusinessStructuredData = {
   priceRange: "S/49 - S/149",
   paymentAccepted: "Cash, Credit Card, Bank Transfer",
   currenciesAccepted: "PEN",
-  openingHours: "Mo-Sa 09:00-18:00",
+  openingHours: "Mo-Sa 08:00-20:00",
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Servicios Técnicos",
@@ -329,7 +329,12 @@ export const localBusinessStructuredData = {
       datePublished: "2025-01-10",
     },
   ],
-  sameAs: ["https://x.com/RenovaBit"],
+  sameAs: [
+    "https://x.com/RenovaBit",
+    "https://www.facebook.com/renovabit",
+    "https://www.instagram.com/renovabit_arequipa",
+    "https://www.tiktok.com/@renovabit",
+  ],
 };
 
 // JSON-LD para WebSite

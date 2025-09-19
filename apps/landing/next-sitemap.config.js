@@ -1,18 +1,13 @@
 /** @type {import('next-sitemap').IConfig} */
 export default {
   siteUrl: process.env.SITE_URL || "https://www.renovabit.com",
-  generateRobotsTxt: true,
+  generateRobotsTxt: false,
   trailingSlash: false,
   changefreq: "weekly",
   priority: 0.9,
   sitemapSize: 5000,
   exclude: [],
-  generateIndexSitemap: true,
-
-  robotsTxtOptions: {
-    policies: [{ userAgent: "*", allow: "/" }],
-    additionalSitemaps: ["https://www.renovabit.com/sitemap.xml"],
-  },
+  generateIndexSitemap: false,
 
   transform: async (config, path) => {
     let priority = config.priority;
