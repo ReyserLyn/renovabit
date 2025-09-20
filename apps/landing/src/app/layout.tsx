@@ -26,6 +26,9 @@ export default function RootLayout({
         {/* Datos estructurados JSON-LD */}
         <StructuredData />
 
+        {/* Icon*/ }
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+
         {/* Verificaciones adicionales */}
         <meta
           name="google-site-verification"
