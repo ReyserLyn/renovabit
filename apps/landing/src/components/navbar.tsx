@@ -16,6 +16,9 @@ export default function Navbar() {
             alt="RenovaBit Logo"
             width={165.16}
             height={40.19}
+            loading="eager"
+            fetchPriority="high"
+            priority={true}
             className="hidden dark:block"
           />
           <Image
@@ -23,6 +26,9 @@ export default function Navbar() {
             alt="RenovaBit Logo"
             width={165.16}
             height={40.19}
+            loading="eager"
+            fetchPriority="high"
+            priority={true}
             className="dark:hidden"
           />
         </Link>

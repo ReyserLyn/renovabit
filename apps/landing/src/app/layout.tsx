@@ -26,6 +26,9 @@ export default function RootLayout({
         {/* Datos estructurados JSON-LD */}
         <StructuredData />
 
+        {/* Icon*/ }
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+
         {/* Verificaciones adicionales */}
         <meta
           name="google-site-verification"
@@ -45,15 +48,7 @@ export default function RootLayout({
 
         {/* Optimización para dispositivos móviles */}
         <meta name="format-detection" content="telephone=no" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="RenovaBit" />
         <meta name="theme-color" content="#8b5cf6" />
-
-        {/* Microsoft Tiles */}
-        <meta name="msapplication-TileColor" content="#8b5cf6" />
-        <meta name="msapplication-config" content="/browserconfig.xml" />
 
         {/* Open Graph Logo */}
         <meta
@@ -61,17 +56,31 @@ export default function RootLayout({
           content="https://www.renovabit.com/logo/ts/dark/horizontal.svg"
         />
 
-        {/* Iconos adicionales */}
-        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#8b5cf6" />
-
-        {/* Android Chrome */}
-        <meta name="mobile-web-app-title" content="RenovaBit" />
-
         {/* Geo tags para SEO local */}
         <meta name="geo.region" content="PE-ARE" />
         <meta name="geo.placename" content="Arequipa" />
         <meta name="geo.position" content="-16.409047;-71.537451" />
         <meta name="ICBM" content="-16.409047, -71.537451" />
+
+        {/* Core Web Vitals y Performance */}
+        <meta name="color-scheme" content="light dark" />
+        <meta name="supported-color-schemes" content="light dark" />
+
+        {/* Preload crítico para Core Web Vitals */}
+        <link
+          rel="preload"
+          href="/images/hero/laptop-msi.avif"
+          as="image"
+          type="image/avif"
+        />
+
+        {/* Resource hints para PostHog */}
+        <link rel="dns-prefetch" href="//us.posthog.com" />
+        <link
+          rel="preconnect"
+          href="https://us.posthog.com"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${outfit.className} ${outfit.variable}`}>
         <ThemeProvider

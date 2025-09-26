@@ -1,56 +1,30 @@
 /** @type {import('next-sitemap').IConfig} */
 export default {
   siteUrl: process.env.SITE_URL || "https://www.renovabit.com",
-  generateRobotsTxt: true,
+  generateRobotsTxt: false,
+  trailingSlash: false,
   changefreq: "weekly",
   priority: 0.9,
   sitemapSize: 5000,
   exclude: [],
+  generateIndexSitemap: false,
 
-  // Configuración de robots.txt
-  robotsTxtOptions: {
-    policies: [
-      {
-        userAgent: "*",
-        allow: "/",
-      },
-      // Permitir específicamente a Googlebot
-      {
-        userAgent: "Googlebot",
-        allow: "/",
-        crawlDelay: 1,
-      },
-      // Permitir específicamente a Bingbot
-      {
-        userAgent: "Bingbot",
-        allow: "/",
-        crawlDelay: 1,
-      },
-    ],
-    additionalSitemaps: [],
-  },
-
-  // Transformador personalizado para optimizar URLs
   transform: async (config, path) => {
-    // Prioridades específicas por sección
     let priority = config.priority;
     let changefreq = config.changefreq;
 
     if (path === "/") {
       priority = 1.0;
-      changefreq = "weekly";
+      changefreq = "daily";
     }
 
     return {
-      loc: path,
+      loc: `${config.siteUrl}${path}`,
       changefreq,
       priority,
-      lastmod: config.autoLastmod ? new Date().toISOString() : undefined,
+      lastmod: new Date().toISOString(),
     };
   },
 
-  additionalPaths: async (_config) => [
-    // await config.transform(config, '/servicios'),
-    // await config.transform(config, '/contacto'),
-  ],
+  additionalPaths: async (_config) => [],
 };

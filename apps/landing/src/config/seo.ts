@@ -7,7 +7,7 @@ export const siteConfig = {
   description:
     "Servicio técnico especializado en Arequipa. Reparación laptops, mantenimiento a domicilio, soporte remoto y armado de PCs.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://www.renovabit.com",
-  ogImage: "/og-image.jpg",
+  ogImage: "/og-image.jpg?v=1",
 
   // Información de contacto y ubicación
   business: {
@@ -42,12 +42,13 @@ export const siteConfig = {
     // Principales
     "servicio técnico arequipa",
     "reparación laptops arequipa",
+    "técnico computadoras arequipa",
     "mantenimiento pc arequipa",
     "soporte técnico arequipa",
 
     // Long-tail
     "reparación laptops a domicilio arequipa",
-    "servicio técnico laptops cercado arequipa",
+    "servicio técnico laptops miraflores arequipa",
     "mantenimiento computadoras domicilio arequipa",
     "armado pc gaming arequipa",
     "soporte técnico remoto arequipa",
@@ -124,7 +125,7 @@ export const baseMetadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.title,
     description: siteConfig.description,
-    images: ["/twitter-card.jpg"],
+    images: ["/twitter-card.jpg?v=1"],
     creator: "@RenovaBit",
   },
 
@@ -132,18 +133,25 @@ export const baseMetadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    "max-image-preview": "large",
+    "max-video-preview": -1,
+    "max-snippet": -1,
     googleBot: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
       "max-image-preview": "large",
+      "max-video-preview": -1,
       "max-snippet": -1,
+      noimageindex: false,
     },
   },
 
   // Enlaces canónicos
   alternates: {
     canonical: siteConfig.url,
+    languages: {
+      "es-PE": siteConfig.url,
+    },
   },
 
   // Verification tags
@@ -154,25 +162,10 @@ export const baseMetadata: Metadata = {
   // Categorización
   category: "technology",
 
-  // Sistema completo de iconos para todos los dispositivos
+  // Iconos esenciales para SEO
   icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      {
-        rel: "mask-icon",
-        url: "/safari-pinned-tab.svg",
-        color: "#8b5cf6",
-      },
-    ],
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
   },
-
-  manifest: "/site.webmanifest",
 };
 
 // Función para generar metadata específica de páginas
@@ -224,7 +217,7 @@ export const localBusinessStructuredData = {
   name: siteConfig.business.name,
   image: [
     `${siteConfig.url}/logo/ts/dark/horizontal.svg`,
-    `${siteConfig.url}/og-image.jpg`,
+    `${siteConfig.url}/og-image.jpg?v=1`,
   ],
   description: siteConfig.description,
   url: siteConfig.url,
@@ -265,7 +258,7 @@ export const localBusinessStructuredData = {
   priceRange: "S/49 - S/149",
   paymentAccepted: "Cash, Credit Card, Bank Transfer",
   currenciesAccepted: "PEN",
-  openingHours: "Mo-Sa 09:00-18:00",
+  openingHours: "Mo-Sa 08:00-20:00",
   hasOfferCatalog: {
     "@type": "OfferCatalog",
     name: "Servicios Técnicos",
@@ -299,12 +292,49 @@ export const localBusinessStructuredData = {
   },
   aggregateRating: {
     "@type": "AggregateRating",
-    ratingValue: "5",
-    reviewCount: "2",
+    ratingValue: "5.0",
+    reviewCount: "4",
     bestRating: "5",
     worstRating: "1",
   },
-  sameAs: ["https://x.com/RenovaBit"],
+  review: [
+    {
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: "Sr. Lucio",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: "5",
+        bestRating: "5",
+      },
+      reviewBody:
+        "Solicité el servicio a domicilio y quedé sorprendido con la puntualidad y profesionalismo. Me hicieron mantenimiento, revisión de la tarjeta gráfica e instalación de programas.",
+      datePublished: "2025-01-15",
+    },
+    {
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: "Javier Montoya",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: "5",
+        bestRating: "5",
+      },
+      reviewBody:
+        "Me hicieron el mantenimiento completo de mi laptop, además de actualizarla de Windows 10 a Windows 11 y ampliar el almacenamiento con un SSD y más RAM.",
+      datePublished: "2025-01-10",
+    },
+  ],
+  sameAs: [
+    "https://x.com/RenovaBit",
+    "https://www.facebook.com/renovabit",
+    "https://www.instagram.com/renovabit_arequipa",
+    "https://www.tiktok.com/@renovabit",
+  ],
 };
 
 // JSON-LD para WebSite

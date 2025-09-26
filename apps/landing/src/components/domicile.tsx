@@ -1,5 +1,4 @@
 import { socialLinks } from "@renovabit/shared/src/config/links";
-import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Badge } from "@renovabit/ui/src/components/ui/badge";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import { Card } from "@renovabit/ui/src/components/ui/card";
@@ -15,8 +14,8 @@ import {
   UserCheck,
   Wrench,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { ImageCard } from "./common/image-card";
 import TitleSection from "./common/title-section";
 
 export default function Domicile() {
@@ -60,31 +59,17 @@ export default function Domicile() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="flex justify-center order-2 lg:order-1">
             <div className="relative w-80 h-80 md:w-96 md:h-96">
-              {/* Imagen principal */}
-              <div className="relative w-full h-full group">
-                <AspectRatio
-                  ratio={1}
-                  className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
-                >
-                  <Image
-                    src="/images/services/soporte.png"
-                    alt="Servicio técnico de laptops a domicilio en Arequipa - Atención profesional en casa"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute bottom-4 left-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <p className="text-sm font-medium">
-                      Servicio profesional en tu hogar
-                    </p>
-                  </div>
-                </AspectRatio>
-
-                <div className="absolute -top-3 -right-3 bg-primary text-primary-foreground rounded-full p-3 shadow-lg z-10">
-                  <Home className="w-5 h-5" />
-                </div>
-              </div>
+              <ImageCard
+                image="/images/testimonials/testimonial.avif"
+                alt="Servicio técnico de laptops a domicilio en Arequipa - Atención profesional en casa"
+                description="Mantenimiento a domicilio en Arequipa"
+                icon={Home}
+                iconSize={20}
+                aspectRatio="square"
+                width={384}
+                height={384}
+                iconBgColor="bg-primary text-primary-foreground p-3 shadow-lg"
+              />
 
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-secondary/5 to-primary/5 rounded-full blur-3xl -z-10" />
             </div>

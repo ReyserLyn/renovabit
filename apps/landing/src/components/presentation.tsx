@@ -1,5 +1,4 @@
 import { socialLinks } from "@renovabit/shared/src/config/links";
-import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Badge } from "@renovabit/ui/src/components/ui/badge";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import { Card } from "@renovabit/ui/src/components/ui/card";
@@ -13,8 +12,8 @@ import {
   Star,
   Users,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
+import { ImageCard } from "./common/image-card";
 import TitleSection from "./common/title-section";
 
 export default function Presentation() {
@@ -134,61 +133,36 @@ export default function Presentation() {
           {/* Imágenes */}
           <div className="flex justify-center">
             <div className="relative w-80 h-80 md:w-96 md:h-96 lg:w-108 lg:h-108">
-              <div className="absolute top-0 left-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-20 group">
-                <div className="relative w-full h-full">
-                  <AspectRatio
-                    ratio={1}
-                    className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
-                  >
-                    <Image
-                      src="/images/services/mantenimiento.webp"
-                      alt="Mantenimiento preventivo de laptops y PCs en Arequipa - RenovaBit limpieza profesional"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-sm font-medium">
-                        Equipo especializado
-                      </p>
-                    </div>
-                  </AspectRatio>
-
-                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-2 shadow-lg z-10">
-                    <Shield className="w-4 h-4" />
-                  </div>
-                </div>
+              <div className="absolute top-0 left-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-20">
+                <ImageCard
+                  image="/images/about/conocenos-1.webp"
+                  alt="Imagen de RenovaBit Midiendo una placa de laptop"
+                  description="Siempre mejorando"
+                  icon={Shield}
+                  iconSize={16}
+                  aspectRatio="square"
+                  width={240}
+                  height={240}
+                  containerClassName="w-full h-full"
+                  className="shadow-xl hover:shadow-2xl"
+                  iconBgColor="bg-primary text-primary-foreground p-2 shadow-lg"
+                />
               </div>
 
-              <div className="absolute bottom-0 right-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-10 group">
-                <div className="relative w-full h-full">
-                  <AspectRatio
-                    ratio={1}
-                    className="w-full h-full rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-500"
-                  >
-                    <Image
-                      src="/images/services/reparacion.png"
-                      alt="Reparación electrónica avanzada de laptops en Arequipa - Microsoldadura SMD especializada"
-                      fill
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      className="rounded-2xl object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute bottom-3 left-3 right-3 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <p className="text-sm font-medium">
-                        Siempre a disposición
-                      </p>
-                    </div>
-                  </AspectRatio>
-
-                  <div className="absolute -top-2 -right-2 bg-secondary text-secondary-foreground rounded-full p-2 shadow-lg z-10">
-                    <Award className="w-4 h-4" />
-                  </div>
-                </div>
+              <div className="absolute bottom-0 right-0 w-44 h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 z-10">
+                <ImageCard
+                  image="/images/about/conocenos-2.avif"
+                  alt="Imagen del equipo de computo de RenovaBit"
+                  description="Con el mejor rendimiento para ti"
+                  icon={Award}
+                  iconSize={16}
+                  aspectRatio="square"
+                  width={240}
+                  height={240}
+                  containerClassName="w-full h-full"
+                  iconBgColor="bg-secondary text-secondary-foreground p-2 shadow-lg"
+                />
               </div>
-
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-full blur-3xl -z-10" />
             </div>
           </div>
         </div>

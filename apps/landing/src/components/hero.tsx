@@ -7,7 +7,6 @@ import {
 
 import { AnimatedGridPattern } from "@renovabit/ui/src/components/magicui/animated-grid-pattern";
 import { Highlighter } from "@renovabit/ui/src/components/magicui/highlighter";
-import { AspectRatio } from "@renovabit/ui/src/components/ui/aspect-ratio";
 import { Button } from "@renovabit/ui/src/components/ui/button";
 import { cn } from "@renovabit/ui/src/utils/cn";
 import { ArrowRight, MessageCircle } from "lucide-react";
@@ -74,7 +73,9 @@ export default function Hero() {
             alt="RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa, reparación a domicilio"
             width={600}
             height={146}
+            fetchPriority="high"
             priority={true}
+            loading="eager"
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] block lg:hidden dark:hidden [@media(max-height:750px)]:block [@media(max-height:750px)]:dark:hidden"
             style={logoNeonStyleLight}
           />
@@ -85,7 +86,9 @@ export default function Hero() {
             alt="RenovaBit - Servicio Técnico de Laptops y PCs en Arequipa, reparación a domicilio"
             width={600}
             height={146}
+            fetchPriority="high"
             priority={true}
+            loading="eager"
             className="relative mx-auto object-cover w-[300px] sm:w-[400px] rounded-xl lg:w-[500px] xl:w-[600px] hidden lg:block dark:block [@media(max-height:750px)]:hidden [@media(max-height:750px)]:dark:block"
             style={logoNeonStyleDark}
           />
@@ -177,18 +180,19 @@ export default function Hero() {
       {/* Laptop background - Solo visible en pantallas sm+ */}
       <div className="absolute inset-0 z-0 container items-center justify-center hidden sm:flex [@media(max-height:750px)]:hidden">
         <div className="w-full max-w-[1440px] px-4 mx-auto">
-          <AspectRatio ratio={16 / 10}>
-            <Image
-              src="/images/hero/laptop.webp"
-              alt="Laptop moderna siendo reparada por técnicos especializados de RenovaBit en Arequipa"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1440px"
-              className="object-cover rounded-2xl md:translate-y-[35px] [filter:drop-shadow(0_10px_20px_rgba(88,28,135,0.6))] dark:[filter:drop-shadow(0_10px_20px_rgba(109,40,217,0.4))]"
-              style={{
-                transform: "translateX(6px)",
-              }}
-            />
-          </AspectRatio>
+          <Image
+            priority={true}
+            loading="eager"
+            fetchPriority="high"
+            src="/images/hero/laptop-msi.avif"
+            alt="Laptop MSI "
+            width={1376}
+            height={860}
+            className="object-cover rounded-2xl md:translate-y-[35px] [filter:drop-shadow(0_10px_20px_rgba(88,28,135,0.6))] dark:[filter:drop-shadow(0_10px_20px_rgba(109,40,217,0.4))]"
+            style={{
+              transform: "translateX(2.5px)",
+            }}
+          />
         </div>
       </div>
 

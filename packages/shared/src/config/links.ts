@@ -1,11 +1,11 @@
 export const socialLinks = {
   whatsapp: "https://wa.me/51987471074",
-  facebook: "https://www.facebook.com/renovabit",
+  facebook: "https://www.facebook.com/RenovaBitPE",
   tiktok: "https://www.tiktok.com/@renovabit",
   instagram: "https://www.instagram.com/renovabit",
-  github: "https://www.github.com/renovabit",
-  x: "https://www.x.com/renovabit",
-  telegram: "https://www.telegram.com/renovabit",
+  github: "https://github.com/ReyserLyn/renovabit",
+  x: "https://x.com/RenovaBit",
+  telegram: "/",
 };
 
 export const contact = {
