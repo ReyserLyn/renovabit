@@ -1,5 +1,8 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.12/schema.json",
 	"root": false,
-	"extends": ["@repo/biome-config/base", "@repo/biome-config/react-internal"]
+	"extends": [
+		"@renovabit/biome-config/base",
+		"@renovabit/biome-config/react-internal"
+	]
 }
