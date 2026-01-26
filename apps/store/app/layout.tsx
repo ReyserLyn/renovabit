@@ -1,14 +1,9 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
+import "@renovabit/ui/styles/globals.css";
+import { Outfit } from "next/font/google";
 
-const geistSans = localFont({
-	src: "./fonts/GeistVF.woff",
-	variable: "--font-geist-sans",
-});
-const geistMono = localFont({
-	src: "./fonts/GeistMonoVF.woff",
-	variable: "--font-geist-mono",
+const outfit = Outfit({
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -23,9 +18,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="es">
-			<body className={`${geistSans.variable} ${geistMono.variable}`}>
-				{children}
-			</body>
+			<body className={outfit.className}>{children}</body>
 		</html>
 	);
 }

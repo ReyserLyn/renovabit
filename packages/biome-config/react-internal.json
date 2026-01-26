@@ -11,7 +11,11 @@
     "ignoreUnknown": false,
     "includes": ["**", "!dist", "!build"]
   },
-
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "linter": {
     "enabled": true,
     "domains": {
