@@ -1,0 +1,22 @@
+services:
+  renovabit-postgres:
+    container_name: renovabit-postgres
+    image: postgres:18.1
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    ports:
+      - "5432:5432"
+    volumes:
+      - renovabit-postgres-data:/var/lib/postgresql/data
+    networks:
+      - renovabit
+
+volumes:
+  renovabit-postgres-data:
+    name: renovabit-postgres-data
+
+networks:
+  renovabit:
+    name: renovabit
+    driver: bridge
