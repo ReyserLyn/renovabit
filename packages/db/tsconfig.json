@@ -1,0 +1,14 @@
+{
+	"extends": "@renovabit/typescript-config/base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+
+		"paths": {
+			"@renovabit/*": ["../*"],
+			"@renovabit/db/*": ["./*"]
+		},
+		"types": ["node"]
+	},
+	"include": ["src/**/*.ts", "src/**/*.tsx", "drizzle.config.ts", "index.ts"],
+	"exclude": ["node_modules"]
+}
