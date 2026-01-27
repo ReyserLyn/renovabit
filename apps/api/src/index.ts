@@ -9,6 +9,7 @@ const app = new Elysia()
 	.use(
 		logixlysia({
 			config: {
+				showStartupMessage: false,
 				useColors: true,
 				ip: true,
 				timestamp: {
@@ -16,7 +17,7 @@ const app = new Elysia()
 				},
 				customLogFormat:
 					"🦊 {now} {level} {duration} {method} {pathname} {status} {message} {ip}",
-				logFilePath: "./logs/app.log",
+				logFilePath: "./logs/api.log",
 				logRotation: {
 					maxSize: "100m",
 					interval: "1d",
