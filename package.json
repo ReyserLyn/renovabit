@@ -8,10 +8,13 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.12",
+    "@biomejs/biome": "2.3.13",
     "turbo": "^2.7.6",
     "typescript": "5.9.3",
-    "ultracite": "7.0.12"
+    "ultracite": "7.1.1"
+  },
+  "overrides": {
+    "@sinclair/typebox": "0.34.48"
   },
   "engines": {
     "node": ">=18"

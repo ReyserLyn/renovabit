@@ -31,7 +31,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.12",
+    "@biomejs/biome": "2.3.13",
     "@renovabit/biome-config": "*",
     "@renovabit/typescript-config": "*",
     "@tanstack/devtools-vite": "^0.3.11",

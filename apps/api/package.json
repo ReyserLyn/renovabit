@@ -4,7 +4,8 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"dev": "bun run --watch src/index.ts",
-		"lint": "biome check --write"
+		"lint": "biome check --write",
+		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@elysiajs/cors": "^1.4.1",
@@ -12,6 +13,8 @@
 		"@renovabit/biome-config": "*",
 		"@renovabit/db": "*",
 		"better-auth": "^1.4.17",
+		"drizzle-orm": "^0.45.1",
+		"drizzle-typebox": "^0.3.3",
 		"elysia": "latest",
 		"logixlysia": "^6.1.0",
 		"pg": "^8.17.2"
