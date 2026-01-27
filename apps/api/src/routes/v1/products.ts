@@ -63,7 +63,12 @@ export const productRoutes = new Elysia({ prefix: "/products" })
 	})
 	.post(
 		"/",
-		async ({ body, set }) => {
+		async ({ body, set, user }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
 			const { images, ...productData } = body;
 
 			try {
@@ -106,7 +111,12 @@ export const productRoutes = new Elysia({ prefix: "/products" })
 	)
 	.put(
 		"/:id",
-		async ({ params: { id }, body, set }) => {
+		async ({ params: { id }, body, set, user }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
 			try {
 				const [updatedProduct] = await db
 					.update(products)
@@ -132,7 +142,12 @@ export const productRoutes = new Elysia({ prefix: "/products" })
 	)
 	.delete(
 		"/:id",
-		async ({ params: { id }, set }) => {
+		async ({ params: { id }, set, user }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
 			const [deletedProduct] = await db
 				.delete(products)
 				.where(eq(products.id, id))

@@ -47,7 +47,12 @@ export const categoryRoutes = new Elysia({ prefix: "/categories" })
 	})
 	.post(
 		"/",
-		async ({ body, set }) => {
+		async ({ body, set, user }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
 			try {
 				const [newCategory] = await db
 					.insert(categories)
@@ -66,7 +71,12 @@ export const categoryRoutes = new Elysia({ prefix: "/categories" })
 	)
 	.put(
 		"/:id",
-		async ({ params: { id }, body, set }) => {
+		async ({ params: { id }, body, set, user }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
 			try {
 				const [updatedCategory] = await db
 					.update(categories)
@@ -94,7 +104,12 @@ export const categoryRoutes = new Elysia({ prefix: "/categories" })
 	)
 	.delete(
 		"/:id",
-		async ({ params: { id }, set }) => {
+		async ({ params: { id }, set, user }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
 			try {
 				const [deletedCategory] = await db
 					.delete(categories)
