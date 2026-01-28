@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
-import { auth } from "../../lib/auth";
-import { authPlugin } from "../../lib/auth-plugin";
+import { auth } from "@/lib/auth";
+import { authPlugin } from "@/lib/auth-plugin";
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
 	.use(authPlugin)

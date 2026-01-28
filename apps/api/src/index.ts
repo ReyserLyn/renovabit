@@ -46,7 +46,9 @@ const app = new Elysia()
 			origin: [
 				process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
 				"http://localhost:3000",
+				"http://localhost:3002", // Admin panel
 				"http://192.168.1.56:3000",
+				"http://192.168.1.56:3002", // Admin panel en red local
 			],
 			allowedHeaders: ["Content-Type", "Authorization"],
 			methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -66,6 +68,8 @@ const app = new Elysia()
 	})
 	// Port
 	.listen(3001);
+
+export type App = typeof app;
 
 console.log(
 	`🚀 Server is running at http://${app.server?.hostname}:${app.server?.port}`,

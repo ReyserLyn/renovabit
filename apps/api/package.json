@@ -16,6 +16,7 @@
 		"drizzle-orm": "^0.45.1",
 		"drizzle-typebox": "^0.3.3",
 		"elysia": "latest",
+		"got": "^14.6.6",
 		"logixlysia": "^6.1.0",
 		"pg": "^8.17.2"
 	},

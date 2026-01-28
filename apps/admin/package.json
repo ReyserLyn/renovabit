@@ -5,13 +5,16 @@
   "scripts": {
     "dev": "vite dev --port 3002",
     "build": "vite build",
-    "preview": "vite preview",  
-		"lint": "biome check --write",
+    "preview": "vite preview",
+    "lint": "biome check --write",
     "deploy": "bun run build && wrangler deploy"
   },
   "dependencies": {
-    "@renovabit/ui": "*",
     "@cloudflare/vite-plugin": "^1.13.8",
+    "@elysiajs/eden": "^1.4.6",
+    "@hugeicons/core-free-icons": "^3.1.1",
+    "@hugeicons/react": "^1.1.4",
+    "@renovabit/ui": "*",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/match-sorter-utils": "^8.19.4",
     "@tanstack/react-devtools": "^0.7.0",
