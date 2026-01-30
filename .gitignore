@@ -38,3 +38,9 @@ yarn-error.log*
 *.pem
 
 data-postgres
+
+# IA
+.agent
+.agents
+.cursor
+.trae
