@@ -1,4 +1,11 @@
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from "@renovabit/ui/components/ui/breadcrumb.tsx";
 import {
 	Card,
 	CardContent,
@@ -6,8 +13,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@renovabit/ui/components/ui/card.tsx";
-import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useLogout } from "@/features/auth/hooks/use-logout";
+import { Separator } from "@renovabit/ui/components/ui/separator.tsx";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@renovabit/ui/components/ui/sidebar.tsx";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { AppSidebar } from "@/components/layout/sidebar";
 
 export const Route = createFileRoute("/")({
 	component: HomePage,
@@ -20,58 +33,60 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
 	const { session } = Route.useRouteContext();
-	const { logoutMutation } = useLogout();
-	const user = session?.user;
-	const isPending = logoutMutation.isPending;
-
-	const handleLogout = () => {
-		logoutMutation.mutate(undefined);
-	};
+	const user = session!.user;
 
 	return (
-		<div className="min-h-screen bg-muted/30">
-			<header className="border-b bg-card px-4 py-3">
-				<div className="mx-auto flex max-w-4xl items-center justify-between">
-					<h1 className="text-lg font-semibold text-balance">
-						Admin Dashboard
-					</h1>
-					<Button
-						type="button"
-						variant="outline"
-						size="sm"
-						onClick={handleLogout}
-						disabled={isPending}
-						aria-busy={isPending}
-						aria-label="Cerrar sesión"
-					>
-						{isPending ? "Cerrando sesión…" : "Cerrar sesión"}
-					</Button>
+		<SidebarProvider>
+			<AppSidebar user={user} />
+			<SidebarInset>
+				<header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+					<div className="flex flex-1 items-center gap-2">
+						<SidebarTrigger className="-ml-1" />
+						<Separator
+							orientation="vertical"
+							className="mr-2 data-[orientation=vertical]:h-4"
+						/>
+						<Breadcrumb>
+							<BreadcrumbList>
+								<BreadcrumbItem className="hidden md:block">
+									<BreadcrumbLink render={<Link to="/" />}>
+										Panel de Administración
+									</BreadcrumbLink>
+								</BreadcrumbItem>
+								<BreadcrumbSeparator className="hidden md:block" />
+								<BreadcrumbItem>
+									<BreadcrumbPage>Dashboard</BreadcrumbPage>
+								</BreadcrumbItem>
+							</BreadcrumbList>
+						</Breadcrumb>
+					</div>
+				</header>
+				<div className="flex flex-1 flex-col gap-4 p-4">
+					<Card size="default">
+						<CardHeader>
+							<CardTitle className="text-balance">Sesión iniciada</CardTitle>
+							<CardDescription>
+								Has iniciado sesión correctamente. Aquí puedes ver tu
+								información.
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-2">
+							{user?.name && (
+								<p className="text-sm">
+									<strong>Nombre:</strong>{" "}
+									<span className="truncate wrap-break-word">{user.name}</span>
+								</p>
+							)}
+							{user?.email && (
+								<p className="text-sm min-w-0">
+									<strong>Correo:</strong>{" "}
+									<span className="truncate wrap-break-word">{user.email}</span>
+								</p>
+							)}
+						</CardContent>
+					</Card>
 				</div>
-			</header>
-			<main className="mx-auto max-w-4xl p-4">
-				<Card size="default">
-					<CardHeader>
-						<CardTitle className="text-balance">Sesión iniciada</CardTitle>
-						<CardDescription>
-							Has iniciado sesión correctamente. Aquí puedes ver tu información.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-2">
-						{user?.name && (
-							<p className="text-sm">
-								<strong>Nombre:</strong>{" "}
-								<span className="truncate wrap-break-word">{user.name}</span>
-							</p>
-						)}
-						{user?.email && (
-							<p className="text-sm min-w-0">
-								<strong>Correo:</strong>{" "}
-								<span className="truncate wrap-break-word">{user.email}</span>
-							</p>
-						)}
-					</CardContent>
-				</Card>
-			</main>
-		</div>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 }
