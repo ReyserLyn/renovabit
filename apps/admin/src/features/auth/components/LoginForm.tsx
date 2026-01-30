@@ -34,7 +34,6 @@ export function LoginForm() {
 			}
 			try {
 				await loginMutation.mutateAsync(parsed.data);
-				// La navegación la hace useLogin (onSuccess) tras precargar la sesión en caché
 			} catch {
 				errorRef.current?.focus();
 			}
