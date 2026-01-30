@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 import { cors } from "@elysiajs/cors";
 import { fromTypes, openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
