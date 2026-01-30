@@ -1,6 +1,6 @@
 {
 	"extends": "@renovabit/typescript-config/base.json",
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "src/features/auth/hooks/use-github-login.ts"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "module": "ESNext",

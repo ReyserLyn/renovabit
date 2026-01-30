@@ -7,13 +7,22 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
+import { getSessionFn } from "@/libs/better-auth/auth-session";
+import TanStackQueryDevtools from "../libs/tanstack-query/devtools";
 
-export interface MyRouterContext {
+export type MyRouterContext = {
 	queryClient: QueryClient;
-}
+	session: Awaited<ReturnType<typeof getSessionFn>>;
+};
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+	beforeLoad: async ({ context }) => {
+		const session = await context.queryClient.fetchQuery({
+			queryKey: ["session"],
+			queryFn: ({ signal }) => getSessionFn({ signal }),
+		});
+		return { session };
+	},
 	head: () => ({
 		meta: [
 			{
@@ -41,7 +50,9 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootDocument({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang="es">
-			<HeadContent />
+			<head>
+				<HeadContent />
+			</head>
 			<body>
 				{children}
 				<TanStackDevtools

@@ -1,0 +1,19 @@
+{
+  "name": "@renovabit/elysia-client",
+  "version": "0.0.0",
+  "main": "./src/eden.ts",
+  "types": "./src/eden.ts",
+  "exports": "./src/eden.ts",
+  "type": "module",
+  "scripts": {
+    "lint": "biome check --write",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@renovabit/typescript-config": "*",
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@elysiajs/eden": "^1.4.6"
+  }
+}

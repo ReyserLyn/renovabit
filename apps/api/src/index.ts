@@ -8,6 +8,7 @@ import { categoryController } from "@/modules/categories/category.controller";
 import { healthController } from "@/modules/health/health.controller";
 import { productController } from "@/modules/products/product.controller";
 import { userController } from "@/modules/users/user.controller";
+import { auth } from "./modules/auth/auth";
 
 const v1Routes = new Elysia({ prefix: "/v1" })
 	.use(authRoutes)
@@ -89,6 +90,7 @@ const app = new Elysia()
 	.listen(3001);
 
 export type App = typeof app;
+export type Session = typeof auth.$Infer.Session;
 
 console.log(
 	`🚀 Server is running at http://${app.server?.hostname}:${app.server?.port}`,
