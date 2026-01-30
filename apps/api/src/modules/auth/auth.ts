@@ -1,5 +1,4 @@
 import { db } from "@renovabit/db";
-
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, username } from "better-auth/plugins";

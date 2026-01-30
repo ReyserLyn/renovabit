@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo";
+import { getAuthErrorMessage } from "@/libs/better-auth/auth-error-messages";
 import type { RegisterFormValues } from "../domain/auth-model";
 
 export function useRegister() {
@@ -9,14 +10,23 @@ export function useRegister() {
 
 	const registerMutation = useMutation({
 		mutationFn: async ({ name, email, password }: RegisterFormValues) => {
-			return authClientRepo.signUp.email({ name, email, password });
+			const { data, error } = await authClientRepo.signUp.email({
+				name,
+				email,
+				password,
+			});
+			if (error) {
+				const msg =
+					getAuthErrorMessage(error.code) ||
+					error.message ||
+					"No se pudo completar el registro. Comprueba tu conexión e intenta de nuevo.";
+				throw new Error(msg);
+			}
+			return data;
 		},
 		onSuccess: () => {
 			toast.success("Has creado tu cuenta correctamente.");
 			void router.invalidate();
-		},
-		onError: (error) => {
-			toast.error(error instanceof Error ? error.message : "Ocurrió un error");
 		},
 	});
 

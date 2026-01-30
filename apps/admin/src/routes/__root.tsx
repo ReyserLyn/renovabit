@@ -1,3 +1,4 @@
+import { Toaster } from "@renovabit/ui/components/ui/sonner.tsx";
 import appCss from "@renovabit/ui/styles/globals.css?url";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
+				<Toaster richColors />
 				{children}
 				<TanStackDevtools
 					config={{
