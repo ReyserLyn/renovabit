@@ -10,7 +10,6 @@ import { Input } from "@renovabit/ui/components/ui/input.tsx";
 import { Label } from "@renovabit/ui/components/ui/label.tsx";
 import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
 import { useRef } from "react";
 import { loginSchema } from "../domain/auth-model";
 import { useLogin } from "../hooks/use-login";
@@ -19,7 +18,6 @@ const emailId = "login-email";
 const passwordId = "login-password";
 
 export function LoginForm() {
-	const navigate = useNavigate();
 	const { loginMutation } = useLogin();
 	const errorRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +34,7 @@ export function LoginForm() {
 			}
 			try {
 				await loginMutation.mutateAsync(parsed.data);
-				navigate({ to: "/" });
+				// La navegación la hace useLogin (onSuccess) tras precargar la sesión en caché
 			} catch {
 				errorRef.current?.focus();
 			}

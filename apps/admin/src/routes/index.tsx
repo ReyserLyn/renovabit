@@ -6,7 +6,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@renovabit/ui/components/ui/card.tsx";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 
 export const Route = createFileRoute("/")({
@@ -19,18 +19,13 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-	const navigate = useNavigate();
 	const { session } = Route.useRouteContext();
 	const { logoutMutation } = useLogout();
 	const user = session?.user;
 	const isPending = logoutMutation.isPending;
 
 	const handleLogout = () => {
-		logoutMutation.mutate(undefined, {
-			onSuccess: () => {
-				navigate({ to: "/login" });
-			},
-		});
+		logoutMutation.mutate(undefined);
 	};
 
 	return (

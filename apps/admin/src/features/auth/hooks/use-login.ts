@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo";
 import { getAuthErrorMessage } from "@/libs/better-auth/auth-error-messages";
+import { getSessionFn } from "@/libs/better-auth/auth-session";
 import type { LoginFormValues } from "../domain/auth-model";
 
 export function useLogin() {
+	const navigate = useNavigate();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 
@@ -24,10 +26,12 @@ export function useLogin() {
 			}
 			return data;
 		},
-		onSuccess: () => {
+		onSuccess: async () => {
+			const session = await getSessionFn();
+			queryClient.setQueryData(["session"], session);
 			toast.success("Has iniciado sesión correctamente.");
 			void router.invalidate();
-			void queryClient.invalidateQueries();
+			navigate({ to: "/" });
 		},
 	});
 
