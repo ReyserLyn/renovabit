@@ -1,8 +1,21 @@
 import { cors } from "@elysiajs/cors";
-import { swagger } from "@elysiajs/swagger";
+import { fromTypes, openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
 import logixlysia from "logixlysia";
-import { v1Routes } from "./routes/v1";
+import { authRoutes, OpenAPI } from "@/modules/auth/middleware";
+import { brandController } from "@/modules/brands/brand.controller";
+import { categoryController } from "@/modules/categories/category.controller";
+import { healthController } from "@/modules/health/health.controller";
+import { productController } from "@/modules/products/product.controller";
+import { userController } from "@/modules/users/user.controller";
+
+const v1Routes = new Elysia({ prefix: "/v1" })
+	.use(authRoutes)
+	.use(healthController)
+	.use(brandController)
+	.use(categoryController)
+	.use(productController)
+	.use(userController);
 
 const app = new Elysia()
 	// Logger
@@ -27,16 +40,22 @@ const app = new Elysia()
 			},
 		}),
 	)
-	// Swagger
+	// OpenAPI
 	.use(
-		swagger({
-			path: "/docs",
+		openapi({
+			references: fromTypes(
+				process.env.NODE_ENV === "production"
+					? "dist/index.d.ts"
+					: "src/index.ts",
+			),
 			documentation: {
 				info: {
 					title: "Renovabit API",
 					description: "API documentation for Renovabit",
 					version: "1.0.0",
 				},
+				components: await OpenAPI.components,
+				paths: await OpenAPI.getPaths(),
 			},
 		}),
 	)
@@ -46,9 +65,9 @@ const app = new Elysia()
 			origin: [
 				process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
 				"http://localhost:3000",
-				"http://localhost:3002", // Admin panel
+				"http://localhost:3002",
 				"http://192.168.1.56:3000",
-				"http://192.168.1.56:3002", // Admin panel en red local
+				"http://192.168.1.56:3002",
 			],
 			allowedHeaders: ["Content-Type", "Authorization"],
 			methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -75,5 +94,5 @@ console.log(
 	`🚀 Server is running at http://${app.server?.hostname}:${app.server?.port}`,
 );
 console.log(
-	`📚 Swagger UI: http://${app.server?.hostname}:${app.server?.port}/docs`,
+	`📚 OpenAPI UI: http://${app.server?.hostname}:${app.server?.port}/openapi`,
 );

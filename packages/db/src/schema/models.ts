@@ -1,4 +1,4 @@
-import { createInsertSchema, createSelectSchema } from "drizzle-typebox";
+import { createInsertSchema } from "drizzle-typebox";
 import { t } from "elysia";
 import { spreads } from "./_utils_typebox";
 import { brands } from "./brands";

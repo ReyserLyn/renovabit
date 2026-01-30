@@ -6,7 +6,9 @@ import {
 	pgTable,
 	text,
 	timestamp,
+	uuid,
 } from "drizzle-orm/pg-core";
+import { lifecycleDates, primaryKey } from "./_utils";
 
 export const userRoles = pgEnum("user_roles", [
 	"admin",
@@ -14,40 +16,40 @@ export const userRoles = pgEnum("user_roles", [
 	"distributor",
 ]);
 
-export const users = pgTable("users", {
-	id: text("id").primaryKey(),
-	name: text("name").notNull(),
-	email: text("email").notNull().unique(),
-	username: text("username").unique(),
-	emailVerified: boolean("email_verified").default(false).notNull(),
-	image: text("image"),
+export const users = pgTable(
+	"users",
+	{
+		...primaryKey,
 
-	// Custom fields
-	phone: text("phone"),
-	role: userRoles("role").default("customer").notNull(),
+		name: text("name").notNull(),
+		email: text("email").notNull().unique(),
+		username: text("username").unique(),
+		displayUsername: text("display_username"),
+		emailVerified: boolean("email_verified").default(false).notNull(),
+		image: text("image"),
 
-	createdAt: timestamp("created_at").defaultNow().notNull(),
-	updatedAt: timestamp("updated_at")
-		.defaultNow()
-		.$onUpdate(() => new Date())
-		.notNull(),
-});
+		// Custom fields
+		phone: text("phone"),
+		role: userRoles("role").default("customer").notNull(),
+
+		...lifecycleDates,
+	},
+	(table) => [index("users_role_idx").on(table.role)],
+);
 
 export const sessions = pgTable(
 	"sessions",
 	{
-		id: text("id").primaryKey(),
+		...primaryKey,
 		expiresAt: timestamp("expires_at").notNull(),
 		token: text("token").notNull().unique(),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
-		updatedAt: timestamp("updated_at")
-			.$onUpdate(() => new Date())
-			.notNull(),
 		ipAddress: text("ip_address"),
 		userAgent: text("user_agent"),
-		userId: text("user_id")
+		userId: uuid("user_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
+
+		...lifecycleDates,
 	},
 	(table) => [index("sessions_userId_idx").on(table.userId)],
 );
@@ -55,10 +57,10 @@ export const sessions = pgTable(
 export const accounts = pgTable(
 	"accounts",
 	{
-		id: text("id").primaryKey(),
+		...primaryKey,
 		accountId: text("account_id").notNull(),
 		providerId: text("provider_id").notNull(),
-		userId: text("user_id")
+		userId: uuid("user_id")
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
 		accessToken: text("access_token"),
@@ -68,10 +70,8 @@ export const accounts = pgTable(
 		refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
 		scope: text("scope"),
 		password: text("password"),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
-		updatedAt: timestamp("updated_at")
-			.$onUpdate(() => new Date())
-			.notNull(),
+
+		...lifecycleDates,
 	},
 	(table) => [index("accounts_userId_idx").on(table.userId)],
 );
@@ -79,15 +79,13 @@ export const accounts = pgTable(
 export const verifications = pgTable(
 	"verifications",
 	{
-		id: text("id").primaryKey(),
+		...primaryKey,
+
 		identifier: text("identifier").notNull(),
 		value: text("value").notNull(),
 		expiresAt: timestamp("expires_at").notNull(),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
-		updatedAt: timestamp("updated_at")
-			.defaultNow()
-			.$onUpdate(() => new Date())
-			.notNull(),
+
+		...lifecycleDates,
 	},
 	(table) => [index("verifications_identifier_idx").on(table.identifier)],
 );

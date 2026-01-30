@@ -1,10 +1,10 @@
 CREATE TYPE "public"."user_roles" AS ENUM('admin', 'customer', 'distributor');--> statement-breakpoint
 CREATE TYPE "public"."product_status" AS ENUM('active', 'inactive', 'out_of_stock');--> statement-breakpoint
 CREATE TABLE "accounts" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"account_id" text NOT NULL,
 	"provider_id" text NOT NULL,
-	"user_id" text NOT NULL,
+	"user_id" uuid NOT NULL,
 	"access_token" text,
 	"refresh_token" text,
 	"id_token" text,
@@ -13,26 +13,27 @@ CREATE TABLE "accounts" (
 	"scope" text,
 	"password" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"expires_at" timestamp NOT NULL,
 	"token" text NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp NOT NULL,
 	"ip_address" text,
 	"user_agent" text,
-	"user_id" text NOT NULL,
+	"user_id" uuid NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"name" text NOT NULL,
 	"email" text NOT NULL,
 	"username" text,
+	"display_username" text,
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"image" text,
 	"phone" text,
@@ -44,7 +45,7 @@ CREATE TABLE "users" (
 );
 --> statement-breakpoint
 CREATE TABLE "verifications" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"identifier" text NOT NULL,
 	"value" text NOT NULL,
 	"expires_at" timestamp NOT NULL,
@@ -52,8 +53,20 @@ CREATE TABLE "verifications" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "brands" (
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
+	"name" varchar(100) NOT NULL,
+	"slug" varchar(100) NOT NULL,
+	"logo" text,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "brands_name_unique" UNIQUE("name"),
+	CONSTRAINT "brands_slug_unique" UNIQUE("slug")
+);
+--> statement-breakpoint
 CREATE TABLE "categories" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"slug" varchar(255) NOT NULL,
 	"description" text,
@@ -69,7 +82,7 @@ CREATE TABLE "categories" (
 );
 --> statement-breakpoint
 CREATE TABLE "product_images" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"product_id" uuid NOT NULL,
 	"url" text NOT NULL,
 	"alt" text,
@@ -79,7 +92,7 @@ CREATE TABLE "product_images" (
 );
 --> statement-breakpoint
 CREATE TABLE "products" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT uuidv7() NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"slug" varchar(255) NOT NULL,
 	"description" text,
@@ -105,7 +118,9 @@ ALTER TABLE "products" ADD CONSTRAINT "products_brand_id_brands_id_fk" FOREIGN K
 ALTER TABLE "products" ADD CONSTRAINT "products_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "accounts_userId_idx" ON "accounts" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "sessions_userId_idx" ON "sessions" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "users_role_idx" ON "users" USING btree ("role");--> statement-breakpoint
 CREATE INDEX "verifications_identifier_idx" ON "verifications" USING btree ("identifier");--> statement-breakpoint
+CREATE INDEX "brands_slug_idx" ON "brands" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "categories_slug_idx" ON "categories" USING btree ("slug");--> statement-breakpoint
 CREATE INDEX "categories_parent_id_idx" ON "categories" USING btree ("parent_id");--> statement-breakpoint
 CREATE INDEX "product_images_product_id_idx" ON "product_images" USING btree ("product_id");--> statement-breakpoint

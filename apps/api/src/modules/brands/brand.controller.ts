@@ -1,27 +1,17 @@
-import { db } from "@renovabit/db";
-import { brands, schemas } from "@renovabit/db/schema";
-import { eq } from "drizzle-orm";
 import { Elysia } from "elysia";
-import { authPlugin } from "../../lib/auth-plugin";
+import { authMacro } from "@/modules/auth/middleware";
+import { schemas } from "./brand.model";
+import { brandService } from "./brand.service";
 
-export const brandRoutes = new Elysia({ prefix: "/brands" })
-	.use(authPlugin)
-	.get("/", async () => {
-		return await db.query.brands.findMany({
-			where: (table, { eq }) => eq(table.isActive, true),
-			orderBy: (table, { asc }) => [asc(table.name)],
-		});
-	})
+export const brandController = new Elysia({ prefix: "/brands" })
+	.use(authMacro)
+	.get("/", async () => brandService.findMany())
 	.get("/:id", async ({ params: { id }, set }) => {
-		const brand = await db.query.brands.findFirst({
-			where: (table, { eq, or }) => or(eq(table.id, id), eq(table.slug, id)),
-		});
-
+		const brand = await brandService.findByIdOrSlug(id);
 		if (!brand) {
 			set.status = 404;
 			return { message: "Brand not found" };
 		}
-
 		return brand;
 	})
 	.post(
@@ -31,21 +21,17 @@ export const brandRoutes = new Elysia({ prefix: "/brands" })
 				set.status = 403;
 				return { message: "Forbidden" };
 			}
-
 			try {
-				const [newBrand] = await db.insert(brands).values(body).returning();
+				const newBrand = await brandService.create(body);
 				return newBrand;
-			} catch (_e) {
+			} catch {
 				set.status = 400;
 				return {
 					message: "Could not create brand. Name or slug might already exist.",
 				};
 			}
 		},
-		{
-			auth: true,
-			body: schemas.brand.insert,
-		},
+		{ isAuth: true, body: schemas.brand.insert },
 	)
 	.put(
 		"/:id",
@@ -54,29 +40,19 @@ export const brandRoutes = new Elysia({ prefix: "/brands" })
 				set.status = 403;
 				return { message: "Forbidden" };
 			}
-
 			try {
-				const [updatedBrand] = await db
-					.update(brands)
-					.set(body)
-					.where(eq(brands.id, id))
-					.returning();
-
+				const updatedBrand = await brandService.update(id, body);
 				if (!updatedBrand) {
 					set.status = 404;
 					return { message: "Brand not found" };
 				}
-
 				return updatedBrand;
-			} catch (_e) {
+			} catch {
 				set.status = 400;
 				return { message: "Could not update brand. Check if slug is unique." };
 			}
 		},
-		{
-			auth: true,
-			body: schemas.brand.update,
-		},
+		{ isAuth: true, body: schemas.brand.update },
 	)
 	.delete(
 		"/:id",
@@ -85,20 +61,12 @@ export const brandRoutes = new Elysia({ prefix: "/brands" })
 				set.status = 403;
 				return { message: "Forbidden" };
 			}
-
-			const [deletedBrand] = await db
-				.delete(brands)
-				.where(eq(brands.id, id))
-				.returning();
-
+			const deletedBrand = await brandService.delete(id);
 			if (!deletedBrand) {
 				set.status = 404;
 				return { message: "Brand not found" };
 			}
-
 			return { message: "Brand deleted successfully" };
 		},
-		{
-			auth: true,
-		},
+		{ isAuth: true },
 	);

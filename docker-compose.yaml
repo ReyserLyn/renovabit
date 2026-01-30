@@ -8,13 +8,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - renovabit-postgres-data:/var/lib/postgresql/
+      - ./data-postgres:/var/lib/postgresql/
     networks:
       - renovabit
-
-volumes:
-  renovabit-postgres-data:
-    name: renovabit-postgres-data
 
 networks:
   renovabit:

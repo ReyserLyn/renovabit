@@ -14,7 +14,8 @@
     "ultracite": "7.1.1"
   },
   "overrides": {
-    "@sinclair/typebox": "0.34.48"
+    "@sinclair/typebox": "0.34.48",
+    "drizzle-orm": "0.45.1"
   },
   "engines": {
     "node": ">=18"

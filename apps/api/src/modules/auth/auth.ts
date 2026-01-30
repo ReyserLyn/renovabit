@@ -1,7 +1,8 @@
 import { db } from "@renovabit/db";
+
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { username } from "better-auth/plugins";
+import { openAPI, username } from "better-auth/plugins";
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3001",
@@ -11,7 +12,7 @@ export const auth = betterAuth({
 		process.env.BETTER_AUTH_URL ?? "http://localhost:3001",
 		"http://localhost:3000",
 		"http://localhost:3002",
-		"http://192.s168.1.56:3000",
+		"http://192.168.1.56:3000",
 		"http://192.168.1.56:3002",
 	],
 	database: drizzleAdapter(db, {
@@ -20,21 +21,41 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: {
 		enabled: true,
+		autoSignIn: true,
+		password: {
+			hash: (pass) => Bun.password.hash(pass),
+			verify: ({ password, hash }) => Bun.password.verify(password, hash),
+		},
+	},
+	advanced: {
+		database: {
+			generateId: false,
+		},
+	},
+	session: {
+		expiresIn: 60 * 60 * 24 * 7,
+		cookieCache: {
+			enabled: true,
+			maxAge: 60 * 5,
+		},
 	},
 	user: {
 		additionalFields: {
 			phone: {
 				type: "string",
 				required: false,
+				input: true,
 			},
 			role: {
-				type: "string",
+				type: ["admin", "customer", "distributor"],
 				required: true,
+				index: true,
 				defaultValue: "customer",
+				input: true,
 			},
 		},
 	},
-	plugins: [username()],
+	plugins: [username(), openAPI()],
 	telemetry: {
 		enabled: false,
 	},

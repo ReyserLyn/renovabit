@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const lifecycleDates = {
@@ -9,5 +10,5 @@ export const lifecycleDates = {
 };
 
 export const primaryKey = {
-	id: uuid("id").defaultRandom().primaryKey(),
+	id: uuid("id").primaryKey().default(sql`uuidv7()`),
 };
