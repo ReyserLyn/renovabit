@@ -20,7 +20,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@renovabit/": ["../../packages/"]
-    }
+      "@renovabit/api": ["../api/src/index.ts"],
+      "@renovabit/": ["../../packages/"],
+      "@/modules/*": ["../api/src/modules/*"]
+    },
+    "strict": true
   }
 }

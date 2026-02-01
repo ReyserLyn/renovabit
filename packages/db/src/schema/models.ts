@@ -1,3 +1,4 @@
+import type { Static } from "@sinclair/typebox";
 import { createInsertSchema } from "drizzle-typebox";
 import { t } from "elysia";
 import { spreads } from "./_utils_typebox";
@@ -5,7 +6,6 @@ import { brands } from "./brands";
 import { categories } from "./categories";
 import { productImages, products } from "./products";
 
-// Centralizing raw insertions with refinements
 const rawInsert = {
 	brand: createInsertSchema(brands, {
 		name: t.String({ minLength: 1, maxLength: 100 }),
@@ -49,12 +49,14 @@ export const schemas = {
 		update: t.Partial(
 			t.Omit(rawInsert.brand, ["id", "createdAt", "updatedAt"]),
 		),
+		select: t.Object(models.select.brand),
 	},
 	category: {
 		insert: t.Omit(rawInsert.category, ["id", "createdAt", "updatedAt"]),
 		update: t.Partial(
 			t.Omit(rawInsert.category, ["id", "createdAt", "updatedAt"]),
 		),
+		select: t.Object(models.select.category),
 	},
 	product: {
 		insert: t.Composite([
@@ -72,5 +74,15 @@ export const schemas = {
 		update: t.Partial(
 			t.Omit(rawInsert.product, ["id", "createdAt", "updatedAt"]),
 		),
+		select: t.Object(models.select.product),
 	},
 } as const;
+
+export type BrandInsertBody = Static<typeof schemas.brand.insert>;
+export type BrandUpdateBody = Static<typeof schemas.brand.update>;
+
+export type CategoryInsertBody = Static<typeof schemas.category.insert>;
+export type CategoryUpdateBody = Static<typeof schemas.category.update>;
+
+export type ProductInsertBody = Static<typeof schemas.product.insert>;
+export type ProductUpdateBody = Static<typeof schemas.product.update>;

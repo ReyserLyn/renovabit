@@ -11,7 +11,7 @@ const authApp = new Elysia({ name: "auth-macro", prefix: "/auth" })
 					headers,
 				});
 
-				if (!session) return status(401, { error: "Unauthorized!" });
+				if (!session) return status(401, { message: "Unauthorized!" });
 
 				return {
 					user: session.user,

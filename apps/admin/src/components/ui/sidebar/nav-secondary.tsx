@@ -15,6 +15,7 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
 } from "@renovabit/ui/components/ui/sidebar.tsx";
+import { Link } from "@tanstack/react-router";
 import * as React from "react";
 
 type IconType = React.ComponentProps<typeof HugeiconsIcon>["icon"];
@@ -62,9 +63,9 @@ export function NavSecondary({ items }: NavSecondaryProps) {
 											<SidebarMenuSubItem key={subItem.title}>
 												<SidebarMenuSubButton
 													render={
-														<a href={subItem.url}>
+														<Link to={subItem.url}>
 															<span>{subItem.title}</span>
-														</a>
+														</Link>
 													}
 												></SidebarMenuSubButton>
 											</SidebarMenuSubItem>

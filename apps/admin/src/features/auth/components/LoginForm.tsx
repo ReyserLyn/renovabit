@@ -26,14 +26,12 @@ export function LoginForm() {
 			email: "",
 			password: "",
 		},
+		validators: {
+			onChange: loginSchema,
+		},
 		onSubmit: async ({ value }) => {
-			const parsed = loginSchema.safeParse(value);
-			if (!parsed.success) {
-				errorRef.current?.focus();
-				return;
-			}
 			try {
-				await loginMutation.mutateAsync(parsed.data);
+				await loginMutation.mutateAsync(value);
 			} catch {
 				errorRef.current?.focus();
 			}
@@ -78,19 +76,7 @@ export function LoginForm() {
 								: "Error al iniciar sesión. Revisa tu correo y contraseña."}
 						</div>
 					)}
-					<form.Field
-						name="email"
-						validators={{
-							onChange: ({ value }) => {
-								if (!value?.trim()) return "El correo es obligatorio.";
-								const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-								if (!emailRegex.test(value.trim())) {
-									return "Introduce un correo válido.";
-								}
-								return undefined;
-							},
-						}}
-					>
+					<form.Field name="email">
 						{(field) => (
 							<div className="grid gap-2">
 								<Label htmlFor={emailId}>Correo electrónico</Label>
@@ -127,17 +113,7 @@ export function LoginForm() {
 							</div>
 						)}
 					</form.Field>
-					<form.Field
-						name="password"
-						validators={{
-							onChange: ({ value }) => {
-								if (!value || value.length === 0) {
-									return "La contraseña es obligatoria.";
-								}
-								return undefined;
-							},
-						}}
-					>
+					<form.Field name="password">
 						{(field) => (
 							<div className="grid gap-2">
 								<Label htmlFor={passwordId}>Contraseña</Label>

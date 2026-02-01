@@ -10,6 +10,12 @@ export const brandService = {
 		});
 	},
 
+	async findManyAll(): Promise<Brand[]> {
+		return db.query.brands.findMany({
+			orderBy: (table, { asc }) => [asc(table.name)],
+		});
+	},
+
 	async findByIdOrSlug(id: string) {
 		return db.query.brands.findFirst({
 			where: (table, { eq, or }) => or(eq(table.id, id), eq(table.slug, id)),
