@@ -11,7 +11,9 @@ import { Button } from "@renovabit/ui/components/ui/button.js";
 import { Checkbox } from "@renovabit/ui/components/ui/checkbox.tsx";
 import { cn } from "@renovabit/ui/lib/utils.js";
 import { ColumnDef } from "@tanstack/react-table";
+import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
+import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
 import { formatDate } from "@/libs/utils";
 
 export type BrandsTableHandlers = {
@@ -79,20 +81,23 @@ export function getColumns(handlers: BrandsTableHandlers): ColumnDef<Brand>[] {
 				const url = row.original.logo;
 
 				if (!url) return <span className="text-muted-foreground">—</span>;
+				const imageSrc = getCloudflareTransformUrl(url, {
+					width: 40,
+					height: 40,
+					fit: "contain",
+					format: "auto",
+				});
 
 				return (
 					<div className="flex items-center justify-center size-10 rounded-lg border bg-muted/30 overflow-hidden">
-						<img
-							src={url}
-							alt=""
-							className="h-full w-full object-cover"
-							loading="lazy"
-							onError={(e) => {
-								const target = e.target as HTMLImageElement;
-								if (!target.src.includes("ui-avatars")) {
-									target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(row.original.name)}&background=random`;
-								}
-							}}
+						<Image
+							src={imageSrc}
+							alt={row.original.name}
+							width={40}
+							height={40}
+							layout="constrained"
+							objectFit="contain"
+							background="auto"
 						/>
 					</div>
 				);

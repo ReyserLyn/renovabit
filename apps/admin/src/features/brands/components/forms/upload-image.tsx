@@ -15,6 +15,7 @@ import {
 } from "@renovabit/ui/components/ui/alert.tsx";
 import { Button } from "@renovabit/ui/components/ui/button.tsx";
 import { cn } from "@renovabit/ui/lib/utils.ts";
+import { Image } from "@unpic/react";
 import { useEffect, useState } from "react";
 import { formatBytes, useFileUpload } from "../../../../hooks/use-file-upload";
 
@@ -123,11 +124,15 @@ export default function UploadImage({
 							</div>
 						)}
 
-						<img
+						<Image
 							src={preview}
 							alt="Preview"
+							width={800}
+							height={600}
+							layout="constrained"
+							objectFit="contain"
 							className={cn(
-								"h-full w-full object-cover transition-opacity duration-300",
+								"h-full w-full object-contain transition-opacity duration-300",
 								imageLoading ? "opacity-0" : "opacity-100",
 							)}
 							onLoad={() => setImageLoading(false)}
