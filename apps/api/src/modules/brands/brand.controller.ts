@@ -112,6 +112,44 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			},
 		},
 	)
+	.post(
+		"/validate",
+		async ({ body, user, set }) => {
+			if (user?.role !== "admin") {
+				set.status = 403;
+				return { message: "Forbidden" };
+			}
+
+			const error = await brandService.checkUniqueness(body.id, {
+				name: body.name,
+				slug: body.slug,
+			});
+
+			if (error) {
+				set.status = 400;
+				return { message: error };
+			}
+
+			return { valid: true };
+		},
+		{
+			isAuth: true,
+			body: t.Object({
+				id: t.Optional(t.String()),
+				name: t.Optional(t.String()),
+				slug: t.Optional(t.String()),
+			}),
+			response: {
+				200: t.Object({ valid: t.Boolean() }),
+				400: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+			},
+			detail: {
+				summary: "Validate brand name and slug uniqueness",
+				tags: ["Brands"],
+			},
+		},
+	)
 	.delete(
 		"/:id",
 		async ({ params: { id }, user, set }) => {

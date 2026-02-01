@@ -23,8 +23,11 @@ export const brandFormSchema = z.object({
 			"El slug solo puede contener minúsculas, números y guiones.",
 		),
 	logo: z
-		.url({ error: "Introduce una URL válida." })
-		.or(z.literal(""))
+		.union([
+			z.url("Introduce una URL válida."),
+			z.string().length(0),
+			z.instanceof(File),
+		])
 		.optional(),
 	isActive: z.boolean(),
 });

@@ -8,8 +8,10 @@ import {
 } from "@renovabit/ui/components/ui/dialog.tsx";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { uploadFile } from "@/features/storage/storage-utils";
 import { useCreateBrand, useUpdateBrand } from "../../hooks";
 import type { BrandFormValues } from "../../model/brand-model";
+import { validateBrand } from "../../services/brands-service";
 import { BrandForm } from "./BrandForm";
 
 interface BrandFormModalProps {
@@ -30,17 +32,34 @@ export function BrandFormModal({
 	const isPending = createBrand.isPending || updateBrand.isPending;
 
 	const handleSubmit = async (values: BrandFormValues) => {
-		const body = {
-			...values,
-			logo: values.logo?.trim() || undefined,
-		};
-
 		const promise = (async () => {
+			// 1. PRE-VALIDATION
+			await validateBrand({
+				id: brand?.id,
+				name: values.name,
+				slug: values.slug,
+			});
+
+			let logoUrl = typeof values.logo === "string" ? values.logo : "";
+
+			// 2. STORAGE
+			if (values.logo instanceof File) {
+				const { url } = await uploadFile(values.logo, "brands");
+				logoUrl = url;
+			}
+
+			const body = {
+				...values,
+				logo: logoUrl.trim() || null,
+			};
+
+			// 3. DATABASE
 			if (isEditing && brand) {
 				await updateBrand.mutateAsync({ id: brand.id, body });
 			} else {
 				await createBrand.mutateAsync(body);
 			}
+
 			onOpenChange(false);
 		})();
 
@@ -53,7 +72,11 @@ export function BrandFormModal({
 				err instanceof Error ? err.message : "Error al procesar la marca.",
 		});
 
-		await promise;
+		try {
+			await promise;
+		} catch {
+			// Toast handles error UI
+		}
 	};
 
 	const handleOpenChange = useCallback(

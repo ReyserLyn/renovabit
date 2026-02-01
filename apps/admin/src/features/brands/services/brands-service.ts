@@ -54,6 +54,20 @@ export async function deleteBrand(id: string) {
 	}
 }
 
+export async function validateBrand(body: {
+	id?: string;
+	name?: string;
+	slug?: string;
+}) {
+	const res = await api.api.v1.brands.validate.post(body);
+
+	if (res.error) {
+		handleEdenError(res, "Datos de marca no válidos");
+	}
+
+	return res.data;
+}
+
 export const brandsQueryOptions = (includeInactive: boolean) =>
 	queryOptions({
 		queryKey: ["brands", { includeInactive }],

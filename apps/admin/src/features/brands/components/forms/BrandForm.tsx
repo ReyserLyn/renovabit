@@ -16,6 +16,7 @@ import {
 	defaultBrandFormValues,
 	slugify,
 } from "../../model/brand-model";
+import UploadImage from "./upload-image";
 
 type BrandFormProps = {
 	initialValues?: Partial<BrandFormValues>;
@@ -54,10 +55,9 @@ export function BrandForm({
 				...defaultBrandFormValues,
 				...initialValues,
 			});
-
 			slugManuallyEditedRef.current = false;
 		}
-	}, [initialValues, form]);
+	}, [JSON.stringify(initialValues)]);
 
 	return (
 		<form
@@ -144,19 +144,13 @@ export function BrandForm({
 								field.state.meta.isTouched && !field.state.meta.isValid
 							}
 						>
-							<FieldLabel htmlFor={field.name}>Logo (URL)</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								type="url"
-								placeholder="https://..."
-								value={field.state.value ?? ""}
-								onBlur={field.handleBlur}
-								onChange={(e) => field.handleChange(e.target.value)}
-								disabled={isPending}
-								aria-invalid={
-									field.state.meta.isTouched && !field.state.meta.isValid
+							<FieldLabel htmlFor={field.name}>Logo de la Marca</FieldLabel>
+							<UploadImage
+								value={field.state.value}
+								onChange={(val: File | string | undefined) =>
+									field.handleChange(val)
 								}
+								disabled={isPending}
 							/>
 							{field.state.meta.isTouched && !field.state.meta.isValid && (
 								<FieldError errors={field.state.meta.errors} />

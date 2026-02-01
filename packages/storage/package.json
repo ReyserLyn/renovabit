@@ -1,0 +1,24 @@
+{
+  "name": "@renovabit/storage",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./client": "./src/client.ts",
+    "./r2-service": "./src/r2.service.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "lint": "biome check --write",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.744.0",
+    "@aws-sdk/s3-request-presigner": "^3.744.0"
+  },
+  "devDependencies": {
+    "@renovabit/biome-config": "^",
+    "@renovabit/typescript-config": "*",
+    "@types/node": "^22.18.6",
+    "typescript": "5.9.2"
+  }
+}

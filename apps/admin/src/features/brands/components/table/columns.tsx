@@ -78,16 +78,23 @@ export function getColumns(handlers: BrandsTableHandlers): ColumnDef<Brand>[] {
 			cell: ({ row }) => {
 				const url = row.original.logo;
 
-				if (url == null || String(url).trim() === "")
-					return <span className="text-muted-foreground">—</span>;
+				if (!url) return <span className="text-muted-foreground">—</span>;
 
 				return (
-					<img
-						src={String(url)}
-						alt=""
-						className="size-8 rounded object-contain bg-muted"
-						loading="lazy"
-					/>
+					<div className="flex items-center justify-center size-10 rounded-lg border bg-muted/30 overflow-hidden">
+						<img
+							src={url}
+							alt=""
+							className="h-full w-full object-cover"
+							loading="lazy"
+							onError={(e) => {
+								const target = e.target as HTMLImageElement;
+								if (!target.src.includes("ui-avatars")) {
+									target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(row.original.name)}&background=random`;
+								}
+							}}
+						/>
+					</div>
 				);
 			},
 		},

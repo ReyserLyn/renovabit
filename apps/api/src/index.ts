@@ -8,6 +8,7 @@ import { brandController } from "@/modules/brands/brand.controller";
 import { categoryController } from "@/modules/categories/category.controller";
 import { healthController } from "@/modules/health/health.controller";
 import { productController } from "@/modules/products/product.controller";
+import { storageController } from "@/modules/storage/storage.controller";
 import { userController } from "@/modules/users/user.controller";
 import { auth } from "./modules/auth/auth";
 
@@ -17,7 +18,8 @@ const v1Routes = new Elysia({ prefix: "/v1" })
 	.use(brandController)
 	.use(categoryController)
 	.use(productController)
-	.use(userController);
+	.use(userController)
+	.use(storageController);
 
 const app = new Elysia()
 	// Logger

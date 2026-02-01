@@ -10,6 +10,7 @@ const rawInsert = {
 	brand: createInsertSchema(brands, {
 		name: t.String({ minLength: 1, maxLength: 100 }),
 		slug: t.String({ minLength: 1, maxLength: 100 }),
+		logo: t.Nullable(t.Optional(t.String())),
 	}),
 	category: createInsertSchema(categories, {
 		name: t.String({ minLength: 1, maxLength: 255 }),
