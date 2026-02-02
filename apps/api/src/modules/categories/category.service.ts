@@ -1,4 +1,5 @@
 import { db, eq } from "@renovabit/db";
+import type { NewCategory } from "@renovabit/db/schema";
 import type { Category } from "./category.model";
 import { categories } from "./category.model";
 
@@ -42,7 +43,7 @@ export const categoryService = {
 		return row;
 	},
 
-	async update(id: string, data: Partial<typeof categories.$inferInsert>) {
+	async update(id: string, data: Partial<NewCategory>) {
 		const [row] = await db
 			.update(categories)
 			.set(data)

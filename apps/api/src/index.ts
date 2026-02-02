@@ -24,17 +24,23 @@ const v1Routes = new Elysia({ prefix: "/v1" })
 	.use(userController)
 	.use(storageController);
 
+const allowedOrigins = [
+	process.env.BETTER_AUTH_URL,
+	process.env.ADMIN_URL,
+	process.env.STORE_URL,
+	"http://localhost:3000",
+	"http://localhost:3001",
+	"http://localhost:3002",
+].filter(Boolean) as string[];
+
 const app = new Elysia()
-	// Logger
 	.use(
 		logixlysia({
 			config: {
 				showStartupMessage: true,
 				useColors: !isProd,
 				ip: true,
-				timestamp: {
-					translateTime: "mm-dd-yyyy HH:MM:ss",
-				},
+				timestamp: { translateTime: "mm-dd-yyyy HH:MM:ss" },
 				customLogFormat:
 					"[+] {now} {level} {duration} {method} {pathname} {status} {message} {ip}",
 				logFilePath: "./logs/api.log",
@@ -61,24 +67,14 @@ const app = new Elysia()
 		cors({
 			origin: (request) => {
 				const origin = request.headers.get("origin");
-				const allowedOrigins = [
-					process.env.BETTER_AUTH_URL,
-					process.env.ADMIN_URL,
-					process.env.STORE_URL,
-					"http://localhost:3000",
-					"http://localhost:3002",
-				].filter(Boolean) as string[];
-
-				if (!origin || allowedOrigins.includes(origin)) return true;
-				return false;
+				if (!origin) return true;
+				return allowedOrigins.includes(origin);
 			},
-			allowedHeaders: ["Content-Type", "Authorization"],
-			methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+			methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
 			credentials: true,
+			allowedHeaders: ["Content-Type", "Authorization"],
 		}),
 	)
-	// Routes
-	.group("/api", (api) => api.use(v1Routes))
 	// Error Handling
 	.onError(({ code, error, set }) => {
 		if (code === "NOT_FOUND") {
@@ -86,17 +82,54 @@ const app = new Elysia()
 			return { status: 404, message: "Ruta no encontrada" };
 		}
 
+		if (code === "VALIDATION") {
+			set.status = 400;
+			return { status: 400, message: "Datos inválidos", errors: error.all };
+		}
+
 		console.error("[-] API Error:", error);
 
-		const errorMessage =
-			error instanceof Error ? error.message : "Error desconocido";
+		const msg =
+			error instanceof Error
+				? error.message
+				: typeof error === "object" && error !== null && "message" in error
+					? String((error as { message: unknown }).message)
+					: "";
+		const msgLower = msg.toLowerCase();
 
+		if (
+			msgLower.includes("null value") ||
+			msgLower.includes("violates not-null")
+		) {
+			set.status = 400;
+			return { status: 400, message: "Faltan campos obligatorios" };
+		}
+		if (
+			msgLower.includes("duplicate key") ||
+			msgLower.includes("already exists")
+		) {
+			set.status = 409;
+			return { status: 409, message: "El registro ya existe" };
+		}
+		if (
+			msg.includes("invalid input syntax for type uuid") ||
+			msg.includes("invalid input syntax for uuid") ||
+			msg.includes("uuid array")
+		) {
+			set.status = 400;
+			return {
+				status: 400,
+				message: "ID o identificador con formato inválido (UUID requerido)",
+			};
+		}
+
+		set.status = 500;
 		return {
 			status: 500,
-			message: isProd ? "Internal server error" : errorMessage,
+			message: isProd ? "Internal server error" : msg || "Error desconocido",
 		};
 	})
-	// Port
+	.group("/api", (api) => api.use(v1Routes))
 	.listen(PORT);
 
 export type App = typeof app;

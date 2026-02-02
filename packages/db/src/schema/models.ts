@@ -2,6 +2,7 @@ import type { Static } from "@sinclair/typebox";
 import { createInsertSchema } from "drizzle-typebox";
 import { t } from "elysia";
 import { spreads } from "./_utils_typebox";
+import { users } from "./auth";
 import { brands } from "./brands";
 import { categories } from "./categories";
 import { productImages, products } from "./products";
@@ -27,6 +28,7 @@ const rawInsert = {
 	productImage: createInsertSchema(productImages, {
 		url: t.String({ format: "uri" }),
 	}),
+	user: createInsertSchema(users),
 };
 
 // Spreading properties for fine-grained control if needed
@@ -38,6 +40,7 @@ export const models = {
 			category: categories,
 			product: products,
 			productImage: productImages,
+			user: users,
 		},
 		"select",
 	),
@@ -76,6 +79,10 @@ export const schemas = {
 			t.Omit(rawInsert.product, ["id", "createdAt", "updatedAt"]),
 		),
 		select: t.Object(models.select.product),
+	},
+	user: {
+		select: t.Object(models.select.user),
+		update: t.Partial(t.Omit(rawInsert.user, ["id", "createdAt", "updatedAt"])),
 	},
 } as const;
 

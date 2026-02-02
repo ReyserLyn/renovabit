@@ -1,4 +1,5 @@
 import { db, eq } from "@renovabit/db";
+import type { NewBrand } from "@renovabit/db/schema";
 import { storageService } from "@/modules/storage/storage.service";
 import type { Brand } from "./brand.model";
 import { brands } from "./brand.model";
@@ -26,7 +27,7 @@ export const brandService = {
 		return row;
 	},
 
-	async update(id: string, data: Partial<typeof brands.$inferInsert>) {
+	async update(id: string, data: Partial<NewBrand>) {
 		if (data.logo !== undefined) {
 			const oldBrand = await this.findByIdOrSlug(id);
 

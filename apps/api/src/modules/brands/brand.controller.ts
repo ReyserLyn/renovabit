@@ -1,17 +1,16 @@
 import { Elysia, t } from "elysia";
-import { auth } from "@/modules/auth/auth";
-import { authMacro } from "@/modules/auth/middleware";
+import { slugOrIdParam } from "@/lib/common-schemas";
+import { authRoutes, isAdminUser } from "@/modules/auth/middleware";
 import { schemas } from "./brand.model";
 import { brandService } from "./brand.service";
 
 export const brandController = new Elysia({ prefix: "/brands" })
-	.use(authMacro)
+	.use(authRoutes)
 	.get(
 		"/",
-		async ({ query, set, request: { headers } }) => {
+		async ({ query, set, user }) => {
 			if (query.includeInactive) {
-				const session = await auth.api.getSession({ headers });
-				if (session?.user.role !== "admin") {
+				if (!isAdminUser(user)) {
 					set.status = 403;
 					return {
 						message: "Forbidden",
@@ -43,6 +42,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			return brand;
 		},
 		{
+			params: slugOrIdParam,
 			response: {
 				200: schemas.brand.select,
 				404: t.Object({ message: t.String() }),
@@ -51,11 +51,12 @@ export const brandController = new Elysia({ prefix: "/brands" })
 	)
 	.post(
 		"/",
-		async ({ body }) => {
+		async ({ body, set }) => {
 			try {
 				return await brandService.create(body);
 			} catch {
-				throw new Error("La marca o el slug ya existen.");
+				set.status = 400;
+				return { message: "La marca o el slug ya existen." };
 			}
 		},
 		{
@@ -64,6 +65,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			response: {
 				200: schemas.brand.select,
 				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
 		},
@@ -86,9 +88,11 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		{
 			isAdmin: true,
 			body: schemas.brand.update,
+			params: slugOrIdParam,
 			response: {
 				200: schemas.brand.select,
 				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 				404: t.Object({ message: t.String() }),
 			},
@@ -119,6 +123,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			response: {
 				200: t.Object({ valid: t.Boolean() }),
 				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
 		},
@@ -127,6 +132,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		"/:id",
 		async ({ params: { id }, set }) => {
 			const deletedBrand = await brandService.delete(id);
+
 			if (!deletedBrand) {
 				set.status = 404;
 				return { message: "Marca no encontrada" };
@@ -135,8 +141,10 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		},
 		{
 			isAdmin: true,
+			params: slugOrIdParam,
 			response: {
 				200: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 				404: t.Object({ message: t.String() }),
 			},

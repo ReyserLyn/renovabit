@@ -19,3 +19,4 @@ export const brands = pgTable(
 );
 
 export type Brand = typeof brands.$inferSelect;
+export type NewBrand = typeof brands.$inferInsert;

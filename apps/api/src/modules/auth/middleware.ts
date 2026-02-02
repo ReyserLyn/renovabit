@@ -2,49 +2,74 @@
 import { Elysia } from "elysia";
 import { auth } from "@/modules/auth/auth";
 
-export const authMacro = new Elysia({ name: "auth-macro", prefix: "/auth" })
-	.mount(auth.handler)
+type AuthSession = typeof auth.$Infer.Session;
+export type AuthUser = AuthSession["user"];
+
+export const isAdminUser = (user: AuthUser | null): boolean => {
+	return user?.role === "admin";
+};
+
+const getSessionFromHeaders = async (
+	headers: Headers | Record<string, string>,
+) => {
+	const headersObj =
+		headers instanceof Headers
+			? headers
+			: new Headers(headers as Record<string, string>);
+
+	try {
+		return await auth.api.getSession({
+			headers: headersObj,
+		});
+	} catch (e) {
+		console.error("Auth error:", e);
+		return null;
+	}
+};
+
+export const authMacro = new Elysia({ name: "auth-macro" })
+	.mount("/", auth.handler)
+	.derive({ as: "scoped" }, async ({ request: { headers } }) => {
+		const session = await getSessionFromHeaders(headers);
+		return {
+			user: (session?.user ?? null) as AuthUser | null,
+			session: session?.session ?? null,
+		};
+	})
 	.macro({
 		isAuth: {
-			async resolve({ status, request: { headers } }) {
-				const session = await auth.api.getSession({ headers });
-				if (!session) return status(401, { message: "Unauthorized!" });
+			resolve({ user, status }) {
+				if (!user) return status(401, { message: "Unauthorized!" });
 
 				return {
-					user: session.user,
-					session: session.session,
+					user,
 				};
 			},
 		},
 		isAdmin: {
-			async resolve({ status, request: { headers } }) {
-				const session = await auth.api.getSession({ headers });
-				if (!session) return status(401, { message: "Unauthorized!" });
-				if (session.user.role !== "admin")
-					return status(403, { message: "Forbidden: Admin only" });
+			resolve({ user, status }) {
+				if (!user) return status(401, { message: "Unauthorized!" });
+
+				if (user.role !== "admin")
+					return status(403, { message: "Forbidden!" });
 
 				return {
-					user: session.user,
-					session: session.session,
+					user,
 				};
 			},
 		},
 		isOwnerOrAdmin: {
-			async resolve({ params, status, request: { headers } }) {
-				const session = await auth.api.getSession({ headers });
-				if (!session) return status(401, { message: "Unauthorized!" });
+			resolve({ params, user, status }) {
+				if (!user) return status(401, { message: "Unauthorized!" });
 
-				const user = session.user;
-				const targetId = (params as any).id;
+				const targetId = (params as { id?: string }).id;
 
-				// Check if user is admin OR if the target ID is the user's own ID
 				if (user.role !== "admin" && user.id !== targetId) {
-					return status(403, { message: "Forbidden: Not owner and not admin" });
+					return status(403, { message: "Forbidden!" });
 				}
 
 				return {
-					user: session.user,
-					session: session.session,
+					user,
 				};
 			},
 		},

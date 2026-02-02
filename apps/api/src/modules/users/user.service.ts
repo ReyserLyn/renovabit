@@ -1,4 +1,5 @@
 import { db, eq, users } from "@renovabit/db";
+import type { NewUser } from "@renovabit/db/schema";
 
 export const userService = {
 	async findMany() {
@@ -13,7 +14,7 @@ export const userService = {
 		});
 	},
 
-	async update(id: string, data: Partial<typeof users.$inferInsert>) {
+	async update(id: string, data: Partial<NewUser>) {
 		const [row] = await db
 			.update(users)
 			.set(data)

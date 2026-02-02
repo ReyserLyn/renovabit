@@ -1,18 +1,17 @@
 import { Elysia, t } from "elysia";
-import { auth } from "@/modules/auth/auth";
-import { authMacro } from "@/modules/auth/middleware";
+import { slugOrIdParam } from "@/lib/common-schemas";
+import { authRoutes, isAdminUser } from "@/modules/auth/middleware";
 import { schemas } from "./category.model";
 import { categoryService } from "./category.service";
 
 export const categoryController = new Elysia({ prefix: "/categories" })
-	.use(authMacro)
+	.use(authRoutes)
 	.get("/navbar", () => categoryService.findManyForNavbar())
 	.get(
 		"/",
-		async ({ query, set, request: { headers } }) => {
+		async ({ query, set, user }) => {
 			if (query.includeInactive) {
-				const session = await auth.api.getSession({ headers });
-				if (session?.user.role !== "admin") {
+				if (!isAdminUser(user)) {
 					set.status = 403;
 					return {
 						message: "Forbidden",
@@ -28,29 +27,49 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 			}),
 		},
 	)
-	.get("/:id", async ({ params: { id }, set, request: { headers } }) => {
-		const session = await auth.api.getSession({ headers });
-		const isAdmin = session?.user.role === "admin";
-
-		const category = await categoryService.findByIdOrSlug(id, isAdmin);
-		if (!category) {
-			set.status = 404;
-			return { message: "Categoria no encontrada" };
-		}
-		return category;
-	})
+	.get(
+		"/:id",
+		async ({ params: { id }, set, user }) => {
+			const category = await categoryService.findByIdOrSlug(
+				id,
+				isAdminUser(user),
+			);
+			if (!category) {
+				set.status = 404;
+				return { message: "Categoría no encontrada" };
+			}
+			return category;
+		},
+		{
+			params: slugOrIdParam,
+			response: {
+				200: schemas.category.select,
+				404: t.Object({ message: t.String() }),
+			},
+		},
+	)
 	.post(
 		"/",
-		async ({ body }) => {
+		async ({ body, set }) => {
 			try {
 				return await categoryService.create(body);
 			} catch {
-				throw new Error(
-					"No se pudo crear la categoria. El slug debe ser único.",
-				);
+				set.status = 400;
+				return {
+					message: "No se pudo crear la categoria. El slug debe ser único.",
+				};
 			}
 		},
-		{ isAdmin: true, body: schemas.category.insert },
+		{
+			isAdmin: true,
+			body: schemas.category.insert,
+			response: {
+				200: schemas.category.select,
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+			},
+		},
 	)
 	.put(
 		"/:id",
@@ -59,16 +78,29 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 				const updatedCategory = await categoryService.update(id, body);
 				if (!updatedCategory) {
 					set.status = 404;
-					return { message: "Categoria no encontrada" };
+					return { message: "Categoría no encontrada" };
 				}
 				return updatedCategory;
 			} catch {
-				throw new Error(
-					"No se pudo actualizar la categoria. Verifique si el slug es único.",
-				);
+				set.status = 400;
+				return {
+					message:
+						"No se pudo actualizar la categoría. Verifique si el slug es único.",
+				};
 			}
 		},
-		{ isAdmin: true, body: schemas.category.update },
+		{
+			isAdmin: true,
+			body: schemas.category.update,
+			params: slugOrIdParam,
+			response: {
+				200: schemas.category.select,
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
+		},
 	)
 	.delete(
 		"/:id",
@@ -77,14 +109,26 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 				const deletedCategory = await categoryService.delete(id);
 				if (!deletedCategory) {
 					set.status = 404;
-					return { message: "Categoria no encontrada" };
+					return { message: "Categoría no encontrada" };
 				}
-				return { message: "Categoria eliminada correctamente" };
+				return { message: "Categoría eliminada correctamente" };
 			} catch {
-				throw new Error(
-					"No se pudo eliminar la categoria. Puede tener productos hijos.",
-				);
+				set.status = 400;
+				return {
+					message:
+						"No se pudo eliminar la categoría. Puede tener productos hijos.",
+				};
 			}
 		},
-		{ isAdmin: true },
+		{
+			isAdmin: true,
+			params: slugOrIdParam,
+			response: {
+				200: t.Object({ message: t.String() }),
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
+		},
 	);

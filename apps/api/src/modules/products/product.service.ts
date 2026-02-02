@@ -1,5 +1,5 @@
 import { and, db, eq } from "@renovabit/db";
-import type { NewProductImage } from "./product.model";
+import type { NewProduct, NewProductImage } from "@renovabit/db/schema";
 import { productImages, products } from "./product.model";
 
 type ListQuery = {
@@ -53,7 +53,7 @@ export const productService = {
 	},
 
 	async create(
-		data: typeof products.$inferInsert & {
+		data: NewProduct & {
 			images?: Array<Partial<NewProductImage>>;
 		},
 	) {
@@ -77,20 +77,33 @@ export const productService = {
 				);
 			}
 
-			return tx.query.products.findFirst({
+			const product = await tx.query.products.findFirst({
 				where: (table, { eq }) => eq(table.id, newProduct.id),
 				with: { images: true, brand: true, category: true },
 			});
+
+			if (!product) {
+				throw new Error("No se pudo recuperar el producto creado.");
+			}
+
+			return product;
 		});
 	},
 
-	async update(id: string, data: Partial<typeof products.$inferInsert>) {
+	async update(id: string, data: Partial<NewProduct>) {
 		const [row] = await db
 			.update(products)
 			.set(data)
 			.where(eq(products.id, id))
 			.returning();
-		return row;
+
+		if (!row) return null;
+
+		// Devolver el producto completo con relaciones para que coincida con el schema
+		return db.query.products.findFirst({
+			where: (table, { eq }) => eq(table.id, id),
+			with: { images: true, brand: true, category: true },
+		});
 	},
 
 	async delete(id: string) {

@@ -6,7 +6,7 @@ import { openAPI, username } from "better-auth/plugins";
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL as string,
-	basePath: "/api/v1/auth",
+	basePath: "/auth",
 	secret: process.env.BETTER_AUTH_SECRET,
 	trustedOrigins: [
 		process.env.BETTER_AUTH_URL as string,
@@ -17,7 +17,6 @@ export const auth = betterAuth({
 		"http://192.168.1.56:3000",
 		"http://192.168.1.56:3002",
 	],
-
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		usePlural: true,

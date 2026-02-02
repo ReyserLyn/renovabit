@@ -1,17 +1,12 @@
 import { Elysia, t } from "elysia";
-import { authMacro } from "@/modules/auth/middleware";
+import { authRoutes } from "@/modules/auth/middleware";
 import { storageService } from "./storage.service";
 
 export const storageController = new Elysia({ prefix: "/storage" })
-	.use(authMacro)
+	.use(authRoutes)
 	.post(
 		"/upload-url",
-		async ({ body, user, set }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
-
+		async ({ body }) => {
 			const key = storageService.generateKey(body.filename, body.prefix);
 			const uploadUrl = await storageService.getPresignedUploadUrl({
 				key,
@@ -25,7 +20,7 @@ export const storageController = new Elysia({ prefix: "/storage" })
 			};
 		},
 		{
-			isAuth: true,
+			isAdmin: true,
 			body: t.Object({
 				filename: t.String(),
 				contentType: t.String(),
@@ -37,6 +32,7 @@ export const storageController = new Elysia({ prefix: "/storage" })
 					uploadUrl: t.String(),
 					publicUrl: t.String(),
 				}),
+				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
 			detail: {
@@ -47,22 +43,18 @@ export const storageController = new Elysia({ prefix: "/storage" })
 	)
 	.delete(
 		"/file/:key",
-		async ({ params, user, set }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
-
+		async ({ params }) => {
 			await storageService.deleteFile(params.key);
 			return { success: true };
 		},
 		{
-			isAuth: true,
+			isAdmin: true,
 			params: t.Object({
 				key: t.String(),
 			}),
 			response: {
 				200: t.Object({ success: t.Boolean() }),
+				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
 			detail: {

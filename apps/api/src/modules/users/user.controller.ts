@@ -1,11 +1,18 @@
+import { schemas } from "@renovabit/db/schema";
 import { Elysia, t } from "elysia";
-import { authMacro } from "@/modules/auth/middleware";
+import { idParam } from "@/lib/common-schemas";
+import { authRoutes } from "@/modules/auth/middleware";
 import { userService } from "./user.service";
 
 export const userController = new Elysia({ prefix: "/users" })
-	.use(authMacro)
+	.use(authRoutes)
 	.get("/", async () => userService.findMany(), {
 		isAdmin: true,
+		response: {
+			200: t.Array(schemas.user.select),
+			401: t.Object({ message: t.String() }),
+			403: t.Object({ message: t.String() }),
+		},
 	})
 	.get(
 		"/:id",
@@ -19,13 +26,19 @@ export const userController = new Elysia({ prefix: "/users" })
 		},
 		{
 			isOwnerOrAdmin: true,
+			params: idParam,
+			response: {
+				200: schemas.user.select,
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
 		},
 	)
 	.put(
 		"/:id",
 		async ({ params: { id }, body, user, set }) => {
-			// Solo administradores pueden cambiar roles
-			if (body.role && user.role !== "admin") {
+			if (body.role && user!.role !== "admin") {
 				set.status = 403;
 				return { message: "Forbidden" };
 			}
@@ -39,19 +52,15 @@ export const userController = new Elysia({ prefix: "/users" })
 		},
 		{
 			isOwnerOrAdmin: true,
-			body: t.Partial(
-				t.Object({
-					name: t.String(),
-					username: t.String(),
-					displayUsername: t.String(),
-					phone: t.String(),
-					role: t.Union([
-						t.Literal("admin"),
-						t.Literal("customer"),
-						t.Literal("distributor"),
-					]),
-				}),
-			),
+			params: idParam,
+			body: schemas.user.update,
+			response: {
+				200: schemas.user.select,
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
 		},
 	)
 	.delete(
@@ -66,5 +75,12 @@ export const userController = new Elysia({ prefix: "/users" })
 		},
 		{
 			isAdmin: true,
+			params: idParam,
+			response: {
+				200: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
 		},
 	);

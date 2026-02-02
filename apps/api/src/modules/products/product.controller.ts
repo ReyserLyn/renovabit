@@ -1,19 +1,18 @@
 import { Elysia, t } from "elysia";
-import { auth } from "@/modules/auth/auth";
-import { authMacro } from "@/modules/auth/middleware";
+import { slugOrIdParam } from "@/lib/common-schemas";
+import { authRoutes, isAdminUser } from "@/modules/auth/middleware";
 import { schemas } from "./product.model";
 import { productService } from "./product.service";
 
 export const productController = new Elysia({ prefix: "/products" })
-	.use(authMacro)
+	.use(authRoutes)
 	.get(
 		"/",
-		async ({ query, set, request: { headers } }) => {
+		async ({ query, set, user }) => {
 			let includeInactive = false;
 
 			if (query.includeInactive) {
-				const session = await auth.api.getSession({ headers });
-				if (session?.user.role !== "admin") {
+				if (!isAdminUser(user)) {
 					set.status = 403;
 					return {
 						message: "Forbidden",
@@ -33,29 +32,51 @@ export const productController = new Elysia({ prefix: "/products" })
 			}),
 		},
 	)
-	.get("/:id", async ({ params: { id }, set, request: { headers } }) => {
-		const session = await auth.api.getSession({ headers });
-		const isAdmin = session?.user.role === "admin";
-
-		const product = await productService.findByIdOrSlug(id, isAdmin);
-		if (!product) {
-			set.status = 404;
-			return { message: "Producto no encontrado" };
-		}
-		return product;
-	})
+	.get(
+		"/:id",
+		async ({ params: { id }, set, user }) => {
+			const product = await productService.findByIdOrSlug(
+				id,
+				isAdminUser(user),
+			);
+			if (!product) {
+				set.status = 404;
+				return { message: "Producto no encontrado" };
+			}
+			return product;
+		},
+		{
+			isAuth: false,
+			params: slugOrIdParam,
+			response: {
+				200: schemas.product.select,
+				404: t.Object({ message: t.String() }),
+			},
+		},
+	)
 	.post(
 		"/",
-		async ({ body }) => {
+		async ({ body, set }) => {
 			try {
 				return await productService.create(body);
 			} catch {
-				throw new Error(
-					"No se pudo crear el producto. Verifique si el slug/SKU es único.",
-				);
+				set.status = 400;
+				return {
+					message:
+						"No se pudo crear el producto. Verifique si el slug/SKU es único.",
+				};
 			}
 		},
-		{ isAdmin: true, body: schemas.product.insert },
+		{
+			isAdmin: true,
+			body: schemas.product.insert,
+			response: {
+				200: schemas.product.select,
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+			},
+		},
 	)
 	.put(
 		"/:id",
@@ -68,12 +89,25 @@ export const productController = new Elysia({ prefix: "/products" })
 				}
 				return updatedProduct;
 			} catch {
-				throw new Error(
-					"No se pudo actualizar el producto. Verifique si el slug/SKU es único.",
-				);
+				set.status = 400;
+				return {
+					message:
+						"No se pudo actualizar el producto. Verifique si el slug/SKU es único.",
+				};
 			}
 		},
-		{ isAdmin: true, body: schemas.product.update },
+		{
+			isAdmin: true,
+			body: schemas.product.update,
+			params: slugOrIdParam,
+			response: {
+				200: schemas.product.select,
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
+		},
 	)
 	.delete(
 		"/:id",
@@ -85,5 +119,14 @@ export const productController = new Elysia({ prefix: "/products" })
 			}
 			return { message: "Producto eliminado correctamente" };
 		},
-		{ isAdmin: true },
+		{
+			isAdmin: true,
+			params: slugOrIdParam,
+			response: {
+				200: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+				404: t.Object({ message: t.String() }),
+			},
+		},
 	);
