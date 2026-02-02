@@ -19,15 +19,20 @@ export const categoryService = {
 		return all.filter((cat) => !cat.parentId);
 	},
 
-	async findMany(): Promise<Category[]> {
+	async findMany(includeInactive = false): Promise<Category[]> {
 		return db.query.categories.findMany({
+			where: (table, { eq }) =>
+				includeInactive ? undefined : eq(table.isActive, true),
 			orderBy: (table, { asc }) => [asc(table.order)],
 		});
 	},
 
-	async findByIdOrSlug(id: string) {
+	async findByIdOrSlug(id: string, includeInactive = false) {
 		return db.query.categories.findFirst({
-			where: (table, { eq, or }) => or(eq(table.id, id), eq(table.slug, id)),
+			where: (table, { eq, or, and }) => {
+				const cond = or(eq(table.id, id), eq(table.slug, id));
+				return includeInactive ? cond : and(cond, eq(table.isActive, true));
+			},
 			with: { children: true, parent: true },
 		});
 	},

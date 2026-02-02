@@ -2,17 +2,67 @@ services:
   renovabit-postgres:
     container_name: renovabit-postgres
     image: postgres:18.1
-    restart: unless-stopped
+    restart: always
     env_file:
-      - .env.local
-    ports:
-      - "5432:5432"
+      - .env
     volumes:
-      - ./data-postgres:/var/lib/postgresql/
+      - renovabit-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.tcp.routers.renovabit-postgres.rule=HostSNI(`db.renovabit.com`)"
+      - "traefik.tcp.routers.renovabit-postgres.entrypoints=postgres"
+      - "traefik.tcp.routers.renovabit-postgres.tls=true"
+      - "traefik.tcp.routers.renovabit-postgres.tls.certresolver=cloudflare"
+      - "traefik.tcp.services.renovabit-postgres.loadbalancer.server.port=5432"
+      - "traefik.http.routers.renovabit-postgres.service=renovabit-postgres"
     networks:
       - renovabit
+      - traefik
+
+  renovabit-api:
+    container_name: renovabit-api
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      renovabit-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "bun", "-e", "try{const r=await fetch('http://127.0.0.1:3001/api/v1/health');process.exit(r.ok?0:1)}catch{process.exit(1)}" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.renovabit-api.rule=Host(`api.renovabit.com`)"
+      - "traefik.http.routers.renovabit-api.entrypoints=websecure"
+      - "traefik.http.routers.renovabit-api.tls=true"
+      - "traefik.http.routers.renovabit-api.tls.certresolver=cloudflare"
+      - "traefik.http.services.renovabit-api.loadbalancer.server.port=3001"
+      - "traefik.http.routers.renovabit-api.service=renovabit-api"
+    networks:
+      - renovabit
+      - traefik
+
+volumes:
+  renovabit-postgres-data:
+    name: renovabit-postgres-data
 
 networks:
   renovabit:
     name: renovabit
     driver: bridge
+  traefik:
+    external: true

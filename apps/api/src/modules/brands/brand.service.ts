@@ -4,22 +4,20 @@ import type { Brand } from "./brand.model";
 import { brands } from "./brand.model";
 
 export const brandService = {
-	async findMany(): Promise<Brand[]> {
+	async findMany(includeInactive = false): Promise<Brand[]> {
 		return db.query.brands.findMany({
-			where: (table, { eq }) => eq(table.isActive, true),
+			where: (table, { eq }) =>
+				includeInactive ? undefined : eq(table.isActive, true),
 			orderBy: (table, { asc }) => [asc(table.name)],
 		});
 	},
 
-	async findManyAll(): Promise<Brand[]> {
-		return db.query.brands.findMany({
-			orderBy: (table, { asc }) => [asc(table.name)],
-		});
-	},
-
-	async findByIdOrSlug(id: string) {
+	async findByIdOrSlug(id: string, includeInactive = false) {
 		return db.query.brands.findFirst({
-			where: (table, { eq, or }) => or(eq(table.id, id), eq(table.slug, id)),
+			where: (table, { eq, or, and }) => {
+				const cond = or(eq(table.id, id), eq(table.slug, id));
+				return includeInactive ? cond : and(cond, eq(table.isActive, true));
+			},
 		});
 	},
 

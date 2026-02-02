@@ -40,7 +40,7 @@ export const storageController = new Elysia({ prefix: "/storage" })
 				403: t.Object({ message: t.String() }),
 			},
 			detail: {
-				summary: "Generate a presigned upload URL for R2",
+				summary: "Generar una URL de subida presignada para R2",
 				tags: ["Storage"],
 			},
 		},
@@ -66,7 +66,7 @@ export const storageController = new Elysia({ prefix: "/storage" })
 				403: t.Object({ message: t.String() }),
 			},
 			detail: {
-				summary: "Delete a file from R2",
+				summary: "Eliminar un archivo de R2",
 				tags: ["Storage"],
 			},
 		},

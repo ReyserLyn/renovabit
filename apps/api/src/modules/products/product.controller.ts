@@ -1,77 +1,89 @@
 import { Elysia, t } from "elysia";
+import { auth } from "@/modules/auth/auth";
 import { authMacro } from "@/modules/auth/middleware";
 import { schemas } from "./product.model";
 import { productService } from "./product.service";
 
 export const productController = new Elysia({ prefix: "/products" })
 	.use(authMacro)
-	.get("/", async ({ query }) => productService.findMany(query), {
-		query: t.Object({
-			categoryId: t.Optional(t.String()),
-			brandId: t.Optional(t.String()),
-			featured: t.Optional(t.Boolean()),
-		}),
-	})
-	.get("/:id", async ({ params: { id }, set }) => {
-		const product = await productService.findByIdOrSlug(id);
+	.get(
+		"/",
+		async ({ query, set, request: { headers } }) => {
+			let includeInactive = false;
+
+			if (query.includeInactive) {
+				const session = await auth.api.getSession({ headers });
+				if (session?.user.role !== "admin") {
+					set.status = 403;
+					return {
+						message: "Forbidden",
+					};
+				}
+				includeInactive = true;
+			}
+
+			return productService.findMany(query, includeInactive);
+		},
+		{
+			query: t.Object({
+				categoryId: t.Optional(t.String()),
+				brandId: t.Optional(t.String()),
+				featured: t.Optional(t.Boolean()),
+				includeInactive: t.Optional(t.Boolean()),
+			}),
+		},
+	)
+	.get("/:id", async ({ params: { id }, set, request: { headers } }) => {
+		const session = await auth.api.getSession({ headers });
+		const isAdmin = session?.user.role === "admin";
+
+		const product = await productService.findByIdOrSlug(id, isAdmin);
 		if (!product) {
 			set.status = 404;
-			return { message: "Product not found" };
+			return { message: "Producto no encontrado" };
 		}
 		return product;
 	})
 	.post(
 		"/",
-		async ({ body, set, user }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
+		async ({ body }) => {
 			try {
 				return await productService.create(body);
 			} catch {
-				set.status = 400;
-				return {
-					message: "Could not create product. Check if slug/SKU is unique.",
-				};
+				throw new Error(
+					"No se pudo crear el producto. Verifique si el slug/SKU es único.",
+				);
 			}
 		},
-		{ isAuth: true, body: schemas.product.insert },
+		{ isAdmin: true, body: schemas.product.insert },
 	)
 	.put(
 		"/:id",
-		async ({ params: { id }, body, set, user }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
+		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedProduct = await productService.update(id, body);
 				if (!updatedProduct) {
 					set.status = 404;
-					return { message: "Product not found" };
+					return { message: "Producto no encontrado" };
 				}
 				return updatedProduct;
 			} catch {
-				set.status = 400;
-				return { message: "Could not update product. Check unique fields." };
+				throw new Error(
+					"No se pudo actualizar el producto. Verifique si el slug/SKU es único.",
+				);
 			}
 		},
-		{ isAuth: true, body: schemas.product.update },
+		{ isAdmin: true, body: schemas.product.update },
 	)
 	.delete(
 		"/:id",
-		async ({ params: { id }, set, user }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
+		async ({ params: { id }, set }) => {
 			const deletedProduct = await productService.delete(id);
 			if (!deletedProduct) {
 				set.status = 404;
-				return { message: "Product not found" };
+				return { message: "Producto no encontrado" };
 			}
-			return { message: "Product deleted successfully" };
+			return { message: "Producto eliminado correctamente" };
 		},
-		{ isAuth: true },
+		{ isAdmin: true },
 	);

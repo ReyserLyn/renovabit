@@ -12,6 +12,9 @@ import { storageController } from "@/modules/storage/storage.controller";
 import { userController } from "@/modules/users/user.controller";
 import { auth } from "./modules/auth/auth";
 
+const PORT = process.env.PORT ? Number.parseInt(process.env.PORT) : 3001;
+const isProd = process.env.NODE_ENV === "production";
+
 const v1Routes = new Elysia({ prefix: "/v1" })
 	.use(authRoutes)
 	.use(healthController)
@@ -26,32 +29,22 @@ const app = new Elysia()
 	.use(
 		logixlysia({
 			config: {
-				showStartupMessage: false,
-				useColors: true,
+				showStartupMessage: true,
+				useColors: !isProd,
 				ip: true,
 				timestamp: {
 					translateTime: "mm-dd-yyyy HH:MM:ss",
 				},
 				customLogFormat:
-					"🦊 {now} {level} {duration} {method} {pathname} {status} {message} {ip}",
+					"[+] {now} {level} {duration} {method} {pathname} {status} {message} {ip}",
 				logFilePath: "./logs/api.log",
-				logRotation: {
-					maxSize: "100m",
-					interval: "1d",
-					maxFiles: "30d",
-					compress: true,
-				},
 			},
 		}),
 	)
 	// OpenAPI
 	.use(
 		openapi({
-			references: fromTypes(
-				process.env.NODE_ENV === "production"
-					? "dist/index.d.ts"
-					: "src/index.ts",
-			),
+			references: fromTypes("src/index.ts"),
 			documentation: {
 				info: {
 					title: "Renovabit API",
@@ -66,13 +59,19 @@ const app = new Elysia()
 	// CORS
 	.use(
 		cors({
-			origin: [
-				process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-				"http://localhost:3000",
-				"http://localhost:3002",
-				"http://192.168.1.56:3000",
-				"http://192.168.1.56:3002",
-			],
+			origin: (request) => {
+				const origin = request.headers.get("origin");
+				const allowedOrigins = [
+					process.env.BETTER_AUTH_URL,
+					process.env.ADMIN_URL,
+					process.env.STORE_URL,
+					"http://localhost:3000",
+					"http://localhost:3002",
+				].filter(Boolean) as string[];
+
+				if (!origin || allowedOrigins.includes(origin)) return true;
+				return false;
+			},
 			allowedHeaders: ["Content-Type", "Authorization"],
 			methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
 			credentials: true,
@@ -84,20 +83,26 @@ const app = new Elysia()
 	.onError(({ code, error, set }) => {
 		if (code === "NOT_FOUND") {
 			set.status = 404;
-			return { status: 404, message: "Route not found" };
+			return { status: 404, message: "Ruta no encontrada" };
 		}
-		console.error(error);
-		return { status: 500, message: "Internal server error" };
+
+		console.error("[-] API Error:", error);
+
+		const errorMessage =
+			error instanceof Error ? error.message : "Error desconocido";
+
+		return {
+			status: 500,
+			message: isProd ? "Internal server error" : errorMessage,
+		};
 	})
 	// Port
-	.listen(3001);
+	.listen(PORT);
 
 export type App = typeof app;
 export type Session = typeof auth.$Infer.Session;
 
-console.log(
-	`🚀 Server is running at http://${app.server?.hostname}:${app.server?.port}`,
-);
-console.log(
-	`📚 OpenAPI UI: http://${app.server?.hostname}:${app.server?.port}/openapi`,
-);
+console.log(`\n[+] Renovabit API is running!`);
+console.log(`[+] Mode: ${process.env.NODE_ENV || "development"}`);
+console.log(`[+] Local: http://localhost:${PORT}`);
+console.log(`[+] OpenAPI: http://localhost:${PORT}/openapi\n`);

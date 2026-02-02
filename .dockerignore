@@ -1,0 +1,32 @@
+# Dependencies 
+node_modules
+**/node_modules
+
+# Git y IDE
+.git
+.gitignore
+.vscode
+.cursor
+
+# Otros apps del monorepo 
+apps/admin
+apps/store
+
+# Builds y caches
+**/dist
+**/build
+**/.turbo
+**/.next
+*.log
+
+# Env local 
+.env
+.env.*
+!.env.example
+
+# Tests y docs
+**/__tests__
+**/*.test.ts
+**/*.spec.ts
+**/coverage
+*.md

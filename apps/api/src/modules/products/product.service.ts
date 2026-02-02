@@ -6,10 +6,11 @@ type ListQuery = {
 	categoryId?: string;
 	brandId?: string;
 	featured?: boolean;
+	includeInactive?: boolean;
 };
 
 export const productService = {
-	async findMany(query: ListQuery = {}) {
+	async findMany(query: ListQuery = {}, includeInactive = false) {
 		return db.query.products.findMany({
 			where: (table, { eq, and }) => {
 				const filters = [];
@@ -17,8 +18,12 @@ export const productService = {
 					filters.push(eq(table.categoryId, query.categoryId));
 				if (query.brandId) filters.push(eq(table.brandId, query.brandId));
 				if (query.featured) filters.push(eq(table.isFeatured, true));
-				filters.push(eq(table.status, "active"));
-				return and(...filters);
+
+				if (!includeInactive) {
+					filters.push(eq(table.status, "active"));
+				}
+
+				return filters.length > 0 ? and(...filters) : undefined;
 			},
 			with: {
 				images: {
@@ -31,9 +36,14 @@ export const productService = {
 		});
 	},
 
-	async findByIdOrSlug(id: string) {
+	async findByIdOrSlug(id: string, isAdmin = false) {
 		return db.query.products.findFirst({
-			where: (table, { eq, or }) => or(eq(table.id, id), eq(table.slug, id)),
+			where: (table, { eq, or, and }) => {
+				const isMatch = or(eq(table.id, id), eq(table.slug, id));
+				if (isAdmin) return isMatch;
+
+				return and(isMatch, eq(table.status, "active"));
+			},
 			with: {
 				images: { orderBy: (table, { asc }) => [asc(table.order)] },
 				brand: true,

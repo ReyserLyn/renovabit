@@ -11,16 +11,13 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		async ({ query, set, request: { headers } }) => {
 			if (query.includeInactive) {
 				const session = await auth.api.getSession({ headers });
-				const user = session?.user;
-				if (!user) {
-					set.status = 401;
-					return { message: "Unauthorized" };
-				}
-				if (user.role !== "admin") {
+				if (session?.user.role !== "admin") {
 					set.status = 403;
-					return { message: "Forbidden" };
+					return {
+						message: "Forbidden",
+					};
 				}
-				return brandService.findManyAll();
+				return brandService.findMany(true);
 			}
 			return brandService.findMany();
 		},
@@ -41,7 +38,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			const brand = await brandService.findByIdOrSlug(id);
 			if (!brand) {
 				set.status = 404;
-				return { message: "Brand not found" };
+				return { message: "Marca no encontrada" };
 			}
 			return brand;
 		},
@@ -54,23 +51,15 @@ export const brandController = new Elysia({ prefix: "/brands" })
 	)
 	.post(
 		"/",
-		async ({ body, user, set }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
-
+		async ({ body }) => {
 			try {
 				return await brandService.create(body);
 			} catch {
-				set.status = 400;
-				return {
-					message: "La marca o el slug ya existen.",
-				};
+				throw new Error("La marca o el slug ya existen.");
 			}
 		},
 		{
-			isAuth: true,
+			isAdmin: true,
 			body: schemas.brand.insert,
 			response: {
 				200: schemas.brand.select,
@@ -81,28 +70,21 @@ export const brandController = new Elysia({ prefix: "/brands" })
 	)
 	.put(
 		"/:id",
-		async ({ params: { id }, body, user, set }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
-
+		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedBrand = await brandService.update(id, body);
 				if (!updatedBrand) {
 					set.status = 404;
-					return { message: "Brand not found" };
+					return { message: "Marca no encontrada" };
 				}
 				return updatedBrand;
 			} catch {
 				set.status = 400;
-				return {
-					message: "La marca o el slug ya están en uso.",
-				};
+				return { message: "La marca o el slug ya están en uso." };
 			}
 		},
 		{
-			isAuth: true,
+			isAdmin: true,
 			body: schemas.brand.update,
 			response: {
 				200: schemas.brand.select,
@@ -114,12 +96,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 	)
 	.post(
 		"/validate",
-		async ({ body, user, set }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
-
+		async ({ body, set }) => {
 			const error = await brandService.checkUniqueness(body.id, {
 				name: body.name,
 				slug: body.slug,
@@ -133,7 +110,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			return { valid: true };
 		},
 		{
-			isAuth: true,
+			isAdmin: true,
 			body: t.Object({
 				id: t.Optional(t.String()),
 				name: t.Optional(t.String()),
@@ -144,30 +121,20 @@ export const brandController = new Elysia({ prefix: "/brands" })
 				400: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
-			detail: {
-				summary: "Validate brand name and slug uniqueness",
-				tags: ["Brands"],
-			},
 		},
 	)
 	.delete(
 		"/:id",
-		async ({ params: { id }, user, set }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
-
+		async ({ params: { id }, set }) => {
 			const deletedBrand = await brandService.delete(id);
 			if (!deletedBrand) {
 				set.status = 404;
-				return { message: "Brand not found" };
+				return { message: "Marca no encontrada" };
 			}
-
-			return { message: "Brand deleted successfully" };
+			return { message: "Marca eliminada exitosamente" };
 		},
 		{
-			isAuth: true,
+			isAdmin: true,
 			response: {
 				200: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),

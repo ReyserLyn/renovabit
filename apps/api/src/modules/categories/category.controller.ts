@@ -1,4 +1,5 @@
-import { Elysia } from "elysia";
+import { Elysia, t } from "elysia";
+import { auth } from "@/modules/auth/auth";
 import { authMacro } from "@/modules/auth/middleware";
 import { schemas } from "./category.model";
 import { categoryService } from "./category.service";
@@ -6,76 +7,84 @@ import { categoryService } from "./category.service";
 export const categoryController = new Elysia({ prefix: "/categories" })
 	.use(authMacro)
 	.get("/navbar", () => categoryService.findManyForNavbar())
-	.get("/", () => categoryService.findMany())
-	.get("/:id", async ({ params: { id }, set }) => {
-		const category = await categoryService.findByIdOrSlug(id);
+	.get(
+		"/",
+		async ({ query, set, request: { headers } }) => {
+			if (query.includeInactive) {
+				const session = await auth.api.getSession({ headers });
+				if (session?.user.role !== "admin") {
+					set.status = 403;
+					return {
+						message: "Forbidden",
+					};
+				}
+				return categoryService.findMany(true);
+			}
+			return categoryService.findMany(false);
+		},
+		{
+			query: t.Object({
+				includeInactive: t.Optional(t.Boolean()),
+			}),
+		},
+	)
+	.get("/:id", async ({ params: { id }, set, request: { headers } }) => {
+		const session = await auth.api.getSession({ headers });
+		const isAdmin = session?.user.role === "admin";
+
+		const category = await categoryService.findByIdOrSlug(id, isAdmin);
 		if (!category) {
 			set.status = 404;
-			return { message: "Category not found" };
+			return { message: "Categoria no encontrada" };
 		}
 		return category;
 	})
 	.post(
 		"/",
-		async ({ body, set, user }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
+		async ({ body }) => {
 			try {
-				const newCategory = await categoryService.create(body);
-				return newCategory;
+				return await categoryService.create(body);
 			} catch {
-				set.status = 400;
-				return { message: "Could not create category. Slug must be unique." };
+				throw new Error(
+					"No se pudo crear la categoria. El slug debe ser único.",
+				);
 			}
 		},
-		{ isAuth: true, body: schemas.category.insert },
+		{ isAdmin: true, body: schemas.category.insert },
 	)
 	.put(
 		"/:id",
-		async ({ params: { id }, body, set, user }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
+		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedCategory = await categoryService.update(id, body);
 				if (!updatedCategory) {
 					set.status = 404;
-					return { message: "Category not found" };
+					return { message: "Categoria no encontrada" };
 				}
 				return updatedCategory;
 			} catch {
-				set.status = 400;
-				return {
-					message: "Could not update category. Check if slug is unique.",
-				};
+				throw new Error(
+					"No se pudo actualizar la categoria. Verifique si el slug es único.",
+				);
 			}
 		},
-		{ isAuth: true, body: schemas.category.update },
+		{ isAdmin: true, body: schemas.category.update },
 	)
 	.delete(
 		"/:id",
-		async ({ params: { id }, set, user }) => {
-			if (user?.role !== "admin") {
-				set.status = 403;
-				return { message: "Forbidden" };
-			}
+		async ({ params: { id }, set }) => {
 			try {
 				const deletedCategory = await categoryService.delete(id);
 				if (!deletedCategory) {
 					set.status = 404;
-					return { message: "Category not found" };
+					return { message: "Categoria no encontrada" };
 				}
-				return { message: "Category deleted successfully" };
+				return { message: "Categoria eliminada correctamente" };
 			} catch {
-				set.status = 400;
-				return {
-					message:
-						"Could not delete category. It might have children products.",
-				};
+				throw new Error(
+					"No se pudo eliminar la categoria. Puede tener productos hijos.",
+				);
 			}
 		},
-		{ isAuth: true },
+		{ isAdmin: true },
 	);
