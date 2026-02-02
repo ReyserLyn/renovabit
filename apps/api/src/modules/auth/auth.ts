@@ -6,7 +6,7 @@ import { openAPI, username } from "better-auth/plugins";
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL as string,
-	basePath: "/auth",
+	basePath: "/api/v1/auth",
 	secret: process.env.BETTER_AUTH_SECRET,
 	trustedOrigins: [
 		process.env.BETTER_AUTH_URL as string,
@@ -30,16 +30,20 @@ export const auth = betterAuth({
 			verify: ({ password, hash }) => Bun.password.verify(password, hash),
 		},
 	},
-	advanced: {
-		database: {
-			generateId: false,
-		},
-	},
 	session: {
 		expiresIn: 60 * 60 * 24 * 7,
 		cookieCache: {
 			enabled: true,
 			maxAge: 60 * 5,
+		},
+	},
+	advanced: {
+		database: {
+			generateId: false,
+		},
+		cookie: {
+			domain:
+				process.env.NODE_ENV === "production" ? ".renovabit.com" : undefined,
 		},
 	},
 	user: {
