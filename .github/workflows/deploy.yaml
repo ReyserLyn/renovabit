@@ -1,0 +1,39 @@
+name: Deploy Renovabit
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-renovabit
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      DEPLOY_PATH: /opt/docker/renovabit
+    steps:
+      - name: Actualizar repo en VPS
+        run: |
+          set -e
+          cd "${{ env.DEPLOY_PATH }}"
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Verificar .env
+        run: |
+          set -e
+          cd "${{ env.DEPLOY_PATH }}"
+          test -f .env || (echo "::error::Falta .env en ${{ env.DEPLOY_PATH }}. Créalo en el VPS con las variables de producción." && exit 1)
+
+      - name: Construir y desplegar con Docker Compose
+        run: |
+          set -e
+          cd "${{ env.DEPLOY_PATH }}"
+          docker compose build
+          docker compose up -d --remove-orphans
+
+      - name: Limpiar imágenes huérfanas
+        run: docker image prune -f
