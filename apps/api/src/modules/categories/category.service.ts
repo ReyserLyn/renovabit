@@ -40,6 +40,7 @@ export const categoryService = {
 
 	async create(data: typeof categories.$inferInsert) {
 		const [row] = await db.insert(categories).values(data).returning();
+		if (!row) throw new Error("No se pudo crear la categoría.");
 		return row;
 	},
 
@@ -49,6 +50,7 @@ export const categoryService = {
 			.set(data)
 			.where(eq(categories.id, id))
 			.returning();
+		if (!row) throw new Error("No se pudo actualizar la categoría.");
 		return row;
 	},
 

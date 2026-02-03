@@ -24,6 +24,8 @@ export const brandService = {
 
 	async create(data: typeof brands.$inferInsert) {
 		const [row] = await db.insert(brands).values(data).returning();
+		if (!row) throw new Error("No se pudo crear la marca.");
+
 		return row;
 	},
 
@@ -46,6 +48,8 @@ export const brandService = {
 			.set(data)
 			.where(eq(brands.id, id))
 			.returning();
+
+		if (!row) throw new Error("No se pudo actualizar la marca.");
 
 		return row;
 	},

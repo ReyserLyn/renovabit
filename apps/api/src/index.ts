@@ -85,7 +85,12 @@ const app = new Elysia()
 
 		if (code === "VALIDATION") {
 			set.status = 400;
-			return { status: 400, message: "Datos inválidos", errors: error.all };
+			return {
+				status: 400,
+				message: "Datos inválidos",
+				// biome-ignore lint/suspicious/noExplicitAny: Fix TS4023 error
+				errors: error.all as any,
+			};
 		}
 
 		console.error("[-] API Error:", error);

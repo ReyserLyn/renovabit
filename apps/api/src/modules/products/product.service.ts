@@ -1,4 +1,4 @@
-import { and, db, eq } from "@renovabit/db";
+import { db, eq } from "@renovabit/db";
 import type { NewProduct, NewProductImage } from "@renovabit/db/schema";
 import { productImages, products } from "./product.model";
 
@@ -63,6 +63,10 @@ export const productService = {
 				.insert(products)
 				.values(productData)
 				.returning();
+
+			if (!newProduct) {
+				throw new Error("No se pudo crear el producto.");
+			}
 
 			const validImages = images?.filter(
 				(img): img is typeof img & { url: string } => Boolean(img.url),

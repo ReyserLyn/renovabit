@@ -83,13 +83,14 @@ const getSchema = async () => (_schema ??= auth.api.generateOpenAPISchema());
 export const OpenAPI = {
 	getPaths: (prefix = "/api/v1/auth") =>
 		getSchema().then(({ paths }) => {
-			const reference: typeof paths = Object.create(null);
+			const reference: any = Object.create(null);
 
-			for (const path of Object.keys(paths)) {
+			for (const [path, pathData] of Object.entries(paths)) {
 				const key = prefix + path;
-				reference[key] = paths[path];
+				if (!pathData) continue;
+				reference[key] = pathData;
 
-				for (const method of Object.keys(paths[path])) {
+				for (const method of Object.keys(pathData)) {
 					const operation = (reference[key] as any)[method];
 
 					operation.tags = ["Better Auth"];
