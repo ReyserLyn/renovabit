@@ -3,7 +3,6 @@ import * as schema from "@renovabit/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { openAPI, username } from "better-auth/plugins";
-import { tanstackStartCookies } from "better-auth/tanstack-start";
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL as string,
@@ -18,8 +17,6 @@ export const auth = betterAuth({
 		"http://localhost:3002",
 		"http://localhost:4001",
 		"http://localhost:4002",
-		"http://192.168.1.56:3000",
-		"http://192.168.1.56:3002",
 	],
 	database: drizzleAdapter(db, {
 		provider: "pg",
@@ -46,8 +43,7 @@ export const auth = betterAuth({
 			generateId: false,
 		},
 		cookie: {
-			domain:
-				process.env.NODE_ENV === "production" ? ".renovabit.com" : undefined,
+			domain: process.env.COOKIE_DOMAIN || undefined,
 		},
 	},
 	user: {
@@ -76,8 +72,5 @@ export const auth = betterAuth({
 			},
 		},
 	},
-	plugins: [username(), openAPI(), tanstackStartCookies()],
-	telemetry: {
-		enabled: false,
-	},
+	plugins: [username(), openAPI()],
 });
