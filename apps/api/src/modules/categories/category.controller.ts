@@ -11,16 +11,10 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		"/",
 		async ({ query, set, user }) => {
 			if (query.includeInactive) {
-				if (!user) {
-					set.status = 401;
-					return {
-						message: "Debe iniciar sesión para ver categorías inactivas.",
-					};
-				}
 				if (!isAdminUser(user)) {
 					set.status = 403;
 					return {
-						message: "No tiene permisos para ver categorías inactivas.",
+						message: "Forbidden",
 					};
 				}
 				return categoryService.findMany(true);
