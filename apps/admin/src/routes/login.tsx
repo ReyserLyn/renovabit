@@ -1,13 +1,20 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { LoginForm } from "@/features/auth/components/LoginForm";
+import { authQueryOptions } from "@/libs/better-auth/auth-session";
 
 export const Route = createFileRoute("/login")({
-	component: LoginPage,
 	beforeLoad: async ({ context }) => {
-		if (context.session?.user) {
-			throw redirect({ to: "/" });
+		const session = await context.queryClient.ensureQueryData(
+			authQueryOptions(),
+		);
+
+		if (session) {
+			throw redirect({
+				to: "/",
+			});
 		}
 	},
+	component: LoginPage,
 });
 
 function LoginPage() {

@@ -1,6 +1,7 @@
 {
 	"extends": "@renovabit/typescript-config/base.json",
-  "include": ["**/*.ts", "**/*.tsx", "src/features/auth/hooks/use-github-login.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "react-tanstarter"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "module": "ESNext",
@@ -19,9 +20,11 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": ["./src/*", "../api/src/*"],
       "@renovabit/api": ["../api/src/index.ts"],
-      "@renovabit/": ["../../packages/"],
+      "@renovabit/api/*": ["../api/src/*"],
+      "@renovabit/db": ["../../packages/db/index.ts"],
+      "@renovabit/ui/*": ["../../packages/ui/src/*"],
       "@/modules/*": ["../api/src/modules/*"]
     },
     "strict": true

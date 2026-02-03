@@ -3,16 +3,12 @@ import type { App, Session } from "@renovabit/api";
 
 const getBaseURL = () => {
 	if (typeof window !== "undefined") {
-		const host = window.location.hostname;
-		if (host !== "localhost" && host.endsWith("renovabit.com")) {
-			return "https://api.renovabit.com";
-		}
+		return window.location.hostname === "localhost"
+			? "http://localhost:3001"
+			: "https://api.renovabit.com";
 	}
-	return (
-		(typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-		(typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-		"http://localhost:3001"
-	);
+
+	return process.env.VITE_API_URL || "http://localhost:3001";
 };
 
 const API_BASE = getBaseURL();

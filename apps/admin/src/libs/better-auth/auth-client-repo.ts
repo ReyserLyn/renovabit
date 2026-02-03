@@ -3,16 +3,11 @@ import { createAuthClient } from "better-auth/react";
 
 const getBaseURL = () => {
 	if (typeof window !== "undefined") {
-		const host = window.location.hostname;
-		if (host !== "localhost" && host.endsWith("renovabit.com")) {
-			return "https://api.renovabit.com";
-		}
+		return window.location.hostname === "localhost"
+			? "http://localhost:4001"
+			: "https://api.renovabit.com";
 	}
-	return (
-		(typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-		(typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-		"http://localhost:3001"
-	);
+	return process.env.VITE_API_URL || "http://localhost:4001";
 };
 
 const baseURL = getBaseURL();

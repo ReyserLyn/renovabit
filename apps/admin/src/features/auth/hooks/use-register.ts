@@ -10,10 +10,18 @@ export function useRegister() {
 
 	const registerMutation = useMutation({
 		mutationFn: async ({ name, email, password }: RegisterFormValues) => {
+			const firstName = name.trim().split(/\s+/)[0] ?? name;
+			const displayName =
+				firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+
 			const { data, error } = await authClientRepo.signUp.email({
 				name,
 				email,
 				password,
+				role: "user",
+				username: firstName.toLowerCase(),
+				displayUsername: displayName,
+				phone: "",
 			});
 			if (error) {
 				const msg =

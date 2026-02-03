@@ -8,21 +8,20 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { getSessionFn } from "@/libs/better-auth/auth-session";
+import {
+	authQueryOptions,
+	type Session,
+} from "@/libs/better-auth/auth-session";
 import TanStackQueryDevtools from "../libs/tanstack-query/devtools";
 
 export type MyRouterContext = {
 	queryClient: QueryClient;
-	session: Awaited<ReturnType<typeof getSessionFn>>;
+	session: Session | null;
 };
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	beforeLoad: async ({ context }) => {
-		const session = await context.queryClient.fetchQuery({
-			queryKey: ["session"],
-			queryFn: ({ signal }) => getSessionFn({ signal }),
-		});
-		return { session };
+	beforeLoad: ({ context }) => {
+		context.queryClient.prefetchQuery(authQueryOptions());
 	},
 	head: () => ({
 		meta: [

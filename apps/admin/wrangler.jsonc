@@ -8,6 +8,7 @@
     "enabled": true
   },
   "vars": {
-    "VITE_API_URL": "https://api.renovabit.com"
+    "VITE_API_URL": "https://api.renovabit.com",
+    "VITE_PUBLIC_APP_URL": "https://admin.renovabit.com"
   }
 }

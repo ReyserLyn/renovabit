@@ -4,12 +4,23 @@ import {
 } from "@renovabit/ui/components/ui/sidebar.tsx";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { AppSidebar } from "@/components/layout/sidebar";
+import { authQueryOptions } from "@/libs/better-auth/auth-session";
 
 export const Route = createFileRoute("/_authenticated")({
 	beforeLoad: async ({ context }) => {
-		if (!context.session?.user) {
-			throw redirect({ to: "/login" });
+		const session = await context.queryClient.ensureQueryData(
+			authQueryOptions(),
+		);
+
+		if (!session) {
+			throw redirect({
+				to: "/login",
+			});
 		}
+
+		return {
+			session,
+		};
 	},
 	component: AuthenticatedLayout,
 });
