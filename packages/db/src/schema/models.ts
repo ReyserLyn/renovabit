@@ -11,12 +11,14 @@ const rawInsert = {
 	brand: createInsertSchema(brands, {
 		name: t.String({ minLength: 1, maxLength: 100 }),
 		slug: t.String({ minLength: 1, maxLength: 100 }),
-		logo: t.Nullable(t.Optional(t.String())),
+		logo: t.Nullable(t.Optional(t.String({ format: "uri" }))),
 	}),
 	category: createInsertSchema(categories, {
 		name: t.String({ minLength: 1, maxLength: 255 }),
 		slug: t.String({ minLength: 1, maxLength: 255 }),
-		imageUrl: t.Optional(t.String({ format: "uri" })),
+		imageUrl: t.Nullable(t.Optional(t.String({ format: "uri" }))),
+		description: t.Nullable(t.Optional(t.String())),
+		parentId: t.Nullable(t.Optional(t.String({ format: "uuid" }))),
 	}),
 	product: createInsertSchema(products, {
 		name: t.String({ minLength: 1, maxLength: 255 }),

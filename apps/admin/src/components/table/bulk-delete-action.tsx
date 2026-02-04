@@ -3,7 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@renovabit/ui/components/ui/button.js";
 import { Table } from "@tanstack/react-table";
 import { useState } from "react";
-import { ActionModal } from "@/features/brands/components/modals/ActionModal";
+import { ActionModal } from "@/components/modals/ActionModal";
 
 interface DataTableBulkDeleteActionProps<TData> {
 	table: Table<TData>;

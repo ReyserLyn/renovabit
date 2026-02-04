@@ -10,6 +10,7 @@ import { Input } from "@renovabit/ui/components/ui/input.tsx";
 import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
 import { useForm } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
+import { ImageUpload } from "@/components/forms/image-upload";
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
 import {
 	type BrandFormValues,
@@ -17,7 +18,6 @@ import {
 	defaultBrandFormValues,
 	slugify,
 } from "../../model/brand-model";
-import UploadImage from "./upload-image";
 
 const formId = "brand-form";
 
@@ -161,10 +161,11 @@ export function BrandForm({
 								<FieldLabel htmlFor={`${formId}-${field.name}`}>
 									Logo de la Marca
 								</FieldLabel>
-								<UploadImage
+								<ImageUpload
+									label="Logo de la Marca"
 									value={field.state.value}
-									onChange={(val: File | string | undefined) =>
-										field.handleChange(val)
+									onChange={(val: string | File | undefined) =>
+										field.handleChange(val ?? "")
 									}
 									disabled={isPending}
 								/>

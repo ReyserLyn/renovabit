@@ -1,7 +1,7 @@
 import type { Brand } from "@renovabit/db/schema";
 import { toast } from "sonner";
+import { ActionModal } from "@/components/modals/ActionModal";
 import { useDeleteBrand } from "../../hooks";
-import { ActionModal } from "./ActionModal";
 
 interface DeleteBrandModalProps {
 	open: boolean;
