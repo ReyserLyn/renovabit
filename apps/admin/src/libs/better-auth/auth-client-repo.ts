@@ -4,10 +4,10 @@ import { createAuthClient } from "better-auth/react";
 const getBaseURL = () => {
 	if (typeof window !== "undefined") {
 		return window.location.hostname === "localhost"
-			? "http://localhost:4001"
+			? "http://localhost:3001"
 			: "https://api.renovabit.com";
 	}
-	return process.env.VITE_API_URL || "http://localhost:4001";
+	return process.env.VITE_API_URL || "http://localhost:3001";
 };
 
 const baseURL = getBaseURL();

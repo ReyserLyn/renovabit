@@ -42,7 +42,8 @@ export const auth = betterAuth({
 		},
 		crossSubDomainCookies: {
 			enabled: true,
-			domain: "renovabit.com",
+			domain:
+				process.env.NODE_ENV === "production" ? "renovabit.com" : "localhost",
 		},
 	},
 	user: {

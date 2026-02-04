@@ -10,6 +10,7 @@ import { Input } from "@renovabit/ui/components/ui/input.tsx";
 import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
 import { useForm } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
+import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
 import {
 	type BrandFormValues,
 	brandFormSchema,
@@ -17,6 +18,8 @@ import {
 	slugify,
 } from "../../model/brand-model";
 import UploadImage from "./upload-image";
+
+const formId = "brand-form";
 
 type BrandFormProps = {
 	initialValues?: Partial<BrandFormValues>;
@@ -42,6 +45,7 @@ export function BrandForm({
 		},
 		validators: {
 			onChange: brandFormSchema,
+			onSubmit: brandFormSchema,
 		},
 		onSubmit: async ({ value }) => {
 			await onSubmit(value);
@@ -61,128 +65,154 @@ export function BrandForm({
 
 	return (
 		<form
+			id={formId}
 			onSubmit={(e) => {
 				e.preventDefault();
-				e.stopPropagation();
 				form.handleSubmit();
 			}}
 			noValidate
 			className="grid gap-6"
 		>
 			<FieldGroup>
-				{/* Campo Nombre */}
-				<form.Field name="name">
-					{(field) => (
-						<Field
-							data-invalid={
-								field.state.meta.isTouched && !field.state.meta.isValid
-							}
-						>
-							<FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								placeholder="Nombre de la Marca"
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => {
-									const v = e.target.value;
-									field.handleChange(v);
-									if (!slugManuallyEditedRef.current) {
-										form.setFieldValue("slug", slugify(v));
-									}
-								}}
-								disabled={isPending}
-								aria-invalid={
-									field.state.meta.isTouched && !field.state.meta.isValid
-								}
-							/>
-							{field.state.meta.isTouched && !field.state.meta.isValid && (
-								<FieldError errors={field.state.meta.errors} />
-							)}
-						</Field>
-					)}
-				</form.Field>
-
-				{/* Campo Slug */}
-				<form.Field name="slug">
-					{(field) => (
-						<Field
-							data-invalid={
-								field.state.meta.isTouched && !field.state.meta.isValid
-							}
-						>
-							<FieldLabel htmlFor={field.name}>Slug</FieldLabel>
-							<Input
-								id={field.name}
-								name={field.name}
-								placeholder="Slug de la marca"
-								value={field.state.value}
-								onBlur={field.handleBlur}
-								onChange={(e) => {
-									slugManuallyEditedRef.current = true;
-									field.handleChange(e.target.value);
-								}}
-								disabled={isPending}
-								className="font-mono text-sm"
-								aria-invalid={
-									field.state.meta.isTouched && !field.state.meta.isValid
-								}
-							/>
-							{field.state.meta.isTouched && !field.state.meta.isValid && (
-								<FieldError errors={field.state.meta.errors} />
-							)}
-						</Field>
-					)}
-				</form.Field>
-
-				{/* Campo Logo */}
-				<form.Field name="logo">
-					{(field) => (
-						<Field
-							data-invalid={
-								field.state.meta.isTouched && !field.state.meta.isValid
-							}
-						>
-							<FieldLabel htmlFor={field.name}>Logo de la Marca</FieldLabel>
-							<UploadImage
-								value={field.state.value}
-								onChange={(val: File | string | undefined) =>
-									field.handleChange(val)
-								}
-								disabled={isPending}
-							/>
-							{field.state.meta.isTouched && !field.state.meta.isValid && (
-								<FieldError errors={field.state.meta.errors} />
-							)}
-						</Field>
-					)}
-				</form.Field>
-
-				{/* Campo Activo */}
-				<form.Field name="isActive">
-					{(field) => {
+				<form.Field
+					name="name"
+					children={(field) => {
 						const isInvalid =
 							field.state.meta.isTouched && !field.state.meta.isValid;
+						const errorId = getFieldErrorId(formId, field.name);
+						return (
+							<Field data-invalid={isInvalid}>
+								<FieldLabel htmlFor={`${formId}-${field.name}`}>
+									Nombre
+								</FieldLabel>
+								<Input
+									id={`${formId}-${field.name}`}
+									name={field.name}
+									placeholder="Nombre de la Marca"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => {
+										const v = e.target.value;
+										field.handleChange(v);
+										if (!slugManuallyEditedRef.current) {
+											form.setFieldValue("slug", slugify(v));
+										}
+									}}
+									disabled={isPending}
+									aria-invalid={isInvalid}
+									aria-describedby={isInvalid ? errorId : undefined}
+								/>
+								{isInvalid && (
+									<FieldError
+										id={errorId}
+										errors={normalizeFieldErrors(field.state.meta.errors)}
+									/>
+								)}
+							</Field>
+						);
+					}}
+				/>
+
+				<form.Field
+					name="slug"
+					children={(field) => {
+						const isInvalid =
+							field.state.meta.isTouched && !field.state.meta.isValid;
+						const errorId = getFieldErrorId(formId, field.name);
+						return (
+							<Field data-invalid={isInvalid}>
+								<FieldLabel htmlFor={`${formId}-${field.name}`}>
+									Slug
+								</FieldLabel>
+								<Input
+									id={`${formId}-${field.name}`}
+									name={field.name}
+									placeholder="Slug de la marca"
+									value={field.state.value}
+									onBlur={field.handleBlur}
+									onChange={(e) => {
+										slugManuallyEditedRef.current = true;
+										field.handleChange(e.target.value);
+									}}
+									disabled={isPending}
+									className="font-mono text-sm"
+									aria-invalid={isInvalid}
+									aria-describedby={isInvalid ? errorId : undefined}
+								/>
+								{isInvalid && (
+									<FieldError
+										id={errorId}
+										errors={normalizeFieldErrors(field.state.meta.errors)}
+									/>
+								)}
+							</Field>
+						);
+					}}
+				/>
+
+				<form.Field
+					name="logo"
+					children={(field) => {
+						const isInvalid =
+							field.state.meta.isTouched && !field.state.meta.isValid;
+						const errorId = getFieldErrorId(formId, field.name);
+						return (
+							<Field data-invalid={isInvalid}>
+								<FieldLabel htmlFor={`${formId}-${field.name}`}>
+									Logo de la Marca
+								</FieldLabel>
+								<UploadImage
+									value={field.state.value}
+									onChange={(val: File | string | undefined) =>
+										field.handleChange(val)
+									}
+									disabled={isPending}
+								/>
+								{isInvalid && (
+									<FieldError
+										id={errorId}
+										errors={normalizeFieldErrors(field.state.meta.errors)}
+									/>
+								)}
+							</Field>
+						);
+					}}
+				/>
+
+				<form.Field
+					name="isActive"
+					children={(field) => {
+						const isInvalid =
+							field.state.meta.isTouched && !field.state.meta.isValid;
+						const errorId = getFieldErrorId(formId, field.name);
 						return (
 							<Field orientation="horizontal" data-invalid={isInvalid}>
 								<Checkbox
-									id={field.name}
+									id={`${formId}-${field.name}`}
 									checked={field.state.value}
 									onCheckedChange={(checked) =>
 										field.handleChange(checked === true)
 									}
 									disabled={isPending}
 									aria-invalid={isInvalid}
+									aria-describedby={isInvalid ? errorId : undefined}
 								/>
-								<FieldLabel htmlFor={field.name} className="font-normal">
+								<FieldLabel
+									htmlFor={`${formId}-${field.name}`}
+									className="font-normal"
+								>
 									Marca activa
 								</FieldLabel>
-								{isInvalid && <FieldError errors={field.state.meta.errors} />}
+								{isInvalid && (
+									<FieldError
+										id={errorId}
+										errors={normalizeFieldErrors(field.state.meta.errors)}
+									/>
+								)}
 							</Field>
 						);
 					}}
-				</form.Field>
+				/>
 			</FieldGroup>
 
 			<div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
