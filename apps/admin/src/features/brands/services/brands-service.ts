@@ -54,6 +54,14 @@ export async function deleteBrand(id: string) {
 	}
 }
 
+export async function bulkDeleteBrands(ids: string[]) {
+	const res = await api.api.v1.brands.bulk.delete({ ids });
+
+	if (res.error || res.status !== 200) {
+		handleEdenError(res, "Error al eliminar marcas");
+	}
+}
+
 export async function validateBrand(body: {
 	id?: string;
 	name?: string;

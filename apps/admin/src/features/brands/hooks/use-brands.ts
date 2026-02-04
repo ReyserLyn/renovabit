@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	brandQueryOptions,
 	brandsQueryOptions,
+	bulkDeleteBrands,
 	createBrand,
 	deleteBrand,
 	updateBrand,
@@ -46,6 +47,18 @@ export function useDeleteBrand() {
 
 	return useMutation({
 		mutationFn: (id: string) => deleteBrand(id),
+
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["brands"] });
+		},
+	});
+}
+
+export function useBulkDeleteBrands() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (ids: string[]) => bulkDeleteBrands(ids),
 
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["brands"] });

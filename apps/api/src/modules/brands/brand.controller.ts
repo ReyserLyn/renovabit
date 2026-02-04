@@ -149,4 +149,30 @@ export const brandController = new Elysia({ prefix: "/brands" })
 				404: t.Object({ message: t.String() }),
 			},
 		},
+	)
+	.delete(
+		"/bulk",
+		async ({ body, set }) => {
+			try {
+				const deletedBrands = await brandService.bulkDelete(body.ids);
+				return {
+					message: `${deletedBrands.length} marcas eliminadas exitosamente`,
+				};
+			} catch {
+				set.status = 400;
+				return { message: "No se pudieron eliminar las marcas." };
+			}
+		},
+		{
+			isAdmin: true,
+			body: t.Object({
+				ids: t.Array(t.String()),
+			}),
+			response: {
+				200: t.Object({ message: t.String() }),
+				400: t.Object({ message: t.String() }),
+				401: t.Object({ message: t.String() }),
+				403: t.Object({ message: t.String() }),
+			},
+		},
 	);

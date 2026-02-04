@@ -15,13 +15,13 @@ import {
 } from "@renovabit/ui/components/ui/select.tsx";
 import { type Table } from "@tanstack/react-table";
 
-interface DataTablePaginationProps<TData> {
+interface ColumnPaginationProps<TData> {
 	table: Table<TData>;
 }
 
-export function DataTablePagination<TData>({
+export function ColumnPagination<TData>({
 	table,
-}: DataTablePaginationProps<TData>) {
+}: ColumnPaginationProps<TData>) {
 	return (
 		<div className="flex items-center justify-between px-2">
 			<div className="text-muted-foreground flex-1 text-sm">

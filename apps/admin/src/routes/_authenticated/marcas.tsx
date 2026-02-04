@@ -2,13 +2,15 @@ import type { Brand } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button.tsx";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { AuthenticatedHeader } from "@/components/layout/authenticated-header";
+import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action";
 import { BrandFormModal } from "@/features/brands/components/forms/BrandFormModal";
 import { DeleteBrandModal } from "@/features/brands/components/modals/DeleteBrandModal";
 import { ToggleBrandStatusModal } from "@/features/brands/components/modals/ToggleBrandStatusModal";
 import { BrandsTable } from "@/features/brands/components/table/brands-table";
 import { getColumns } from "@/features/brands/components/table/columns";
-import { useBrands } from "@/features/brands/hooks";
+import { useBrands, useBulkDeleteBrands } from "@/features/brands/hooks";
 
 export const Route = createFileRoute("/_authenticated/marcas")({
 	component: MarcasPage,
@@ -25,6 +27,8 @@ function MarcasPage() {
 	const [deleteBrand, setDeleteBrand] = useState<Brand | null>(null);
 	const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 	const [deactivateBrand, setDeactivateBrand] = useState<Brand | null>(null);
+
+	const bulkDeleteBrands = useBulkDeleteBrands();
 
 	const handleAdd = useCallback(() => {
 		setEditingBrand(null);
@@ -45,6 +49,22 @@ function MarcasPage() {
 		setDeactivateBrand(brand);
 		setDeactivateDialogOpen(true);
 	}, []);
+
+	const handleBulkDelete = useCallback(
+		async (selectedBrands: Brand[]) => {
+			const ids = selectedBrands.map((b) => b.id);
+			const promise = bulkDeleteBrands.mutateAsync(ids);
+
+			toast.promise(promise, {
+				loading: "Eliminando marcas...",
+				success: `${selectedBrands.length} marcas eliminadas.`,
+				error: "Error al eliminar marcas.",
+			});
+
+			await promise;
+		},
+		[bulkDeleteBrands],
+	);
 
 	const columns = useMemo(
 		() =>
@@ -76,7 +96,18 @@ function MarcasPage() {
 						Cargando…
 					</div>
 				) : (
-					<BrandsTable columns={columns} data={brands} />
+					<BrandsTable
+						columns={columns}
+						data={brands}
+						renderBulkActions={(table) => (
+							<DataTableBulkDeleteAction
+								table={table}
+								onDelete={handleBulkDelete}
+								itemName="marcas"
+								itemNameSingular="marca"
+							/>
+						)}
+					/>
 				)}
 			</div>
 

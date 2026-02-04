@@ -1,6 +1,7 @@
 export {
 	useBrand,
 	useBrands,
+	useBulkDeleteBrands,
 	useCreateBrand,
 	useDeleteBrand,
 	useUpdateBrand,

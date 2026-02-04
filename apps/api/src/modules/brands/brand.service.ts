@@ -1,4 +1,4 @@
-import { db, eq } from "@renovabit/db";
+import { db, eq, inArray } from "@renovabit/db";
 import type { NewBrand } from "@renovabit/db/schema";
 import { storageService } from "@/modules/storage/storage.service";
 import type { Brand } from "./brand.model";
@@ -95,5 +95,29 @@ export const brandService = {
 		}
 
 		return row;
+	},
+
+	async bulkDelete(ids: string[]) {
+		const brandsToDelete = await db.query.brands.findMany({
+			where: (table, { inArray }) => inArray(table.id, ids),
+		});
+
+		const rows = await db
+			.delete(brands)
+			.where(inArray(brands.id, ids))
+			.returning();
+
+		for (const brand of brandsToDelete) {
+			if (brand.logo) {
+				const key = storageService.getKeyFromPublicUrl(brand.logo);
+				if (key) {
+					await storageService.deleteFile(key).catch(() => {
+						/* Cleanup failure is tolerated */
+					});
+				}
+			}
+		}
+
+		return rows;
 	},
 };

@@ -16,23 +16,26 @@ import {
 	getPaginationRowModel,
 	getSortedRowModel,
 	SortingState,
+	Table as TanStackTable,
 	useReactTable,
 	VisibilityState,
 } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
-import { DataTablePagination } from "@/components/table/column-pagination";
-import { DataTableViewOptions } from "@/components/table/column-toggle";
+import { ColumnPagination } from "@/components/table/column-pagination";
+import { ColumnToggle } from "@/components/table/column-toggle";
 
 interface BrandsTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	data: TData[];
 	emptyMessage?: string;
+	renderBulkActions?: (table: TanStackTable<TData>) => React.ReactNode;
 }
 
 export function BrandsTable<TData, TValue>({
 	columns,
 	data,
 	emptyMessage = "No hay marcas. Añade una para comenzar.",
+	renderBulkActions,
 }: BrandsTableProps<TData, TValue>) {
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -77,7 +80,10 @@ export function BrandsTable<TData, TValue>({
 					className="max-w-sm"
 				/>
 
-				<DataTableViewOptions table={table} />
+				<div className="flex items-center gap-2">
+					{renderBulkActions?.(table)}
+					<ColumnToggle table={table} />
+				</div>
 			</div>
 
 			<div className="overflow-hidden rounded-md border">
@@ -129,7 +135,7 @@ export function BrandsTable<TData, TValue>({
 				</Table>
 			</div>
 
-			<DataTablePagination table={table} />
+			<ColumnPagination table={table} />
 		</>
 	);
 }

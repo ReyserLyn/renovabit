@@ -12,11 +12,7 @@ import {
 } from "@renovabit/ui/components/ui/dropdown-menu.tsx";
 import { type Table } from "@tanstack/react-table";
 
-export function DataTableViewOptions<TData>({
-	table,
-}: {
-	table: Table<TData>;
-}) {
+export function ColumnToggle<TData>({ table }: { table: Table<TData> }) {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger
