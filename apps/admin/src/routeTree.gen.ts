@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedProductosRouteImport } from './routes/_authenticated/productos'
 import { Route as AuthenticatedMarcasRouteImport } from './routes/_authenticated/marcas'
 import { Route as AuthenticatedCategoriasRouteImport } from './routes/_authenticated/categorias'
 
@@ -27,6 +28,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProductosRoute = AuthenticatedProductosRouteImport.update({
+  id: '/productos',
+  path: '/productos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMarcasRoute = AuthenticatedMarcasRouteImport.update({
@@ -45,11 +51,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/categorias': typeof AuthenticatedCategoriasRoute
   '/marcas': typeof AuthenticatedMarcasRoute
+  '/productos': typeof AuthenticatedProductosRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/categorias': typeof AuthenticatedCategoriasRoute
   '/marcas': typeof AuthenticatedMarcasRoute
+  '/productos': typeof AuthenticatedProductosRoute
   '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/categorias': typeof AuthenticatedCategoriasRoute
   '/_authenticated/marcas': typeof AuthenticatedMarcasRoute
+  '/_authenticated/productos': typeof AuthenticatedProductosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/categorias' | '/marcas'
+  fullPaths: '/' | '/login' | '/categorias' | '/marcas' | '/productos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/categorias' | '/marcas' | '/'
+  to: '/login' | '/categorias' | '/marcas' | '/productos' | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/categorias'
     | '/_authenticated/marcas'
+    | '/_authenticated/productos'
     | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
@@ -102,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/productos': {
+      id: '/_authenticated/productos'
+      path: '/productos'
+      fullPath: '/productos'
+      preLoaderRoute: typeof AuthenticatedProductosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/marcas': {
       id: '/_authenticated/marcas'
       path: '/marcas'
@@ -122,12 +139,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCategoriasRoute: typeof AuthenticatedCategoriasRoute
   AuthenticatedMarcasRoute: typeof AuthenticatedMarcasRoute
+  AuthenticatedProductosRoute: typeof AuthenticatedProductosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCategoriasRoute: AuthenticatedCategoriasRoute,
   AuthenticatedMarcasRoute: AuthenticatedMarcasRoute,
+  AuthenticatedProductosRoute: AuthenticatedProductosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

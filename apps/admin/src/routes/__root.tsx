@@ -8,6 +8,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { NuqsAdapter } from "nuqs/adapters/tanstack-router";
 import {
 	authQueryOptions,
 	type Session,
@@ -55,7 +56,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				<Toaster richColors />
-				{children}
+				<NuqsAdapter>{children}</NuqsAdapter>
 				<TanStackDevtools
 					config={{
 						position: "bottom-right",

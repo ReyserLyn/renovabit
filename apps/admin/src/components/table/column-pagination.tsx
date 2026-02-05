@@ -15,6 +15,81 @@ import {
 } from "@renovabit/ui/components/ui/select.tsx";
 import { type Table } from "@tanstack/react-table";
 
+export interface ServerPaginationProps {
+	total: number;
+	pageIndex: number;
+	pageSize: number;
+	onPageChange: (page: number) => void;
+	selectedCount?: number;
+}
+
+export function ServerPagination({
+	total,
+	pageIndex,
+	pageSize,
+	onPageChange,
+	selectedCount = 0,
+}: ServerPaginationProps) {
+	const pageCount = Math.max(1, Math.ceil(total / pageSize));
+	const from = total === 0 ? 0 : pageIndex * pageSize + 1;
+	const to = Math.min((pageIndex + 1) * pageSize, total);
+
+	return (
+		<div className="flex items-center justify-between px-2 py-2">
+			<div className="text-muted-foreground flex-1 text-sm">
+				{selectedCount > 0
+					? `${selectedCount} de ${total} filas seleccionadas`
+					: `${from}-${to} de ${total} resultados`}
+			</div>
+			<div className="flex items-center gap-2">
+				<span className="text-sm font-medium">
+					Página {pageIndex + 1} de {pageCount}
+				</span>
+				<Button
+					variant="outline"
+					size="icon"
+					className="size-8"
+					onClick={() => onPageChange(0)}
+					disabled={pageIndex <= 0}
+					aria-label="Primera página"
+				>
+					<HugeiconsIcon icon={ArrowLeftDoubleIcon} />
+				</Button>
+				<Button
+					variant="outline"
+					size="icon"
+					className="size-8"
+					onClick={() => onPageChange(pageIndex - 1)}
+					disabled={pageIndex <= 0}
+					aria-label="Página anterior"
+				>
+					<HugeiconsIcon icon={ArrowLeft01Icon} />
+				</Button>
+				<Button
+					variant="outline"
+					size="icon"
+					className="size-8"
+					onClick={() => onPageChange(pageIndex + 1)}
+					disabled={pageIndex >= pageCount - 1}
+					aria-label="Siguiente página"
+				>
+					<HugeiconsIcon icon={ArrowRight01Icon} />
+				</Button>
+				<Button
+					variant="outline"
+					size="icon"
+					className="size-8"
+					onClick={() => onPageChange(pageCount - 1)}
+					disabled={pageIndex >= pageCount - 1}
+					aria-label="Última página"
+				>
+					<HugeiconsIcon icon={ArrowRightDoubleIcon} />
+				</Button>
+			</div>
+		</div>
+	);
+}
+
 interface ColumnPaginationProps<TData> {
 	table: Table<TData>;
 }

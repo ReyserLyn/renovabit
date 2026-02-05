@@ -1,39 +1,57 @@
-import { db, eq } from "@renovabit/db";
+import { and, count, db, eq, inArray } from "@renovabit/db";
 import type { NewProduct, NewProductImage } from "@renovabit/db/schema";
+import { storageService } from "@/modules/storage/storage.service";
 import { productImages, products } from "./product.model";
 
-type ListQuery = {
+const DEFAULT_PAGE_SIZE = 20;
+const MAX_PAGE_SIZE = 100;
+
+export type ListQuery = {
 	categoryId?: string;
 	brandId?: string;
 	featured?: boolean;
 	includeInactive?: boolean;
+	limit?: number;
+	offset?: number;
 };
+
+function buildListWhere(query: ListQuery, includeInactive: boolean) {
+	const filters: ReturnType<typeof eq>[] = [];
+	if (query.categoryId) filters.push(eq(products.categoryId, query.categoryId));
+	if (query.brandId) filters.push(eq(products.brandId, query.brandId));
+	if (query.featured) filters.push(eq(products.isFeatured, true));
+	if (!includeInactive) filters.push(eq(products.status, "active"));
+	return filters.length > 0 ? and(...filters) : undefined;
+}
 
 export const productService = {
 	async findMany(query: ListQuery = {}, includeInactive = false) {
-		return db.query.products.findMany({
-			where: (table, { eq, and }) => {
-				const filters = [];
-				if (query.categoryId)
-					filters.push(eq(table.categoryId, query.categoryId));
-				if (query.brandId) filters.push(eq(table.brandId, query.brandId));
-				if (query.featured) filters.push(eq(table.isFeatured, true));
+		const limit = Math.min(
+			Math.max(1, query.limit ?? DEFAULT_PAGE_SIZE),
+			MAX_PAGE_SIZE,
+		);
+		const offset = Math.max(0, query.offset ?? 0);
+		const whereCondition = buildListWhere(query, includeInactive);
 
-				if (!includeInactive) {
-					filters.push(eq(table.status, "active"));
-				}
-
-				return filters.length > 0 ? and(...filters) : undefined;
-			},
-			with: {
-				images: {
-					orderBy: (table, { asc }) => [asc(table.order)],
-					limit: 1,
+		const [data, totalResult] = await Promise.all([
+			db.query.products.findMany({
+				where: whereCondition,
+				with: {
+					images: { orderBy: (table, { asc }) => [asc(table.order)] },
+					brand: true,
+					category: true,
 				},
-				brand: true,
-			},
-			orderBy: (table, { desc }) => [desc(table.createdAt)],
-		});
+				orderBy: (table, { desc }) => [desc(table.createdAt)] as const,
+				limit,
+				offset,
+			}),
+			whereCondition
+				? db.select({ count: count() }).from(products).where(whereCondition)
+				: db.select({ count: count() }).from(products),
+		]);
+
+		const total = Number(totalResult[0]?.count ?? 0);
+		return { data, total };
 	},
 
 	async findByIdOrSlug(id: string, isAdmin = false) {
@@ -94,27 +112,176 @@ export const productService = {
 		});
 	},
 
-	async update(id: string, data: Partial<NewProduct>) {
-		const [row] = await db
-			.update(products)
-			.set(data)
-			.where(eq(products.id, id))
-			.returning();
+	async update(
+		id: string,
+		data: Partial<NewProduct> & {
+			images?: Array<Partial<NewProductImage> & { id?: string }>;
+		},
+	) {
+		const { images, ...productData } = data;
 
-		if (!row) return null;
+		// 1. Validar unicidad si se actualiza slug o sku
+		if (productData.slug || productData.sku) {
+			const error = await this.checkUniqueness(id, {
+				slug: productData.slug,
+				sku: productData.sku,
+			});
+			if (error) throw new Error(error);
+		}
 
-		// Devolver el producto completo con relaciones para que coincida con el schema
-		return db.query.products.findFirst({
-			where: (table, { eq }) => eq(table.id, id),
-			with: { images: true, brand: true, category: true },
+		return db.transaction(async (tx) => {
+			// Update product basic info
+			if (Object.keys(productData).length > 0) {
+				const [updated] = await tx
+					.update(products)
+					.set(productData)
+					.where(eq(products.id, id))
+					.returning();
+
+				if (!updated) return null;
+			}
+
+			// Handle Images Update if provided
+			if (images) {
+				const currentImages = await tx.query.productImages.findMany({
+					where: (t, { eq }) => eq(t.productId, id),
+				});
+
+				const newImageIds = new Set(
+					images.filter((img) => img.id).map((img) => img.id),
+				);
+				const imagesToDelete = currentImages.filter(
+					(img) => !newImageIds.has(img.id),
+				);
+
+				// 1. Delete removed images
+				if (imagesToDelete.length > 0) {
+					await tx.delete(productImages).where(
+						inArray(
+							productImages.id,
+							imagesToDelete.map((img) => img.id),
+						),
+					);
+
+					// Cleanup storage
+					for (const img of imagesToDelete) {
+						const key = storageService.getKeyFromPublicUrl(img.url);
+						if (key) {
+							// Fire and forget storage cleanup to not block transaction
+							storageService.deleteFile(key).catch(console.error);
+						}
+					}
+				}
+
+				// 2. Upsert (Update existing + Insert new)
+				for (const [index, img] of images.entries()) {
+					const order = img.order ?? index;
+
+					if (img.id && newImageIds.has(img.id)) {
+						// Update existing
+						await tx
+							.update(productImages)
+							.set({
+								order,
+								alt: img.alt,
+								// Typically URL doesn't change for an existing image ID, but if it did, we'd handle it.
+								// For now assumes ID match means same image.
+							})
+							.where(eq(productImages.id, img.id));
+					} else if (img.url) {
+						// Insert new
+						await tx.insert(productImages).values({
+							productId: id,
+							url: img.url,
+							alt: img.alt,
+							order,
+						});
+					}
+				}
+			}
+
+			// Return complete object
+			return tx.query.products.findFirst({
+				where: (t, { eq }) => eq(t.id, id),
+				with: {
+					images: { orderBy: (t, { asc }) => [asc(t.order)] },
+					brand: true,
+					category: true,
+				},
+			});
 		});
 	},
 
 	async delete(id: string) {
+		const product = await this.findByIdOrSlug(id, true);
+
 		const [row] = await db
 			.delete(products)
 			.where(eq(products.id, id))
 			.returning();
+
+		// Cleanup images
+		if (row && product?.images) {
+			for (const img of product.images) {
+				const key = storageService.getKeyFromPublicUrl(img.url);
+				if (key) {
+					storageService.deleteFile(key).catch(console.error);
+				}
+			}
+		}
+
 		return row;
+	},
+
+	async bulkDelete(ids: string[]) {
+		const productsToDelete = await db.query.products.findMany({
+			where: (t, { inArray }) => inArray(t.id, ids),
+			with: { images: true },
+		});
+
+		if (productsToDelete.length === 0) return [];
+
+		await db.delete(products).where(inArray(products.id, ids));
+
+		// Cleanup images
+		for (const product of productsToDelete) {
+			for (const img of product.images) {
+				const key = storageService.getKeyFromPublicUrl(img.url);
+				if (key) {
+					storageService.deleteFile(key).catch(console.error);
+				}
+			}
+		}
+
+		return productsToDelete; // Returning the deleted objects (or just rows if structure matches)
+	},
+
+	async checkUniqueness(
+		id: string | undefined,
+		data: { slug?: string; sku?: string },
+	) {
+		const { slug, sku } = data;
+
+		const existing = await db.query.products.findFirst({
+			where: (table, { or, and, eq, ne }) => {
+				const matches = [];
+				if (slug) matches.push(eq(table.slug, slug));
+				if (sku) matches.push(eq(table.sku, sku));
+
+				if (matches.length === 0) return undefined;
+
+				const conflict = or(...matches);
+				return id ? and(conflict, ne(table.id, id)) : conflict;
+			},
+		});
+
+		if (existing) {
+			if (slug && existing.slug === slug)
+				return "El slug del producto ya está en uso.";
+			if (sku && existing.sku === sku)
+				return "El SKU del producto ya está en uso.";
+		}
+
+		return null;
 	},
 };

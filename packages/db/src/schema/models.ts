@@ -82,6 +82,10 @@ export const schemas = {
 		),
 		select: t.Object(models.select.product),
 	},
+	productImage: {
+		insert: t.Omit(rawInsert.productImage, ["id", "createdAt", "updatedAt"]),
+		select: t.Object(models.select.productImage),
+	},
 	user: {
 		select: t.Object(models.select.user),
 		update: t.Partial(t.Omit(rawInsert.user, ["id", "createdAt", "updatedAt"])),
