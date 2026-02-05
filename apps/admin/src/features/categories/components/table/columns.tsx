@@ -141,7 +141,7 @@ export function getColumns(
 			cell: ({ row }) => {
 				const active = row.original.isActive;
 				return (
-					<div className="flex justify-center">
+					<>
 						{active ? (
 							<div
 								title="Activa"
@@ -157,7 +157,7 @@ export function getColumns(
 								<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
 							</div>
 						)}
-					</div>
+					</>
 				);
 			},
 		},
@@ -169,17 +169,12 @@ export function getColumns(
 				const inNavbar = row.original.showInNavbar;
 				const active = row.original.isActive;
 
-				// If invalid state (inactive but somehow in navbar - though handled by backend), show dimmed
 				if (!active) {
-					return (
-						<span className="text-muted-foreground/30 flex justify-center">
-							-
-						</span>
-					);
+					return <span className="text-muted-foreground/30 flex">-</span>;
 				}
 
 				return (
-					<div className="flex justify-center">
+					<>
 						{inNavbar ? (
 							<div title="Visible en Navbar" className="text-blue-600">
 								<HugeiconsIcon icon={ViewIcon} className="size-5" />
@@ -192,7 +187,7 @@ export function getColumns(
 								<HugeiconsIcon icon={ViewOffIcon} className="size-5" />
 							</div>
 						)}
-					</div>
+					</>
 				);
 			},
 		},
