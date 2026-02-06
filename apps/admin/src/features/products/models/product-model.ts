@@ -21,46 +21,45 @@ export const STATUS_LABELS: Record<
 export const productFormSchema = z.object({
 	name: z
 		.string()
-		.min(1, "El nombre es obligatorio.")
-		.max(255, "El nombre no puede superar 255 caracteres."),
+		.min(1, { error: "El nombre es obligatorio." })
+		.max(255, { error: "El nombre no puede superar 255 caracteres." }),
 	slug: z
 		.string()
-		.min(1, "El slug es obligatorio.")
-		.max(255, "El slug no puede superar 255 caracteres.")
-		.regex(
-			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-			"El slug solo puede contener minúsculas, números y guiones.",
-		),
+		.min(1, { error: "El slug es obligatorio." })
+		.max(255, { error: "El slug no puede superar 255 caracteres." })
+		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+			error: "El slug solo puede contener minúsculas, números y guiones.",
+		}),
 	sku: z
 		.string()
-		.min(1, "El SKU es obligatorio.")
-		.max(100, "El SKU no puede superar 100 caracteres."),
+		.min(1, { error: "El SKU es obligatorio." })
+		.max(100, { error: "El SKU no puede superar 100 caracteres." }),
 	description: z
 		.string()
-		.max(1000, "La descripción no puede superar 1000 caracteres.")
+		.max(1000, { error: "La descripción no puede superar 1000 caracteres." })
 		.optional(),
 	price: z
 		.string()
-		.regex(/^\d+(\.\d{1,2})?$/, "Formato inválido. Ejemplo: 99.99"),
-	stock: z.number().int("El stock debe ser un número entero.").min(0),
-	brandId: z.string().uuid("ID de marca no válido.").optional(),
-	categoryId: z.string().uuid("ID de categoría no válido.").optional(),
+		.regex(/^\d+(\.\d{1,2})?$/, { error: "Formato inválido. Ejemplo: 99.99" }),
+	stock: z.int().min(0, { error: "El stock debe ser un número entero >= 0." }),
+	brandId: z.uuid({ error: "ID de marca no válido." }).optional(),
+	categoryId: z.uuid({ error: "ID de categoría no válido." }).optional(),
 	status: z.enum(["active", "inactive", "out_of_stock"]),
 	isFeatured: z.boolean(),
 	specEntries: z.array(
 		z.object({
 			id: z.string(),
-			key: z.string().max(120, "Máx. 120 caracteres"),
-			value: z.string().max(255, "Máx. 255 caracteres"),
+			key: z.string().max(120, { error: "Máx. 120 caracteres" }),
+			value: z.string().max(255, { error: "Máx. 255 caracteres" }),
 		}),
 	),
 	images: z.array(
 		z.object({
 			id: z.string().optional(),
-			url: z.union([z.url("URL inválida"), z.literal("")]),
+			url: z.union([z.url({ error: "URL inválida" }), z.literal("")]),
 			file: z.instanceof(File).optional(),
 			alt: z.string().optional(),
-			order: z.number().int().min(0),
+			order: z.int().min(0),
 		}),
 	),
 });

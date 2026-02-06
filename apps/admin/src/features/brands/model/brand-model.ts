@@ -12,20 +12,19 @@ export function slugify(name: string): string {
 export const brandFormSchema = z.object({
 	name: z
 		.string()
-		.min(1, "El nombre es obligatorio.")
-		.max(100, "El nombre no puede superar 100 caracteres."),
+		.min(1, { error: "El nombre es obligatorio." })
+		.max(100, { error: "El nombre no puede superar 100 caracteres." }),
 	slug: z
 		.string()
-		.min(1, "El slug es obligatorio.")
-		.max(100, "El slug no puede superar 100 caracteres.")
-		.regex(
-			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-			"El slug solo puede contener minúsculas, números y guiones.",
-		),
+		.min(1, { error: "El slug es obligatorio." })
+		.max(100, { error: "El slug no puede superar 100 caracteres." })
+		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+			error: "El slug solo puede contener minúsculas, números y guiones.",
+		}),
 	logo: z
 		.union([
-			z.url("Introduce una URL válida."),
-			z.string().length(0),
+			z.url({ error: "Introduce una URL válida." }),
+			z.literal(""),
 			z.instanceof(File),
 		])
 		.optional(),

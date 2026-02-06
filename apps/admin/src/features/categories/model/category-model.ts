@@ -12,24 +12,25 @@ export function slugify(name: string): string {
 export const categoryFormSchema = z.object({
 	name: z
 		.string()
-		.min(1, "El nombre es obligatorio.")
-		.max(100, "El nombre no puede superar 100 caracteres."),
+		.min(1, { error: "El nombre es obligatorio." })
+		.max(100, { error: "El nombre no puede superar 100 caracteres." }),
 	slug: z
 		.string()
-		.min(1, "El slug es obligatorio.")
-		.max(100, "El slug no puede superar 100 caracteres.")
-		.regex(
-			/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-			"El slug solo puede contener minúsculas, números y guiones.",
-		),
-	description: z.string().max(500, "La descripción es demasiado larga."),
+		.min(1, { error: "El slug es obligatorio." })
+		.max(100, { error: "El slug no puede superar 100 caracteres." })
+		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+			error: "El slug solo puede contener minúsculas, números y guiones.",
+		}),
+	description: z
+		.string()
+		.max(500, { error: "La descripción es demasiado larga." }),
 	imageUrl: z.union([
-		z.url("Introduce una URL válida."),
-		z.string().length(0),
+		z.url({ error: "Introduce una URL válida." }),
+		z.literal(""),
 		z.instanceof(File),
 	]),
-	parentId: z.uuid("ID de padre no válido.").nullable(),
-	order: z.number().int().min(0, "El orden no puede ser negativo."),
+	parentId: z.uuid({ error: "ID de padre no válido." }).nullable(),
+	order: z.int().min(0, { error: "El orden no puede ser negativo." }),
 	showInNavbar: z.boolean(),
 	isActive: z.boolean(),
 });
