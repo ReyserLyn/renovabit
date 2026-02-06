@@ -2,6 +2,7 @@ import { CategoryInsertBody, CategoryUpdateBody } from "@renovabit/db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	bulkDeleteCategories,
+	categoriesKeys,
 	categoriesQueryOptions,
 	categoryQueryOptions,
 	createCategory,
@@ -23,7 +24,7 @@ export function useCreateCategory() {
 	return useMutation({
 		mutationFn: (body: CategoryInsertBody) => createCategory(body),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["categories"] });
+			queryClient.invalidateQueries({ queryKey: categoriesKeys.all });
 		},
 	});
 }
@@ -35,7 +36,7 @@ export function useUpdateCategory() {
 		mutationFn: ({ id, body }: { id: string; body: CategoryUpdateBody }) =>
 			updateCategory(id, body),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["categories"] });
+			queryClient.invalidateQueries({ queryKey: categoriesKeys.all });
 		},
 	});
 }
@@ -46,7 +47,7 @@ export function useDeleteCategory() {
 	return useMutation({
 		mutationFn: (id: string) => deleteCategory(id),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["categories"] });
+			queryClient.invalidateQueries({ queryKey: categoriesKeys.all });
 		},
 	});
 }
@@ -57,7 +58,7 @@ export function useBulkDeleteCategories() {
 	return useMutation({
 		mutationFn: (ids: string[]) => bulkDeleteCategories(ids),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["categories"] });
+			queryClient.invalidateQueries({ queryKey: categoriesKeys.all });
 		},
 	});
 }

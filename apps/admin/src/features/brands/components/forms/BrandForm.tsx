@@ -1,13 +1,13 @@
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
-import { Checkbox } from "@renovabit/ui/components/ui/checkbox.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
+import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
 import {
 	Field,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
-} from "@renovabit/ui/components/ui/field.tsx";
-import { Input } from "@renovabit/ui/components/ui/input.tsx";
-import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
+} from "@renovabit/ui/components/ui/field";
+import { Input } from "@renovabit/ui/components/ui/input";
+import { Spinner } from "@renovabit/ui/components/ui/spinner";
 import { useForm } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
 import { ImageUpload } from "@/components/forms/image-upload";

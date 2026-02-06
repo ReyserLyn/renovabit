@@ -5,7 +5,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-} from "@renovabit/ui/components/ui/sidebar.tsx";
+} from "@renovabit/ui/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 

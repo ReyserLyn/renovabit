@@ -1,22 +1,22 @@
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
-import { Checkbox } from "@renovabit/ui/components/ui/checkbox.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
+import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
 import {
 	Field,
 	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
-} from "@renovabit/ui/components/ui/field.tsx";
-import { Input } from "@renovabit/ui/components/ui/input.tsx";
+} from "@renovabit/ui/components/ui/field";
+import { Input } from "@renovabit/ui/components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@renovabit/ui/components/ui/select.tsx";
-import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
-import { Textarea } from "@renovabit/ui/components/ui/textarea.tsx";
+} from "@renovabit/ui/components/ui/select";
+import { Spinner } from "@renovabit/ui/components/ui/spinner";
+import { Textarea } from "@renovabit/ui/components/ui/textarea";
 import { cn } from "@renovabit/ui/lib/utils";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";

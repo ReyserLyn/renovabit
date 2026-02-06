@@ -5,14 +5,14 @@ import {
 	ArrowRightDoubleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "@renovabit/ui/components/ui/select.tsx";
+} from "@renovabit/ui/components/ui/select";
 import { type Table } from "@tanstack/react-table";
 
 export interface ServerPaginationProps {

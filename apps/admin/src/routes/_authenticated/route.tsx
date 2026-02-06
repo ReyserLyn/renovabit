@@ -1,12 +1,14 @@
 import {
 	SidebarInset,
 	SidebarProvider,
-} from "@renovabit/ui/components/ui/sidebar.tsx";
+} from "@renovabit/ui/components/ui/sidebar";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { DefaultCatchBoundary } from "@/components/layout/DefaultCatchBoundary";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { authQueryOptions } from "@/libs/better-auth/auth-session";
 
 export const Route = createFileRoute("/_authenticated")({
+	errorComponent: DefaultCatchBoundary,
 	beforeLoad: async ({ context }) => {
 		const session = await context.queryClient.ensureQueryData(
 			authQueryOptions(),

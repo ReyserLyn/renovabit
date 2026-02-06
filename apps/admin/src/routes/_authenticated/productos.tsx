@@ -1,34 +1,33 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@renovabit/ui/components/ui/button";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthenticatedHeader } from "@/components/layout/authenticated-header";
 import { PageHeader } from "@/components/layout/page-header";
+import { PrimaryActionButton } from "@/components/layout/primary-action-button";
 import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action";
-import { useBrands } from "@/features/brands/hooks";
-import { useCategories } from "@/features/categories/hooks";
+import { DataTable } from "@/components/table/data-table";
+import { TableSkeleton } from "@/components/table/table-skeleton";
 import { ProductFilters } from "@/features/products/components/filters/ProductFilters";
 import { DeleteProductModal } from "@/features/products/components/modals/delete-product-modal";
 import { ProductFormModal } from "@/features/products/components/modals/ProductFormModal";
 import { ToggleProductStatusModal } from "@/features/products/components/modals/ToggleProductStatusModal";
 import { getColumns } from "@/features/products/components/table/columns";
-import { ProductsTable } from "@/features/products/components/table/products-table";
-import { useBulkDeleteProducts } from "@/features/products/hooks";
 import {
-	getProductListParamsFromFilters,
+	useBulkDeleteProducts,
+	useProductListParams,
+} from "@/features/products/hooks";
+import {
 	PAGE_SIZE,
 	PAGE_SIZE_OPTIONS,
-	useProductFilters,
 } from "@/features/products/parsers/product-filters";
-import type { ProductListParams } from "@/features/products/services/products-service";
 import {
-	deleteProduct,
 	type ProductWithRelations,
+	productsKeys,
 	productsQueryOptions,
 } from "@/features/products/services/products-service";
+import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated/productos")({
 	component: ProductsPage,
@@ -36,33 +35,9 @@ export const Route = createFileRoute("/_authenticated/productos")({
 
 function ProductsPage() {
 	const queryClient = useQueryClient();
-	const [filters, setFilters] = useProductFilters();
-	const { data: categoriesRaw = [] } = useCategories(true);
-	const { data: brandsRaw = [] } = useBrands(true);
-
-	const categories = Array.isArray(categoriesRaw) ? categoriesRaw : [];
-	const brands = Array.isArray(brandsRaw) ? brandsRaw : [];
-
-	const listParams = useMemo((): ProductListParams => {
-		const base = getProductListParamsFromFilters(filters);
-		const categoryId =
-			base.category &&
-			(categories as { slug: string; id: string }[]).find(
-				(c) => c.slug === base.category,
-			)?.id;
-		const brandId =
-			base.brand &&
-			(brands as { slug: string; id: string }[]).find(
-				(b) => b.slug === base.brand,
-			)?.id;
-		return {
-			categoryId,
-			brandId,
-			includeInactive: base.includeInactive,
-			limit: base.limit,
-			offset: base.offset,
-		};
-	}, [filters, categories, brands]);
+	const breadcrumbs = useBreadcrumbs();
+	const { listParams, filters, setFilters, categories, brands } =
+		useProductListParams();
 
 	const { data, isPending, isFetching } = useQuery(
 		productsQueryOptions(listParams),
@@ -75,25 +50,12 @@ function ProductsPage() {
 		useState<ProductWithRelations | null>(null);
 
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-	const [selectedProduct, setSelectedProduct] =
+	const [productToDelete, setProductToDelete] =
 		useState<ProductWithRelations | null>(null);
 
 	const [toggleStatusModalOpen, setToggleStatusModalOpen] = useState(false);
 	const [productForToggle, setProductForToggle] =
 		useState<ProductWithRelations | null>(null);
-
-	const deleteMutation = useMutation({
-		mutationFn: (id: string) => deleteProduct(id),
-		onSuccess: () => {
-			toast.success("Producto eliminado correctamente");
-			queryClient.invalidateQueries({ queryKey: ["products"] });
-			setDeleteModalOpen(false);
-			setSelectedProduct(null);
-		},
-		onError: () => {
-			toast.error("No se pudo eliminar el producto. Vuelve a intentarlo.");
-		},
-	});
 
 	const bulkDeleteMutation = useBulkDeleteProducts();
 
@@ -119,7 +81,7 @@ function ProductsPage() {
 	}, []);
 
 	const handleDelete = useCallback((product: ProductWithRelations) => {
-		setSelectedProduct(product);
+		setProductToDelete(product);
 		setDeleteModalOpen(true);
 	}, []);
 
@@ -157,7 +119,7 @@ function ProductsPage() {
 	);
 
 	const handleRefresh = useCallback(() => {
-		queryClient.invalidateQueries({ queryKey: ["products"] });
+		queryClient.invalidateQueries({ queryKey: productsKeys.all });
 	}, [queryClient]);
 
 	const handleToggleStatusModalOpenChange = useCallback((open: boolean) => {
@@ -200,37 +162,40 @@ function ProductsPage() {
 
 	return (
 		<>
-			<AuthenticatedHeader
-				breadcrumbs={[
-					{ label: "Panel de Administración", to: "/" },
-					{ label: "Productos" },
-				]}
-			/>
+			<AuthenticatedHeader breadcrumbs={breadcrumbs} />
 
 			<div className="flex flex-1 flex-col gap-8 p-8">
 				<PageHeader
 					title="Productos"
 					description="Gestiona el catálogo de productos de tu tienda."
 					actions={
-						<Button onClick={handleCreate}>
-							<HugeiconsIcon icon={Add01Icon} className="mr-2 size-4" />
+						<PrimaryActionButton icon={Add01Icon} onClick={handleCreate}>
 							Nuevo Producto
-						</Button>
+						</PrimaryActionButton>
 					}
 				/>
 
 				{isPending ? (
-					<div className="flex justify-center py-12 text-muted-foreground">
-						Cargando productos…
+					<div className="space-y-4" aria-busy="true" aria-live="polite">
+						<div className="sr-only">Cargando productos…</div>
+						<TableSkeleton columnCount={8} rowCount={8} />
 					</div>
 				) : (
-					<ProductsTable
+					<DataTable
 						columns={columns}
 						data={products}
+						emptyMessage="No hay productos. Añade uno para comenzar."
+						emptyActionLabel="Crear primer producto"
+						onEmptyAction={handleCreate}
+						filterPlaceholder="Filtrar productos por nombre…"
+						defaultSorting={[{ id: "createdAt", desc: true }]}
+						filterSlot={
+							<ProductFilters categories={categories} brands={brands} />
+						}
+						serverPagination={serverPagination}
 						onRefresh={handleRefresh}
 						isRefreshing={isFetching}
-						filterSlot={<ProductFilters />}
-						serverPagination={serverPagination}
+						refreshAriaLabel="Actualizar lista de productos"
 						renderBulkActions={(table) => (
 							<DataTableBulkDeleteAction
 								table={table}
@@ -250,14 +215,11 @@ function ProductsPage() {
 
 				<DeleteProductModal
 					open={deleteModalOpen}
-					onOpenChange={setDeleteModalOpen}
-					onConfirm={() => {
-						if (selectedProduct) {
-							deleteMutation.mutate(selectedProduct.id);
-						}
+					onOpenChange={(open) => {
+						setDeleteModalOpen(open);
+						if (!open) setProductToDelete(null);
 					}}
-					isPending={deleteMutation.isPending}
-					productName={selectedProduct?.name}
+					product={productToDelete}
 				/>
 
 				<ToggleProductStatusModal

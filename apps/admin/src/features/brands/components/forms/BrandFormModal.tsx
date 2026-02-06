@@ -5,7 +5,7 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@renovabit/ui/components/ui/dialog.tsx";
+} from "@renovabit/ui/components/ui/dialog";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { uploadFile } from "@/features/storage/storage-utils";
@@ -64,7 +64,7 @@ export function BrandFormModal({
 		})();
 
 		toast.promise(promise, {
-			loading: isEditing ? "Guardando cambios..." : "Registrando marca...",
+			loading: isEditing ? "Guardando cambios…" : "Registrando marca…",
 			success: isEditing
 				? "Marca actualizada correctamente."
 				: "Marca registrada con éxito.",

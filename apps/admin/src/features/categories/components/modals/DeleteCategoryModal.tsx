@@ -25,7 +25,7 @@ export function DeleteCategoryModal({
 		})();
 
 		toast.promise(promise, {
-			loading: "Eliminando categoría...",
+			loading: "Eliminando categoría…",
 			success: `La categoría "${category.name}" ha sido eliminada.`,
 			error: (err) =>
 				err instanceof Error

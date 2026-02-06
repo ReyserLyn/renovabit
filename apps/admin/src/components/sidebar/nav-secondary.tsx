@@ -4,7 +4,7 @@ import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
-} from "@renovabit/ui/components/ui/collapsible.tsx";
+} from "@renovabit/ui/components/ui/collapsible";
 import {
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -14,7 +14,7 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
-} from "@renovabit/ui/components/ui/sidebar.tsx";
+} from "@renovabit/ui/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import * as React from "react";
 

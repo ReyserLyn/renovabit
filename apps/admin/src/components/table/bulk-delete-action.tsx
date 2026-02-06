@@ -1,6 +1,6 @@
 import { Delete04Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@renovabit/ui/components/ui/button.js";
+import { Button } from "@renovabit/ui/components/ui/button";
 import { Table } from "@tanstack/react-table";
 import { useState } from "react";
 import { ActionModal } from "@/components/modals/ActionModal";

@@ -1,4 +1,4 @@
-import { Toaster } from "@renovabit/ui/components/ui/sonner.tsx";
+import { Toaster } from "@renovabit/ui/components/ui/sonner";
 import appCss from "@renovabit/ui/styles/globals.css?url";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";

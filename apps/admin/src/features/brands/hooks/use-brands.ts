@@ -2,6 +2,7 @@ import { BrandInsertBody, BrandUpdateBody } from "@renovabit/db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	brandQueryOptions,
+	brandsKeys,
 	brandsQueryOptions,
 	bulkDeleteBrands,
 	createBrand,
@@ -24,7 +25,7 @@ export function useCreateBrand() {
 		mutationFn: (body: BrandInsertBody) => createBrand(body),
 
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["brands"] });
+			queryClient.invalidateQueries({ queryKey: brandsKeys.all });
 		},
 	});
 }
@@ -37,7 +38,7 @@ export function useUpdateBrand() {
 			updateBrand(id, body),
 
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["brands"] });
+			queryClient.invalidateQueries({ queryKey: brandsKeys.all });
 		},
 	});
 }
@@ -49,7 +50,7 @@ export function useDeleteBrand() {
 		mutationFn: (id: string) => deleteBrand(id),
 
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["brands"] });
+			queryClient.invalidateQueries({ queryKey: brandsKeys.all });
 		},
 	});
 }
@@ -61,7 +62,7 @@ export function useBulkDeleteBrands() {
 		mutationFn: (ids: string[]) => bulkDeleteBrands(ids),
 
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["brands"] });
+			queryClient.invalidateQueries({ queryKey: brandsKeys.all });
 		},
 	});
 }

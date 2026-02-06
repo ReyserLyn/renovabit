@@ -8,9 +8,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Category } from "@renovabit/db/schema";
-import { Button } from "@renovabit/ui/components/ui/button.js";
-import { Checkbox } from "@renovabit/ui/components/ui/checkbox.tsx";
-import { cn } from "@renovabit/ui/lib/utils.js";
+import { Button } from "@renovabit/ui/components/ui/button";
+import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
+import { cn } from "@renovabit/ui/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
@@ -22,14 +22,14 @@ export type CategoryWithParent = Category & {
 	parent?: Category | null;
 };
 
-export type CategoriesTableHandlers = {
+export type CategoryColumnHandlers = {
 	onEdit: (category: CategoryWithParent) => void;
 	onDelete: (category: CategoryWithParent) => void;
 	onDeactivate: (category: CategoryWithParent) => void;
 };
 
 export function getColumns(
-	handlers: CategoriesTableHandlers,
+	handlers: CategoryColumnHandlers,
 ): ColumnDef<CategoryWithParent>[] {
 	const { onEdit, onDelete, onDeactivate } = handlers;
 
@@ -43,14 +43,14 @@ export function getColumns(
 						table.getIsSomePageRowsSelected()
 					}
 					onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-					aria-label="Select all"
+					aria-label="Seleccionar todos"
 				/>
 			),
 			cell: ({ row }) => (
 				<Checkbox
 					checked={row.getIsSelected()}
 					onCheckedChange={(value) => row.toggleSelected(!!value)}
-					aria-label="Select row"
+					aria-label="Seleccionar fila"
 				/>
 			),
 			enableSorting: false,

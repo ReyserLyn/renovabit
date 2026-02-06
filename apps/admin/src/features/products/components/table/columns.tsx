@@ -7,9 +7,9 @@ import {
 	StarIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@renovabit/ui/components/ui/button.js";
-import { Checkbox } from "@renovabit/ui/components/ui/checkbox.tsx";
-import { cn } from "@renovabit/ui/lib/utils.js";
+import { Button } from "@renovabit/ui/components/ui/button";
+import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
+import { cn } from "@renovabit/ui/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
@@ -18,7 +18,7 @@ import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
 import { STATUS_LABELS } from "../../models/product-model";
 import { ProductWithRelations } from "../../services/products-service";
 
-export type ProductsTableHandlers = {
+export type ProductColumnHandlers = {
 	onEdit: (product: ProductWithRelations) => void;
 	onDelete: (product: ProductWithRelations) => void;
 	onToggleStatus: (product: ProductWithRelations) => void;
@@ -26,7 +26,7 @@ export type ProductsTableHandlers = {
 };
 
 export function getColumns(
-	handlers: ProductsTableHandlers,
+	handlers: ProductColumnHandlers,
 ): ColumnDef<ProductWithRelations>[] {
 	const { onEdit, onDelete, onToggleStatus, onDuplicate } = handlers;
 

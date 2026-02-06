@@ -1,68 +1,53 @@
-import { Button } from "@renovabit/ui/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@renovabit/ui/components/ui/dialog";
+import { toast } from "sonner";
+import { ActionModal } from "@/components/modals/ActionModal";
+import { useDeleteProduct } from "../../hooks";
+import type { ProductWithRelations } from "../../services/products-service";
 
 interface DeleteProductModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onConfirm: () => void;
-	productName?: string;
-	isPending?: boolean;
+	product: ProductWithRelations | null;
 }
 
 export function DeleteProductModal({
 	open,
 	onOpenChange,
-	onConfirm,
-	productName,
-	isPending,
+	product,
 }: DeleteProductModalProps) {
+	const deleteProduct = useDeleteProduct();
+
+	const handleConfirm = async () => {
+		if (!product) return;
+
+		const promise = (async () => {
+			await deleteProduct.mutateAsync(product.id);
+			onOpenChange(false);
+		})();
+
+		toast.promise(promise, {
+			loading: "Eliminando producto…",
+			success: "Producto eliminado correctamente.",
+			error: (err) =>
+				err instanceof Error ? err.message : "No se pudo eliminar el producto.",
+		});
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>¿Estás completamente seguro?</DialogTitle>
-					<DialogDescription>
-						Esta acción no se puede deshacer. Esto eliminará permanentemente el
-						producto
-						{productName ? (
-							<span className="font-medium text-foreground">
-								{" "}
-								"{productName}"{" "}
-							</span>
-						) : (
-							" "
-						)}
-						y sus imágenes de los servidores.
-					</DialogDescription>
-				</DialogHeader>
-				<DialogFooter>
-					<Button
-						variant="outline"
-						disabled={isPending}
-						onClick={() => onOpenChange(false)}
-					>
-						Cancelar
-					</Button>
-					<Button
-						variant="destructive"
-						onClick={(e) => {
-							e.preventDefault();
-							onConfirm();
-						}}
-						disabled={isPending}
-						aria-busy={isPending}
-					>
-						{isPending ? "Eliminando…" : "Eliminar"}
-					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+		<ActionModal
+			open={open}
+			onOpenChange={onOpenChange}
+			title="¿Eliminar producto?"
+			description={
+				<>
+					Se eliminará permanentemente el producto{" "}
+					<strong>{product?.name}</strong> y sus imágenes. Esta acción no se
+					puede deshacer.
+				</>
+			}
+			onConfirm={handleConfirm}
+			isPending={deleteProduct.isPending}
+			confirmLabel="Eliminar producto"
+			variant="destructive"
+		/>
 	);
 }

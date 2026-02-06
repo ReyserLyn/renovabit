@@ -31,7 +31,7 @@ export function ToggleBrandStatusModal({
 		})();
 
 		toast.promise(promise, {
-			loading: "Cambiando estado...",
+			loading: "Cambiando estado…",
 			success: nextActive
 				? `La marca "${brand.name}" ahora está activa.`
 				: `La marca "${brand.name}" ha sido desactivada.`,

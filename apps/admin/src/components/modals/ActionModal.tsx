@@ -1,4 +1,4 @@
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -6,8 +6,8 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@renovabit/ui/components/ui/dialog.tsx";
-import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
+} from "@renovabit/ui/components/ui/dialog";
+import { Spinner } from "@renovabit/ui/components/ui/spinner";
 import { ReactNode } from "react";
 
 interface ActionModalProps {

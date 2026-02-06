@@ -1,56 +1,61 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { Brand } from "@renovabit/db/schema";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthenticatedHeader } from "@/components/layout/authenticated-header";
 import { PageHeader } from "@/components/layout/page-header";
+import { PrimaryActionButton } from "@/components/layout/primary-action-button";
 import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action";
+import { DataTable } from "@/components/table/data-table";
+import { TableSkeleton } from "@/components/table/table-skeleton";
 import { BrandFormModal } from "@/features/brands/components/forms/BrandFormModal";
 import { DeleteBrandModal } from "@/features/brands/components/modals/DeleteBrandModal";
 import { ToggleBrandStatusModal } from "@/features/brands/components/modals/ToggleBrandStatusModal";
-import { BrandsTable } from "@/features/brands/components/table/brands-table";
 import { getColumns } from "@/features/brands/components/table/columns";
 import { useBrands, useBulkDeleteBrands } from "@/features/brands/hooks";
+import { brandsKeys } from "@/features/brands/services/brands-service";
+import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated/marcas")({
 	component: MarcasPage,
 });
 
 function MarcasPage() {
-	const { data: brandsRaw, isPending } = useBrands(true);
+	const queryClient = useQueryClient();
+	const breadcrumbs = useBreadcrumbs();
+	const { data: brandsRaw, isPending, isFetching } = useBrands(true);
 	const brands = Array.isArray(brandsRaw) ? brandsRaw : [];
 	const hasData = brands.length > 0 || !isPending;
 
-	const [formOpen, setFormOpen] = useState(false);
+	const [formModalOpen, setFormModalOpen] = useState(false);
 	const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
-	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-	const [deleteBrand, setDeleteBrand] = useState<Brand | null>(null);
-	const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
-	const [deactivateBrand, setDeactivateBrand] = useState<Brand | null>(null);
+	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+	const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null);
+	const [toggleStatusModalOpen, setToggleStatusModalOpen] = useState(false);
+	const [brandForToggle, setBrandForToggle] = useState<Brand | null>(null);
 
 	const bulkDeleteBrands = useBulkDeleteBrands();
 
 	const handleAdd = useCallback(() => {
 		setEditingBrand(null);
-		setFormOpen(true);
+		setFormModalOpen(true);
 	}, []);
 
 	const handleEdit = useCallback((brand: Brand) => {
 		setEditingBrand(brand);
-		setFormOpen(true);
+		setFormModalOpen(true);
 	}, []);
 
-	const handleDeleteClick = useCallback((brand: Brand) => {
-		setDeleteBrand(brand);
-		setDeleteDialogOpen(true);
+	const handleDelete = useCallback((brand: Brand) => {
+		setBrandToDelete(brand);
+		setDeleteModalOpen(true);
 	}, []);
 
-	const handleDeactivateClick = useCallback((brand: Brand) => {
-		setDeactivateBrand(brand);
-		setDeactivateDialogOpen(true);
+	const handleToggleStatus = useCallback((brand: Brand) => {
+		setBrandForToggle(brand);
+		setToggleStatusModalOpen(true);
 	}, []);
 
 	const handleBulkDelete = useCallback(
@@ -59,7 +64,7 @@ function MarcasPage() {
 			const promise = bulkDeleteBrands.mutateAsync(ids);
 
 			toast.promise(promise, {
-				loading: "Eliminando marcas...",
+				loading: "Eliminando marcas…",
 				success: `${selectedBrands.length} marcas eliminadas.`,
 				error: "Error al eliminar marcas.",
 			});
@@ -73,41 +78,45 @@ function MarcasPage() {
 		() =>
 			getColumns({
 				onEdit: handleEdit,
-				onDelete: handleDeleteClick,
-				onDeactivate: handleDeactivateClick,
+				onDelete: handleDelete,
+				onDeactivate: handleToggleStatus,
 			}),
-		[handleEdit, handleDeleteClick, handleDeactivateClick],
+		[handleEdit, handleDelete, handleToggleStatus],
 	);
 
 	return (
 		<>
-			<AuthenticatedHeader
-				breadcrumbs={[
-					{ label: "Panel de Administración", to: "/" },
-					{ label: "Marcas" },
-				]}
-			/>
+			<AuthenticatedHeader breadcrumbs={breadcrumbs} />
 
 			<div className="flex flex-1 flex-col gap-8 p-8">
 				<PageHeader
 					title="Marcas"
 					description="Gestiona las marcas asociadas a tus productos."
 					actions={
-						<Button onClick={handleAdd}>
-							<HugeiconsIcon icon={Add01Icon} className="mr-2 size-4" />
+						<PrimaryActionButton icon={Add01Icon} onClick={handleAdd}>
 							Nueva marca
-						</Button>
+						</PrimaryActionButton>
 					}
 				/>
 
 				{!hasData ? (
-					<div className="flex items-center justify-center py-12 text-muted-foreground">
-						Cargando…
+					<div className="space-y-4" aria-busy="true" aria-live="polite">
+						<div className="sr-only">Cargando marcas…</div>
+						<TableSkeleton columnCount={5} rowCount={8} />
 					</div>
 				) : (
-					<BrandsTable
+					<DataTable
 						columns={columns}
 						data={brands}
+						emptyMessage="No hay marcas. Añade una para comenzar."
+						emptyActionLabel="Crear primera marca"
+						onEmptyAction={handleAdd}
+						filterPlaceholder="Filtrar marcas por nombre…"
+						onRefresh={() =>
+							queryClient.invalidateQueries({ queryKey: brandsKeys.all })
+						}
+						isRefreshing={isFetching}
+						refreshAriaLabel="Actualizar lista de marcas"
 						renderBulkActions={(table) => (
 							<DataTableBulkDeleteAction
 								table={table}
@@ -121,19 +130,25 @@ function MarcasPage() {
 			</div>
 
 			<BrandFormModal
-				open={formOpen}
-				onOpenChange={setFormOpen}
+				open={formModalOpen}
+				onOpenChange={setFormModalOpen}
 				brand={editingBrand}
 			/>
 			<DeleteBrandModal
-				open={deleteDialogOpen}
-				onOpenChange={setDeleteDialogOpen}
-				brand={deleteBrand}
+				open={deleteModalOpen}
+				onOpenChange={(open) => {
+					setDeleteModalOpen(open);
+					if (!open) setBrandToDelete(null);
+				}}
+				brand={brandToDelete}
 			/>
 			<ToggleBrandStatusModal
-				open={deactivateDialogOpen}
-				onOpenChange={setDeactivateDialogOpen}
-				brand={deactivateBrand}
+				open={toggleStatusModalOpen}
+				onOpenChange={(open) => {
+					setToggleStatusModalOpen(open);
+					if (!open) setBrandForToggle(null);
+				}}
+				brand={brandForToggle}
 			/>
 		</>
 	);

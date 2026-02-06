@@ -5,7 +5,7 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from "@renovabit/ui/components/ui/dialog.tsx";
+} from "@renovabit/ui/components/ui/dialog";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { uploadFile } from "@/features/storage/storage-utils";
@@ -73,7 +73,7 @@ export function CategoryFormModal({
 		})();
 
 		toast.promise(promise, {
-			loading: isEditing ? "Guardando cambios..." : "Creando categoría...",
+			loading: isEditing ? "Guardando cambios…" : "Creando categoría…",
 			success: isEditing
 				? "Categoría actualizada correctamente."
 				: "Categoría creada con éxito.",

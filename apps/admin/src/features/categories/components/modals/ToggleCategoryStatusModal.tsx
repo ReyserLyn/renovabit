@@ -29,8 +29,8 @@ export function ToggleCategoryStatusModal({
 
 		toast.promise(promise, {
 			loading: category.isActive
-				? "Desactivando categoría..."
-				: "Activando categoría...",
+				? "Desactivando categoría…"
+				: "Activando categoría…",
 			success: category.isActive
 				? "Categoría desactivada correctamente."
 				: "Categoría activada correctamente.",

@@ -4,20 +4,20 @@ import {
 	Avatar,
 	AvatarFallback,
 	AvatarImage,
-} from "@renovabit/ui/components/ui/avatar.tsx";
+} from "@renovabit/ui/components/ui/avatar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "@renovabit/ui/components/ui/dropdown-menu.tsx";
+} from "@renovabit/ui/components/ui/dropdown-menu";
 import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
 	useSidebar,
-} from "@renovabit/ui/components/ui/sidebar.tsx";
+} from "@renovabit/ui/components/ui/sidebar";
 import { useLogout } from "@/features/auth/hooks/use-logout";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo.ts";
 

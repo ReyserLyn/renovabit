@@ -4,7 +4,7 @@ import {
 	SidebarFooter,
 	SidebarHeader,
 	SidebarRail,
-} from "@renovabit/ui/components/ui/sidebar.tsx";
+} from "@renovabit/ui/components/ui/sidebar";
 import * as React from "react";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo.ts";
 import { sidebarData } from "../../constants/sidebar-data";

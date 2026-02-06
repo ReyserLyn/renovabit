@@ -1,19 +1,19 @@
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@renovabit/ui/components/ui/card.tsx";
+} from "@renovabit/ui/components/ui/card";
 import {
 	Field,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
 } from "@renovabit/ui/components/ui/field";
-import { Input } from "@renovabit/ui/components/ui/input.tsx";
-import { Spinner } from "@renovabit/ui/components/ui/spinner.tsx";
+import { Input } from "@renovabit/ui/components/ui/input";
+import { Spinner } from "@renovabit/ui/components/ui/spinner";
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";

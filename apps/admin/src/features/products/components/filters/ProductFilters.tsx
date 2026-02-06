@@ -8,22 +8,18 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@renovabit/ui/components/ui/select";
-import { useBrands } from "@/features/brands/hooks";
-import { useCategories } from "@/features/categories/hooks";
 import { useProductFilters } from "../../parsers/product-filters";
 
-type CategoryItem = { id: string; name: string; slug: string };
-type BrandItem = { id: string; name: string; slug: string };
+export type CategoryFilterItem = { id: string; name: string; slug: string };
+export type BrandFilterItem = { id: string; name: string; slug: string };
 
-export function ProductFilters() {
+interface ProductFiltersProps {
+	categories: CategoryFilterItem[];
+	brands: BrandFilterItem[];
+}
+
+export function ProductFilters({ categories, brands }: ProductFiltersProps) {
 	const [filters, setFilters] = useProductFilters();
-	const { data: categoriesRaw = [] } = useCategories(true);
-	const { data: brandsRaw = [] } = useBrands(true);
-
-	const categories = (
-		Array.isArray(categoriesRaw) ? categoriesRaw : []
-	) as CategoryItem[];
-	const brands = (Array.isArray(brandsRaw) ? brandsRaw : []) as BrandItem[];
 
 	const handleCategoryChange = (value: string | null) => {
 		setFilters((prev) => ({

@@ -25,7 +25,7 @@ export function DeleteBrandModal({
 		})();
 
 		toast.promise(promise, {
-			loading: "Eliminando marca...",
+			loading: "Eliminando marca…",
 			success: `La marca "${brand.name}" ha sido eliminada.`,
 			error: (err) =>
 				err instanceof Error ? err.message : "No se pudo eliminar la marca.",

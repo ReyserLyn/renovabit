@@ -5,15 +5,15 @@ import {
 	ViewOffSlashIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@renovabit/ui/components/ui/dropdown-menu.tsx";
-import { cn } from "@renovabit/ui/lib/utils.ts";
+} from "@renovabit/ui/components/ui/dropdown-menu";
+import { cn } from "@renovabit/ui/lib/utils";
 import { type Column } from "@tanstack/react-table";
 
 interface ColumnHeaderProps<TData, TValue>

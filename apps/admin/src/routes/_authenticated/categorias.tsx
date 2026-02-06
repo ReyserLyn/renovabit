@@ -1,18 +1,20 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { Category } from "@renovabit/db/schema";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthenticatedHeader } from "@/components/layout/authenticated-header";
 import { PageHeader } from "@/components/layout/page-header";
+import { PrimaryActionButton } from "@/components/layout/primary-action-button";
+import { SectionTitle } from "@/components/layout/section-title";
 import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action";
+import { DataTable } from "@/components/table/data-table";
+import { TableSkeleton } from "@/components/table/table-skeleton";
 import { CategoryTreePreview } from "@/features/categories/components/CategoryTreePreview";
 import { CategoryFormModal } from "@/features/categories/components/modals/CategoryFormModal";
 import { DeleteCategoryModal } from "@/features/categories/components/modals/DeleteCategoryModal";
 import { ToggleCategoryStatusModal } from "@/features/categories/components/modals/ToggleCategoryStatusModal";
-import { CategoriesTable } from "@/features/categories/components/table/categories-table";
 import {
 	type CategoryWithParent,
 	getColumns,
@@ -21,25 +23,31 @@ import {
 	useBulkDeleteCategories,
 	useCategories,
 } from "@/features/categories/hooks";
+import { categoriesKeys } from "@/features/categories/services/categories-service";
+import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated/categorias")({
 	component: CategoriasPage,
 });
 
 function CategoriasPage() {
-	const { data: categoriesRaw, isPending } = useCategories(true);
+	const queryClient = useQueryClient();
+	const breadcrumbs = useBreadcrumbs();
+	const { data: categoriesRaw, isPending, isFetching } = useCategories(true);
 	const categories = Array.isArray(categoriesRaw)
 		? (categoriesRaw as CategoryWithParent[])
 		: [];
 
 	const hasData = categories.length > 0 || !isPending;
 
-	const [formOpen, setFormOpen] = useState(false);
+	const [formModalOpen, setFormModalOpen] = useState(false);
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-	const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
-	const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
-	const [deactivateCategory, setDeactivateCategory] = useState<Category | null>(
+	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+	const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+		null,
+	);
+	const [toggleStatusModalOpen, setToggleStatusModalOpen] = useState(false);
+	const [categoryForToggle, setCategoryForToggle] = useState<Category | null>(
 		null,
 	);
 
@@ -47,22 +55,22 @@ function CategoriasPage() {
 
 	const handleAdd = useCallback(() => {
 		setEditingCategory(null);
-		setFormOpen(true);
+		setFormModalOpen(true);
 	}, []);
 
 	const handleEdit = useCallback((category: Category) => {
 		setEditingCategory(category);
-		setFormOpen(true);
+		setFormModalOpen(true);
 	}, []);
 
-	const handleDeleteClick = useCallback((category: Category) => {
-		setDeleteCategory(category);
-		setDeleteDialogOpen(true);
+	const handleDelete = useCallback((category: Category) => {
+		setCategoryToDelete(category);
+		setDeleteModalOpen(true);
 	}, []);
 
-	const handleDeactivateClick = useCallback((category: Category) => {
-		setDeactivateCategory(category);
-		setDeactivateDialogOpen(true);
+	const handleToggleStatus = useCallback((category: Category) => {
+		setCategoryForToggle(category);
+		setToggleStatusModalOpen(true);
 	}, []);
 
 	const handleBulkDelete = useCallback(
@@ -71,7 +79,7 @@ function CategoriasPage() {
 			const promise = bulkDeleteCategories.mutateAsync(ids);
 
 			toast.promise(promise, {
-				loading: "Eliminando categorías...",
+				loading: "Eliminando categorías…",
 				success: `${selectedCategories.length} categorías eliminadas.`,
 				error: "Error al eliminar categorías.",
 			});
@@ -85,42 +93,47 @@ function CategoriasPage() {
 		() =>
 			getColumns({
 				onEdit: handleEdit,
-				onDelete: handleDeleteClick,
-				onDeactivate: handleDeactivateClick,
+				onDelete: handleDelete,
+				onDeactivate: handleToggleStatus,
 			}),
-		[handleEdit, handleDeleteClick, handleDeactivateClick],
+		[handleEdit, handleDelete, handleToggleStatus],
 	);
 
 	return (
 		<>
-			<AuthenticatedHeader
-				breadcrumbs={[
-					{ label: "Panel de Administración", to: "/" },
-					{ label: "Categorías" },
-				]}
-			/>
+			<AuthenticatedHeader breadcrumbs={breadcrumbs} />
 
 			<div className="flex flex-1 flex-col gap-8 p-8">
 				<PageHeader
 					title="Categorías"
 					description="Organiza tu catálogo con categorías y subcategorías."
 					actions={
-						<Button onClick={handleAdd}>
-							<HugeiconsIcon icon={Add01Icon} className="mr-2 size-4" />
+						<PrimaryActionButton icon={Add01Icon} onClick={handleAdd}>
 							Nueva categoría
-						</Button>
+						</PrimaryActionButton>
 					}
 				/>
 
 				{!hasData ? (
-					<div className="flex items-center justify-center py-12 text-muted-foreground">
-						Cargando…
+					<div className="space-y-4" aria-busy="true" aria-live="polite">
+						<div className="sr-only">Cargando categorías…</div>
+						<TableSkeleton columnCount={6} rowCount={8} />
 					</div>
 				) : (
 					<div className="space-y-8">
-						<CategoriesTable
+						<DataTable
 							columns={columns}
 							data={categories}
+							emptyMessage="No hay categorías. Añade una para comenzar."
+							emptyActionLabel="Crear primera categoría"
+							onEmptyAction={handleAdd}
+							filterPlaceholder="Filtrar categorías por nombre…"
+							defaultSorting={[{ id: "parent", desc: true }]}
+							onRefresh={() =>
+								queryClient.invalidateQueries({ queryKey: categoriesKeys.all })
+							}
+							isRefreshing={isFetching}
+							refreshAriaLabel="Actualizar lista de categorías"
 							renderBulkActions={(table) => (
 								<DataTableBulkDeleteAction
 									table={table}
@@ -132,9 +145,7 @@ function CategoriasPage() {
 						/>
 
 						<div>
-							<h2 className="text-lg font-semibold mb-4 text-muted-foreground">
-								Previsualización de Estructura
-							</h2>
+							<SectionTitle>Previsualización de estructura</SectionTitle>
 							<CategoryTreePreview categories={categories} />
 						</div>
 					</div>
@@ -142,19 +153,25 @@ function CategoriasPage() {
 			</div>
 
 			<CategoryFormModal
-				open={formOpen}
-				onOpenChange={setFormOpen}
+				open={formModalOpen}
+				onOpenChange={setFormModalOpen}
 				category={editingCategory}
 			/>
 			<DeleteCategoryModal
-				open={deleteDialogOpen}
-				onOpenChange={setDeleteDialogOpen}
-				category={deleteCategory}
+				open={deleteModalOpen}
+				onOpenChange={(open) => {
+					setDeleteModalOpen(open);
+					if (!open) setCategoryToDelete(null);
+				}}
+				category={categoryToDelete}
 			/>
 			<ToggleCategoryStatusModal
-				open={deactivateDialogOpen}
-				onOpenChange={setDeactivateDialogOpen}
-				category={deactivateCategory}
+				open={toggleStatusModalOpen}
+				onOpenChange={(open) => {
+					setToggleStatusModalOpen(open);
+					if (!open) setCategoryForToggle(null);
+				}}
+				category={categoryForToggle}
 			/>
 		</>
 	);

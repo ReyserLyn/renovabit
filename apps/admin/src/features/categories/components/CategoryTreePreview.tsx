@@ -6,20 +6,20 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Category } from "@renovabit/db/schema";
-import { Badge } from "@renovabit/ui/components/ui/badge.tsx";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { Badge } from "@renovabit/ui/components/ui/badge";
+import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardHeader,
 	CardTitle,
-} from "@renovabit/ui/components/ui/card.tsx";
+} from "@renovabit/ui/components/ui/card";
 import {
 	Collapsible,
 	CollapsibleContent,
 	CollapsibleTrigger,
-} from "@renovabit/ui/components/ui/collapsible.tsx";
-import { cn } from "@renovabit/ui/lib/utils.ts";
+} from "@renovabit/ui/components/ui/collapsible";
+import { cn } from "@renovabit/ui/lib/utils";
 import { useMemo } from "react";
 
 interface CategoryTreePreviewProps {

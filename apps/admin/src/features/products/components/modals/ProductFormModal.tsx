@@ -7,7 +7,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from "@renovabit/ui/components/ui/dialog.tsx";
+} from "@renovabit/ui/components/ui/dialog";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { uploadFile } from "@/features/storage/storage-utils";

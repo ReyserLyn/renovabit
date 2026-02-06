@@ -5,9 +5,9 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from "@renovabit/ui/components/ui/breadcrumb.tsx";
-import { Separator } from "@renovabit/ui/components/ui/separator.tsx";
-import { SidebarTrigger } from "@renovabit/ui/components/ui/sidebar.tsx";
+} from "@renovabit/ui/components/ui/breadcrumb";
+import { Separator } from "@renovabit/ui/components/ui/separator";
+import { SidebarTrigger } from "@renovabit/ui/components/ui/sidebar";
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 

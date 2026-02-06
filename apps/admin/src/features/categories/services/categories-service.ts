@@ -3,6 +3,12 @@ import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/libs/eden-client/eden-client";
 import { handleEdenError } from "@/libs/eden-client/utils";
 
+export const categoriesKeys = {
+	all: ["categories"] as const,
+	list: (opts: { includeInactive: boolean }) => ["categories", opts] as const,
+	detail: (id: string) => ["categories", id] as const,
+};
+
 export async function fetchCategories(includeInactive: boolean) {
 	const res = await api.api.v1.categories.get({
 		query: includeInactive ? { includeInactive: true } : undefined,
@@ -78,7 +84,7 @@ export async function validateCategory(body: {
 
 export const categoriesQueryOptions = (includeInactive: boolean) =>
 	queryOptions({
-		queryKey: ["categories", { includeInactive }],
+		queryKey: categoriesKeys.list({ includeInactive }),
 		queryFn: () => fetchCategories(includeInactive),
 		placeholderData: keepPreviousData,
 		staleTime: 1000 * 60 * 5,
@@ -86,7 +92,7 @@ export const categoriesQueryOptions = (includeInactive: boolean) =>
 
 export const categoryQueryOptions = (id: string) =>
 	queryOptions({
-		queryKey: ["categories", id],
+		queryKey: categoriesKeys.detail(id),
 		queryFn: () => fetchCategory(id),
 		enabled: !!id,
 	});

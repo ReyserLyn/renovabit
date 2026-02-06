@@ -1,6 +1,6 @@
 import { Settings01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
+import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -9,7 +9,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@renovabit/ui/components/ui/dropdown-menu.tsx";
+} from "@renovabit/ui/components/ui/dropdown-menu";
 import { type Table } from "@tanstack/react-table";
 
 export function ColumnToggle<TData>({ table }: { table: Table<TData> }) {

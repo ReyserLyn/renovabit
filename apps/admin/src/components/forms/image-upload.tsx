@@ -13,9 +13,9 @@ import {
 	AlertDescription,
 	AlertIcon,
 	AlertTitle,
-} from "@renovabit/ui/components/ui/alert.tsx";
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
-import { cn } from "@renovabit/ui/lib/utils.ts";
+} from "@renovabit/ui/components/ui/alert";
+import { Button } from "@renovabit/ui/components/ui/button";
+import { cn } from "@renovabit/ui/lib/utils";
 import { Image } from "@unpic/react";
 import { useCallback, useEffect, useState } from "react";
 import { formatBytes, useFileUpload } from "../../hooks/use-file-upload";

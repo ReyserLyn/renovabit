@@ -3,6 +3,12 @@ import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/libs/eden-client/eden-client";
 import { handleEdenError } from "@/libs/eden-client/utils";
 
+export const brandsKeys = {
+	all: ["brands"] as const,
+	list: (opts: { includeInactive: boolean }) => ["brands", opts] as const,
+	detail: (id: string) => ["brands", id] as const,
+};
+
 export async function fetchBrands(includeInactive: boolean) {
 	const res = await api.api.v1.brands.get({
 		query: includeInactive ? { includeInactive: true } : undefined,
@@ -78,7 +84,7 @@ export async function validateBrand(body: {
 
 export const brandsQueryOptions = (includeInactive: boolean) =>
 	queryOptions({
-		queryKey: ["brands", { includeInactive }],
+		queryKey: brandsKeys.list({ includeInactive }),
 		queryFn: () => fetchBrands(includeInactive),
 		placeholderData: keepPreviousData,
 		staleTime: 1000 * 60 * 5,
@@ -86,7 +92,7 @@ export const brandsQueryOptions = (includeInactive: boolean) =>
 
 export const brandQueryOptions = (id: string) =>
 	queryOptions({
-		queryKey: ["brands", id],
+		queryKey: brandsKeys.detail(id),
 		queryFn: () => fetchBrand(id),
 		enabled: !!id,
 	});

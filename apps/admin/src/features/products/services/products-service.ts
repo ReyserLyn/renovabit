@@ -10,6 +10,13 @@ import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/libs/eden-client/eden-client";
 import { handleEdenError } from "@/libs/eden-client/utils";
 
+/** Factory de query keys para productos (invalidaciones tipadas) */
+export const productsKeys = {
+	all: ["products"] as const,
+	list: (params: ProductListParams) => ["products", params] as const,
+	detail: (id: string) => ["products", id] as const,
+};
+
 /** Producto con relaciones (brand, category, images) tal como lo devuelve la API */
 export type ProductWithRelations = Product & {
 	images: ProductImage[];
@@ -128,7 +135,7 @@ export const productsQueryOptions = (params: ProductListParams) =>
 
 export const productQueryOptions = (id: string) =>
 	queryOptions({
-		queryKey: ["products", id],
+		queryKey: productsKeys.detail(id),
 		queryFn: () => fetchProduct(id),
 		enabled: !!id,
 	});

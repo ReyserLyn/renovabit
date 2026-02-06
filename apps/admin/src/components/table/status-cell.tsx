@@ -4,7 +4,7 @@ import {
 	Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { cn } from "@renovabit/ui/lib/utils.js";
+import { cn } from "@renovabit/ui/lib/utils";
 
 export type StatusVariant = "success" | "muted" | "warning";
 

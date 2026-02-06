@@ -4,9 +4,10 @@ import {
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "@renovabit/ui/components/ui/card.tsx";
+} from "@renovabit/ui/components/ui/card";
 import { createFileRoute } from "@tanstack/react-router";
 import { AuthenticatedHeader } from "@/components/layout/authenticated-header";
+import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated/")({
 	component: HomePage,
@@ -15,15 +16,11 @@ export const Route = createFileRoute("/_authenticated/")({
 function HomePage() {
 	const { session } = Route.useRouteContext();
 	const user = session!.user;
+	const breadcrumbs = useBreadcrumbs();
 
 	return (
 		<>
-			<AuthenticatedHeader
-				breadcrumbs={[
-					{ label: "Panel de Administración", to: "/" },
-					{ label: "Dashboard" },
-				]}
-			/>
+			<AuthenticatedHeader breadcrumbs={breadcrumbs} />
 			<div className="flex flex-1 flex-col gap-4 p-4">
 				<Card size="default">
 					<CardHeader>
