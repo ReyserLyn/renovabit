@@ -1,5 +1,6 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import type { Category } from "@renovabit/db/schema";
+import { Button } from "@renovabit/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
@@ -33,7 +34,13 @@ export const Route = createFileRoute("/_authenticated/categorias")({
 function CategoriasPage() {
 	const queryClient = useQueryClient();
 	const breadcrumbs = useBreadcrumbs();
-	const { data: categoriesRaw, isPending, isFetching } = useCategories(true);
+	const {
+		data: categoriesRaw,
+		isPending,
+		isFetching,
+		isError,
+		refetch: refetchCategories,
+	} = useCategories(true);
 	const categories = Array.isArray(categoriesRaw)
 		? (categoriesRaw as CategoryWithParent[])
 		: [];
@@ -99,6 +106,10 @@ function CategoriasPage() {
 		[handleEdit, handleDelete, handleToggleStatus],
 	);
 
+	const handleRetry = useCallback(() => {
+		refetchCategories();
+	}, [refetchCategories]);
+
 	return (
 		<>
 			<AuthenticatedHeader breadcrumbs={breadcrumbs} />
@@ -114,10 +125,20 @@ function CategoriasPage() {
 					}
 				/>
 
-				{!hasData ? (
+				{!hasData && !isError ? (
 					<div className="space-y-4" aria-busy="true" aria-live="polite">
 						<div className="sr-only">Cargando categorías…</div>
 						<TableSkeleton columnCount={6} rowCount={8} />
+					</div>
+				) : isError ? (
+					<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-destructive/50 bg-destructive/5 py-12 px-4 text-center">
+						<p className="text-muted-foreground">
+							No se pudieron cargar las categorías. Comprueba la conexión e
+							intenta de nuevo.
+						</p>
+						<Button variant="outline" onClick={handleRetry}>
+							Reintentar
+						</Button>
 					</div>
 				) : (
 					<div className="space-y-8">

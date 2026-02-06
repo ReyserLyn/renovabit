@@ -1,5 +1,6 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import type { Brand } from "@renovabit/db/schema";
+import { Button } from "@renovabit/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
@@ -25,7 +26,13 @@ export const Route = createFileRoute("/_authenticated/marcas")({
 function MarcasPage() {
 	const queryClient = useQueryClient();
 	const breadcrumbs = useBreadcrumbs();
-	const { data: brandsRaw, isPending, isFetching } = useBrands(true);
+	const {
+		data: brandsRaw,
+		isPending,
+		isFetching,
+		isError,
+		refetch: refetchBrands,
+	} = useBrands(true);
 	const brands = Array.isArray(brandsRaw) ? brandsRaw : [];
 	const hasData = brands.length > 0 || !isPending;
 
@@ -84,6 +91,10 @@ function MarcasPage() {
 		[handleEdit, handleDelete, handleToggleStatus],
 	);
 
+	const handleRetry = useCallback(() => {
+		refetchBrands();
+	}, [refetchBrands]);
+
 	return (
 		<>
 			<AuthenticatedHeader breadcrumbs={breadcrumbs} />
@@ -99,10 +110,20 @@ function MarcasPage() {
 					}
 				/>
 
-				{!hasData ? (
+				{!hasData && !isError ? (
 					<div className="space-y-4" aria-busy="true" aria-live="polite">
 						<div className="sr-only">Cargando marcas…</div>
 						<TableSkeleton columnCount={5} rowCount={8} />
+					</div>
+				) : isError ? (
+					<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-destructive/50 bg-destructive/5 py-12 px-4 text-center">
+						<p className="text-muted-foreground">
+							No se pudieron cargar las marcas. Comprueba la conexión e intenta
+							de nuevo.
+						</p>
+						<Button variant="outline" onClick={handleRetry}>
+							Reintentar
+						</Button>
 					</div>
 				) : (
 					<DataTable

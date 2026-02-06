@@ -1,4 +1,5 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
+import { Button } from "@renovabit/ui/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
@@ -39,9 +40,13 @@ function ProductsPage() {
 	const { listParams, filters, setFilters, categories, brands } =
 		useProductListParams();
 
-	const { data, isPending, isFetching } = useQuery(
-		productsQueryOptions(listParams),
-	);
+	const {
+		data,
+		isPending,
+		isFetching,
+		isError,
+		refetch: refetchProducts,
+	} = useQuery(productsQueryOptions(listParams));
 	const products = data?.data ?? [];
 	const total = data?.total ?? 0;
 
@@ -122,6 +127,10 @@ function ProductsPage() {
 		queryClient.invalidateQueries({ queryKey: productsKeys.all });
 	}, [queryClient]);
 
+	const handleRetry = useCallback(() => {
+		refetchProducts();
+	}, [refetchProducts]);
+
 	const handleToggleStatusModalOpenChange = useCallback((open: boolean) => {
 		setToggleStatusModalOpen(open);
 		if (!open) setProductForToggle(null);
@@ -179,6 +188,16 @@ function ProductsPage() {
 					<div className="space-y-4" aria-busy="true" aria-live="polite">
 						<div className="sr-only">Cargando productos…</div>
 						<TableSkeleton columnCount={8} rowCount={8} />
+					</div>
+				) : isError ? (
+					<div className="flex flex-col items-center justify-center gap-4 rounded-md border border-destructive/50 bg-destructive/5 py-12 px-4 text-center">
+						<p className="text-muted-foreground">
+							No se pudieron cargar los productos. Comprueba la conexión e
+							intenta de nuevo.
+						</p>
+						<Button variant="outline" onClick={handleRetry}>
+							Reintentar
+						</Button>
 					</div>
 				) : (
 					<DataTable
