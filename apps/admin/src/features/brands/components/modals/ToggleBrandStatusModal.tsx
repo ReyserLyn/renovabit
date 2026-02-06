@@ -61,7 +61,7 @@ export function ToggleBrandStatusModal({
 			onConfirm={handleConfirm}
 			isPending={updateBrand.isPending}
 			confirmLabel={isActivating ? "Activar" : "Desactivar"}
-			variant={isActivating ? "default" : "secondary"}
+			variant={isActivating ? "default" : "destructive"}
 		/>
 	);
 }

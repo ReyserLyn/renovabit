@@ -1,6 +1,5 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { ProductUpdateBody } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -14,6 +13,7 @@ import { useCategories } from "@/features/categories/hooks";
 import { ProductFilters } from "@/features/products/components/filters/ProductFilters";
 import { DeleteProductModal } from "@/features/products/components/modals/delete-product-modal";
 import { ProductFormModal } from "@/features/products/components/modals/ProductFormModal";
+import { ToggleProductStatusModal } from "@/features/products/components/modals/ToggleProductStatusModal";
 import { getColumns } from "@/features/products/components/table/columns";
 import { ProductsTable } from "@/features/products/components/table/products-table";
 import { useBulkDeleteProducts } from "@/features/products/hooks";
@@ -27,7 +27,6 @@ import {
 	deleteProduct,
 	type ProductWithRelations,
 	productsQueryOptions,
-	updateProduct,
 } from "@/features/products/services/products-service";
 
 export const Route = createFileRoute("/_authenticated/productos")({
@@ -78,6 +77,10 @@ function ProductsPage() {
 	const [selectedProduct, setSelectedProduct] =
 		useState<ProductWithRelations | null>(null);
 
+	const [toggleStatusModalOpen, setToggleStatusModalOpen] = useState(false);
+	const [productForToggle, setProductForToggle] =
+		useState<ProductWithRelations | null>(null);
+
 	const deleteMutation = useMutation({
 		mutationFn: (id: string) => deleteProduct(id),
 		onSuccess: () => {
@@ -88,18 +91,6 @@ function ProductsPage() {
 		},
 		onError: () => {
 			toast.error("No se pudo eliminar el producto. Vuelve a intentarlo.");
-		},
-	});
-
-	const updateMutation = useMutation({
-		mutationFn: ({ id, body }: { id: string; body: ProductUpdateBody }) =>
-			updateProduct(id, body),
-		onSuccess: () => {
-			toast.success("Producto actualizado correctamente");
-			queryClient.invalidateQueries({ queryKey: ["products"] });
-		},
-		onError: () => {
-			toast.error("No se pudo actualizar el producto. Vuelve a intentarlo.");
 		},
 	});
 
@@ -131,16 +122,10 @@ function ProductsPage() {
 		setDeleteModalOpen(true);
 	}, []);
 
-	const handleToggleStatus = useCallback(
-		(product: ProductWithRelations) => {
-			const newStatus = product.status === "active" ? "inactive" : "active";
-			updateMutation.mutate({
-				id: product.id,
-				body: { status: newStatus },
-			});
-		},
-		[updateMutation],
-	);
+	const handleToggleStatus = useCallback((product: ProductWithRelations) => {
+		setProductForToggle(product);
+		setToggleStatusModalOpen(true);
+	}, []);
 
 	const handleBulkDelete = useCallback(
 		async (selected: ProductWithRelations[]) => {
@@ -246,6 +231,15 @@ function ProductsPage() {
 					}}
 					isPending={deleteMutation.isPending}
 					productName={selectedProduct?.name}
+				/>
+
+				<ToggleProductStatusModal
+					open={toggleStatusModalOpen}
+					onOpenChange={(open) => {
+						setToggleStatusModalOpen(open);
+						if (!open) setProductForToggle(null);
+					}}
+					product={productForToggle}
 				/>
 			</div>
 		</>
