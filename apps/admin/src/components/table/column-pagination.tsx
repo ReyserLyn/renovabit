@@ -21,6 +21,8 @@ export interface ServerPaginationProps {
 	pageSize: number;
 	onPageChange: (page: number) => void;
 	selectedCount?: number;
+	pageSizeOptions?: number[];
+	onPageSizeChange?: (size: number) => void;
 }
 
 export function ServerPagination({
@@ -29,10 +31,16 @@ export function ServerPagination({
 	pageSize,
 	onPageChange,
 	selectedCount = 0,
+	pageSizeOptions,
+	onPageSizeChange,
 }: ServerPaginationProps) {
 	const pageCount = Math.max(1, Math.ceil(total / pageSize));
 	const from = total === 0 ? 0 : pageIndex * pageSize + 1;
 	const to = Math.min((pageIndex + 1) * pageSize, total);
+	const showRowsPerPage =
+		Array.isArray(pageSizeOptions) &&
+		pageSizeOptions.length > 0 &&
+		typeof onPageSizeChange === "function";
 
 	return (
 		<div className="flex items-center justify-between px-2 py-2">
@@ -42,6 +50,26 @@ export function ServerPagination({
 					: `${from}-${to} de ${total} resultados`}
 			</div>
 			<div className="flex items-center gap-2">
+				{showRowsPerPage && (
+					<div className="flex items-center space-x-2">
+						<p className="text-sm font-medium">Filas por página</p>
+						<Select
+							value={`${pageSize}`}
+							onValueChange={(value) => onPageSizeChange?.(Number(value))}
+						>
+							<SelectTrigger className="h-8 w-[70px]">
+								<SelectValue placeholder={pageSize} />
+							</SelectTrigger>
+							<SelectContent side="top">
+								{pageSizeOptions!.map((size) => (
+									<SelectItem key={size} value={`${size}`}>
+										{size}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				)}
 				<span className="text-sm font-medium">
 					Página {pageIndex + 1} de {pageCount}
 				</span>

@@ -20,6 +20,7 @@ import { useBulkDeleteProducts } from "@/features/products/hooks";
 import {
 	getProductListParamsFromFilters,
 	PAGE_SIZE,
+	PAGE_SIZE_OPTIONS,
 	useProductFilters,
 } from "@/features/products/parsers/product-filters";
 import type { ProductListParams } from "@/features/products/services/products-service";
@@ -148,6 +149,22 @@ function ProductsPage() {
 		[setFilters],
 	);
 
+	const handlePageSizeChange = useCallback(
+		(pageSize: number) => {
+			setFilters((prev) => ({ ...prev, pageSize, page: 0 }));
+		},
+		[setFilters],
+	);
+
+	const handleRefresh = useCallback(() => {
+		queryClient.invalidateQueries({ queryKey: ["products"] });
+	}, [queryClient]);
+
+	const handleToggleStatusModalOpenChange = useCallback((open: boolean) => {
+		setToggleStatusModalOpen(open);
+		if (!open) setProductForToggle(null);
+	}, []);
+
 	const columns = useMemo(
 		() =>
 			getColumns({
@@ -163,10 +180,22 @@ function ProductsPage() {
 		() => ({
 			total,
 			pageIndex: filters.page,
-			pageSize: PAGE_SIZE,
+			pageSize: PAGE_SIZE_OPTIONS.includes(
+				filters.pageSize as (typeof PAGE_SIZE_OPTIONS)[number],
+			)
+				? filters.pageSize
+				: PAGE_SIZE,
 			onPageChange: handlePageChange,
+			pageSizeOptions: [...PAGE_SIZE_OPTIONS],
+			onPageSizeChange: handlePageSizeChange,
 		}),
-		[total, filters.page, handlePageChange],
+		[
+			total,
+			filters.page,
+			filters.pageSize,
+			handlePageChange,
+			handlePageSizeChange,
+		],
 	);
 
 	return (
@@ -198,9 +227,7 @@ function ProductsPage() {
 					<ProductsTable
 						columns={columns}
 						data={products}
-						onRefresh={() =>
-							queryClient.invalidateQueries({ queryKey: ["products"] })
-						}
+						onRefresh={handleRefresh}
 						isRefreshing={isFetching}
 						filterSlot={<ProductFilters />}
 						serverPagination={serverPagination}
@@ -235,10 +262,7 @@ function ProductsPage() {
 
 				<ToggleProductStatusModal
 					open={toggleStatusModalOpen}
-					onOpenChange={(open) => {
-						setToggleStatusModalOpen(open);
-						if (!open) setProductForToggle(null);
-					}}
+					onOpenChange={handleToggleStatusModalOpenChange}
 					product={productForToggle}
 				/>
 			</div>
