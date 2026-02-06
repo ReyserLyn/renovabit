@@ -21,8 +21,17 @@ export type MyRouterContext = {
 };
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
-	beforeLoad: ({ context }) => {
-		context.queryClient.prefetchQuery(authQueryOptions());
+	beforeLoad: async ({ context }) => {
+		// Prefetch de sesión de forma segura
+		try {
+			await context.queryClient.prefetchQuery(authQueryOptions());
+		} catch (error) {
+			// Si falla el prefetch, no bloquear la aplicación
+			// La sesión se intentará obtener cuando sea necesaria
+			if (process.env.NODE_ENV !== "production") {
+				console.warn("Error al prefetch de sesión:", error);
+			}
+		}
 	},
 	head: () => ({
 		meta: [

@@ -1,19 +1,46 @@
 /// <reference types="bun-types" />
 import { cors } from "@elysiajs/cors";
-import { fromTypes, openapi } from "@elysiajs/openapi";
+import { openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
-import logixlysia from "logixlysia";
-import { authRoutes, OpenAPI } from "@/modules/auth/middleware";
+import { rateLimit } from "elysia-rate-limit";
+import {
+	ApplicationError,
+	type ErrorResponseBody,
+	mapDbErrorToResponse,
+} from "@/lib/errors";
+import { logger } from "@/lib/logger";
+import { logixPlugin } from "@/lib/logix";
+import { openapiErrorResponseSchema } from "@/lib/openapi-schemas";
+import { getClientIp } from "@/lib/rate-limit";
+import { securityHeaders } from "@/lib/security-headers";
+import { authRoutes, OpenAPI } from "@/modules/auth";
+import { auth } from "@/modules/auth/auth";
 import { brandController } from "@/modules/brands/brand.controller";
 import { categoryController } from "@/modules/categories/category.controller";
 import { healthController } from "@/modules/health/health.controller";
 import { productController } from "@/modules/products/product.controller";
 import { storageController } from "@/modules/storage/storage.controller";
 import { userController } from "@/modules/users/user.controller";
-import { auth } from "./modules/auth/auth";
 
 const PORT = process.env.PORT ? Number.parseInt(process.env.PORT) : 3001;
 const isProd = process.env.NODE_ENV === "production";
+
+function validateEnv(): void {
+	const missing: string[] = [];
+	if (!process.env.BETTER_AUTH_SECRET?.trim())
+		missing.push("BETTER_AUTH_SECRET");
+	if (!process.env.BETTER_AUTH_URL?.trim()) missing.push("BETTER_AUTH_URL");
+	if (isProd && !process.env.OPENAPI_SECRET?.trim())
+		missing.push("OPENAPI_SECRET");
+	if (missing.length > 0) {
+		console.error(
+			"[API] Faltan variables de entorno requeridas:",
+			missing.join(", "),
+		);
+		process.exit(1);
+	}
+}
+validateEnv();
 
 const v1Routes = new Elysia({ prefix: "/v1" })
 	.use(authRoutes)
@@ -34,41 +61,28 @@ const allowedOrigins = [
 	"http://localhost:3002",
 ].filter(Boolean) as string[];
 
+function mergeOpenApiComponents(
+	authComponents: Record<string, unknown>,
+): Record<string, unknown> {
+	const existing =
+		authComponents?.schemas && typeof authComponents.schemas === "object"
+			? (authComponents.schemas as Record<string, unknown>)
+			: {};
+	return {
+		...authComponents,
+		schemas: { ...existing, ErrorResponse: openapiErrorResponseSchema },
+	};
+}
+
 const app = new Elysia()
-	.use(
-		logixlysia({
-			config: {
-				showStartupMessage: true,
-				useColors: !isProd,
-				ip: true,
-				timestamp: { translateTime: "mm-dd-yyyy HH:MM:ss" },
-				customLogFormat:
-					"[+] {now} {level} {duration} {method} {pathname} {status} {message} {ip}",
-				logFilePath: "./logs/api.log",
-			},
-		}),
-	)
-	// OpenAPI
-	.use(
-		openapi({
-			references: fromTypes("src/index.ts"),
-			documentation: {
-				info: {
-					title: "Renovabit API",
-					description: "API documentation for Renovabit",
-					version: "1.0.0",
-				},
-				components: await OpenAPI.components,
-				paths: await OpenAPI.getPaths(),
-			},
-		}),
-	)
-	// CORS
+	.use(securityHeaders)
 	.use(
 		cors({
 			origin: (request) => {
 				const origin = request.headers.get("origin");
-				if (!origin) return true;
+				if (!origin) {
+					return process.env.NODE_ENV !== "production";
+				}
 				return allowedOrigins.includes(origin);
 			},
 			methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -76,72 +90,107 @@ const app = new Elysia()
 			allowedHeaders: ["Content-Type", "Authorization"],
 		}),
 	)
+	.use(
+		rateLimit({
+			max: 100,
+			duration: 60000,
+			generator: getClientIp,
+			errorResponse: "Demasiadas solicitudes. Intenta de nuevo más tarde.",
+		}),
+	)
+	.use(logixPlugin)
+	.use(
+		openapi({
+			documentation: {
+				info: {
+					title: "Renovabit API",
+					description: "API documentation for Renovabit",
+					version: "1.0.0",
+				},
+				components: await mergeOpenApiComponents(await OpenAPI.components),
+				paths: await OpenAPI.getPaths(),
+			},
+		}),
+	)
+	.onBeforeHandle(async ({ path, headers, set }) => {
+		if (path === "/openapi" && isProd) {
+			const authHeader = headers.authorization;
+			const expectedAuth = `Bearer ${process.env.OPENAPI_SECRET || ""}`;
+			if (!authHeader || authHeader !== expectedAuth) {
+				set.status = 401;
+				return { message: "Unauthorized" };
+			}
+		}
+	})
 	// Error Handling
 	.onError(({ code, error, set }) => {
 		if (code === "NOT_FOUND") {
 			set.status = 404;
-			return { status: 404, message: "Ruta no encontrada" };
+			return {
+				code: "ERR_NOT_FOUND",
+				message: "Ruta no encontrada",
+			} satisfies ErrorResponseBody;
 		}
 
 		if (code === "VALIDATION") {
 			set.status = 400;
+			const validationError = error as { all?: unknown };
 			return {
-				status: 400,
+				code: "ERR_VALIDATION",
 				message: "Datos inválidos",
-				// biome-ignore lint/suspicious/noExplicitAny: Fix TS4023 error
-				errors: error.all as any,
-			};
+				details: { errors: validationError.all },
+			} satisfies ErrorResponseBody;
 		}
 
-		console.error("[-] API Error:", error);
+		if (error instanceof ApplicationError) {
+			set.status = error.statusCode;
+			return {
+				code: error.code,
+				message: error.message,
+				...(error.details !== undefined && { details: error.details }),
+			} satisfies ErrorResponseBody;
+		}
 
-		const msg =
+		const errorCode = `ERR_${code || "UNKNOWN"}`;
+		const errorMessage =
 			error instanceof Error
 				? error.message
 				: typeof error === "object" && error !== null && "message" in error
 					? String((error as { message: unknown }).message)
 					: "";
-		const msgLower = msg.toLowerCase();
 
-		if (
-			msgLower.includes("null value") ||
-			msgLower.includes("violates not-null")
-		) {
-			set.status = 400;
-			return { status: 400, message: "Faltan campos obligatorios" };
-		}
-		if (
-			msgLower.includes("duplicate key") ||
-			msgLower.includes("already exists")
-		) {
-			set.status = 409;
-			return { status: 409, message: "El registro ya existe" };
-		}
-		if (
-			msg.includes("invalid input syntax for type uuid") ||
-			msg.includes("invalid input syntax for uuid") ||
-			msg.includes("uuid array")
-		) {
-			set.status = 400;
-			return {
-				status: 400,
-				message: "ID o identificador con formato inválido (UUID requerido)",
-			};
-		}
+		logger.error(
+			{
+				code: errorCode,
+				message: isProd ? undefined : errorMessage,
+			},
+			"API Error",
+		);
 
-		set.status = 500;
-		return {
-			status: 500,
-			message: isProd ? "Internal server error" : msg || "Error desconocido",
-		};
+		const { status, body } = mapDbErrorToResponse(errorMessage, isProd);
+		set.status = status;
+		return body;
 	})
 	.group("/api", (api) => api.use(v1Routes))
+	.onStart(() => {
+		const mode = process.env.NODE_ENV || "development";
+		const openapiUrl = `http://localhost:${PORT}/openapi`;
+		logger.info(
+			{ port: PORT, mode, openapi: openapiUrl },
+			"Renovabit API started",
+		);
+	})
 	.listen(PORT);
+
+// Manejo de errores no capturados
+process.on("unhandledRejection", (reason, promise) => {
+	logger.error({ err: reason, promise }, "Unhandled Rejection");
+});
+
+process.on("uncaughtException", (error) => {
+	logger.error({ err: error }, "Uncaught Exception");
+	process.exit(1);
+});
 
 export type App = typeof app;
 export type Session = typeof auth.$Infer.Session;
-
-console.log(`\n[+] Renovabit API is running!`);
-console.log(`[+] Mode: ${process.env.NODE_ENV || "development"}`);
-console.log(`[+] Local: http://localhost:${PORT}`);
-console.log(`[+] OpenAPI: http://localhost:${PORT}/openapi\n`);

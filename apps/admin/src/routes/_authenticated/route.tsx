@@ -10,19 +10,34 @@ import { authQueryOptions } from "@/libs/better-auth/auth-session";
 export const Route = createFileRoute("/_authenticated")({
 	errorComponent: DefaultCatchBoundary,
 	beforeLoad: async ({ context }) => {
-		const session = await context.queryClient.ensureQueryData(
-			authQueryOptions(),
-		);
+		try {
+			const session = await context.queryClient.ensureQueryData(
+				authQueryOptions(),
+			);
 
-		if (!session) {
+			if (!session) {
+				throw redirect({
+					to: "/login",
+				});
+			}
+
+			if (session.user?.role !== "admin") {
+				throw redirect({
+					to: "/login",
+				});
+			}
+
+			return {
+				session,
+			};
+		} catch (error) {
+			if (error && typeof error === "object" && "to" in error) {
+				throw error;
+			}
 			throw redirect({
 				to: "/login",
 			});
 		}
-
-		return {
-			session,
-		};
 	},
 	component: AuthenticatedLayout,
 });

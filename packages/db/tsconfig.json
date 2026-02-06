@@ -1,6 +1,7 @@
 {
 	"extends": "@renovabit/typescript-config/base.json",
 	"compilerOptions": {
+		"noEmit": true,
 		"baseUrl": ".",
 
 		"paths": {

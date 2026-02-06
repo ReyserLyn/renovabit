@@ -21,7 +21,7 @@ import { loginSchema } from "../domain/auth-model";
 import { useLogin } from "../hooks/use-login";
 
 const formId = "login-form";
-const emailId = "login-email";
+const emailOrUsernameId = "login-email-or-username";
 const passwordId = "login-password";
 
 export function LoginForm() {
@@ -30,7 +30,7 @@ export function LoginForm() {
 
 	const form = useForm({
 		defaultValues: {
-			email: "",
+			emailOrUsername: "",
 			password: "",
 		},
 		validators: {
@@ -56,7 +56,7 @@ export function LoginForm() {
 					Iniciar sesión
 				</CardTitle>
 				<CardDescription className="text-muted-foreground text-sm sm:text-base">
-					Ingresa tu correo y contraseña para acceder al panel
+					Ingresa tu correo o usuario y contraseña para acceder al panel
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="gap-4 flex flex-col">
@@ -86,22 +86,21 @@ export function LoginForm() {
 					)}
 					<FieldGroup>
 						<form.Field
-							name="email"
+							name="emailOrUsername"
 							children={(field) => {
 								const isInvalid =
 									field.state.meta.isTouched && !field.state.meta.isValid;
 								return (
 									<Field data-invalid={isInvalid}>
-										<FieldLabel htmlFor={emailId}>
-											Correo electrónico
+										<FieldLabel htmlFor={emailOrUsernameId}>
+											Correo o usuario
 										</FieldLabel>
 										<Input
-											id={emailId}
+											id={emailOrUsernameId}
 											name={field.name}
-											type="email"
-											autoComplete="email"
-											inputMode="email"
-											placeholder="ejemplo@renovabit.com"
+											type="text"
+											autoComplete="username email"
+											placeholder="correo@renovabit.com o RenovaBit"
 											value={field.state.value}
 											onBlur={field.handleBlur}
 											onChange={(e) => field.handleChange(e.target.value)}

@@ -6,4 +6,5 @@ export const healthController = new Elysia({ prefix: "/health" }).get(
 		status: "ok",
 		timestamp: new Date().toISOString(),
 	}),
+	{ detail: { tags: ["Health"] } },
 );

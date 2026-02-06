@@ -1,4 +1,7 @@
-import { inferAdditionalFields } from "better-auth/client/plugins";
+import {
+	inferAdditionalFields,
+	usernameClient,
+} from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
 const getBaseURL = () => {
@@ -16,6 +19,7 @@ const authClientRepo = createAuthClient({
 	baseURL,
 	basePath: "/api/v1/auth",
 	plugins: [
+		usernameClient(),
 		inferAdditionalFields({
 			user: {
 				username: { type: "string" },

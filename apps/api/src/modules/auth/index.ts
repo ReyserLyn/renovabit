@@ -1,6 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: Documentation Elysia */
 import { Elysia } from "elysia";
-import { auth } from "@/modules/auth/auth";
+import { rateLimit } from "elysia-rate-limit";
+import { logger } from "@/lib/logger";
+import { getClientIp } from "@/lib/rate-limit";
+import { auth } from "./auth";
 
 type AuthSession = typeof auth.$Infer.Session;
 export type AuthUser = AuthSession["user"];
@@ -22,13 +25,28 @@ const getSessionFromHeaders = async (
 			headers: headersObj,
 		});
 	} catch (e) {
-		console.error("Auth error:", e);
+		logger.error(
+			{ err: e instanceof Error ? e.message : "Unknown error" },
+			"Auth error",
+		);
 		return null;
 	}
 };
 
+const loginRateLimit = rateLimit({
+	max: 5,
+	duration: 60000,
+	generator: getClientIp,
+	errorResponse: "Demasiados intentos de login. Intenta de nuevo más tarde.",
+	skip: (request) => {
+		const url = new URL(request.url);
+		return !url.pathname.includes("/sign-in/email");
+	},
+});
+
 export const authMacro = new Elysia({ name: "auth-macro" })
 	.mount("/", auth.handler)
+	.use(loginRateLimit)
 	.derive({ as: "scoped" }, async ({ request: { headers } }) => {
 		const session = await getSessionFromHeaders(headers);
 		return {

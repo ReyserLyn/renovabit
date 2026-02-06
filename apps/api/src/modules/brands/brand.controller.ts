@@ -1,26 +1,25 @@
 import { Elysia, t } from "elysia";
 import { slugOrIdParam } from "@/lib/common-schemas";
-import { authRoutes, isAdminUser } from "@/modules/auth/middleware";
+import { badRequest, forbidden, notFound } from "@/lib/errors";
+import { validateRateLimitPlugin } from "@/lib/rate-limit";
+import { authRoutes, isAdminUser } from "@/modules/auth";
 import { schemas } from "./brand.model";
 import { brandService } from "./brand.service";
 
 export const brandController = new Elysia({ prefix: "/brands" })
 	.use(authRoutes)
+	.use(validateRateLimitPlugin)
 	.get(
 		"/",
 		async ({ query, set, user }) => {
 			if (query.includeInactive) {
-				if (!isAdminUser(user)) {
-					set.status = 403;
-					return {
-						message: "Forbidden",
-					};
-				}
+				if (!isAdminUser(user)) return forbidden(set, "Forbidden");
 				return brandService.findMany(true);
 			}
 			return brandService.findMany();
 		},
 		{
+			detail: { tags: ["Brands"] },
 			query: t.Object({
 				includeInactive: t.Optional(t.Boolean()),
 			}),
@@ -35,13 +34,11 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		"/:id",
 		async ({ params: { id }, set }) => {
 			const brand = await brandService.findByIdOrSlug(id);
-			if (!brand) {
-				set.status = 404;
-				return { message: "Marca no encontrada" };
-			}
+			if (!brand) return notFound(set, "Marca no encontrada");
 			return brand;
 		},
 		{
+			detail: { tags: ["Brands"] },
 			params: slugOrIdParam,
 			response: {
 				200: schemas.brand.select,
@@ -55,11 +52,11 @@ export const brandController = new Elysia({ prefix: "/brands" })
 			try {
 				return await brandService.create(body);
 			} catch {
-				set.status = 400;
-				return { message: "La marca o el slug ya existen." };
+				return badRequest(set, "La marca o el slug ya existen.");
 			}
 		},
 		{
+			detail: { tags: ["Brands"] },
 			isAdmin: true,
 			body: schemas.brand.insert,
 			response: {
@@ -75,17 +72,14 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedBrand = await brandService.update(id, body);
-				if (!updatedBrand) {
-					set.status = 404;
-					return { message: "Marca no encontrada" };
-				}
+				if (!updatedBrand) return notFound(set, "Marca no encontrada");
 				return updatedBrand;
 			} catch {
-				set.status = 400;
-				return { message: "La marca o el slug ya están en uso." };
+				return badRequest(set, "La marca o el slug ya están en uso.");
 			}
 		},
 		{
+			detail: { tags: ["Brands"] },
 			isAdmin: true,
 			body: schemas.brand.update,
 			params: slugOrIdParam,
@@ -106,14 +100,11 @@ export const brandController = new Elysia({ prefix: "/brands" })
 				slug: body.slug,
 			});
 
-			if (error) {
-				set.status = 400;
-				return { message: error };
-			}
-
+			if (error) return badRequest(set, error);
 			return { valid: true };
 		},
 		{
+			detail: { tags: ["Brands"] },
 			isAdmin: true,
 			body: t.Object({
 				id: t.Optional(t.String()),
@@ -125,6 +116,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
+				429: t.Object({ status: t.Number(), message: t.String() }),
 			},
 		},
 	)
@@ -132,14 +124,11 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		"/:id",
 		async ({ params: { id }, set }) => {
 			const deletedBrand = await brandService.delete(id);
-
-			if (!deletedBrand) {
-				set.status = 404;
-				return { message: "Marca no encontrada" };
-			}
+			if (!deletedBrand) return notFound(set, "Marca no encontrada");
 			return { message: "Marca eliminada exitosamente" };
 		},
 		{
+			detail: { tags: ["Brands"] },
 			isAdmin: true,
 			params: slugOrIdParam,
 			response: {
@@ -159,11 +148,11 @@ export const brandController = new Elysia({ prefix: "/brands" })
 					message: `${deletedBrands.length} marcas eliminadas exitosamente`,
 				};
 			} catch {
-				set.status = 400;
-				return { message: "No se pudieron eliminar las marcas." };
+				return badRequest(set, "No se pudieron eliminar las marcas.");
 			}
 		},
 		{
+			detail: { tags: ["Brands"] },
 			isAdmin: true,
 			body: t.Object({
 				ids: t.Array(t.String()),

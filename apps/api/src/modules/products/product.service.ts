@@ -1,5 +1,6 @@
 import { and, count, db, eq, inArray } from "@renovabit/db";
 import type { NewProduct, NewProductImage } from "@renovabit/db/schema";
+import { ConflictError, ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
 import { productImages, products } from "./product.model";
 
@@ -83,7 +84,7 @@ export const productService = {
 				.returning();
 
 			if (!newProduct) {
-				throw new Error("No se pudo crear el producto.");
+				throw new ValidationError("No se pudo crear el producto.");
 			}
 
 			const validImages = images?.filter(
@@ -105,7 +106,7 @@ export const productService = {
 			});
 
 			if (!product) {
-				throw new Error("No se pudo recuperar el producto creado.");
+				throw new ValidationError("No se pudo recuperar el producto creado.");
 			}
 
 			return product;
@@ -126,7 +127,7 @@ export const productService = {
 				slug: productData.slug,
 				sku: productData.sku,
 			});
-			if (error) throw new Error(error);
+			if (error) throw new ConflictError(error);
 		}
 
 		return db.transaction(async (tx) => {
@@ -168,7 +169,12 @@ export const productService = {
 						const key = storageService.getKeyFromPublicUrl(img.url);
 						if (key) {
 							// Fire and forget storage cleanup to not block transaction
-							storageService.deleteFile(key).catch(console.error);
+							storageService.deleteFile(key).catch((err) => {
+								// Loggear error sin bloquear la transacción
+								if (process.env.NODE_ENV !== "production") {
+									console.error("Error al eliminar archivo de storage:", err);
+								}
+							});
 						}
 					}
 				}

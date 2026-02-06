@@ -1,5 +1,6 @@
 import { db, eq, inArray } from "@renovabit/db";
 import type { NewBrand } from "@renovabit/db/schema";
+import { NotFoundError, ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
 import type { Brand } from "./brand.model";
 import { brands } from "./brand.model";
@@ -24,7 +25,7 @@ export const brandService = {
 
 	async create(data: typeof brands.$inferInsert) {
 		const [row] = await db.insert(brands).values(data).returning();
-		if (!row) throw new Error("No se pudo crear la marca.");
+		if (!row) throw new ValidationError("No se pudo crear la marca.");
 
 		return row;
 	},
@@ -49,7 +50,7 @@ export const brandService = {
 			.where(eq(brands.id, id))
 			.returning();
 
-		if (!row) throw new Error("No se pudo actualizar la marca.");
+		if (!row) throw new NotFoundError("No se pudo actualizar la marca.");
 
 		return row;
 	},

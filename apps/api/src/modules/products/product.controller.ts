@@ -1,11 +1,14 @@
 import { Elysia, t } from "elysia";
 import { slugOrIdParam } from "@/lib/common-schemas";
-import { authRoutes, isAdminUser } from "@/modules/auth/middleware";
+import { badRequest, notFound } from "@/lib/errors";
+import { validateRateLimitPlugin } from "@/lib/rate-limit";
+import { authRoutes, isAdminUser } from "@/modules/auth";
 import { schemas } from "./product.model";
 import { productService } from "./product.service";
 
 export const productController = new Elysia({ prefix: "/products" })
 	.use(authRoutes)
+	.use(validateRateLimitPlugin)
 	.get(
 		"/",
 		async ({ query, user }) => {
@@ -26,6 +29,7 @@ export const productController = new Elysia({ prefix: "/products" })
 			);
 		},
 		{
+			detail: { tags: ["Products"] },
 			query: t.Object({
 				categoryId: t.Optional(t.String()),
 				brandId: t.Optional(t.String()),
@@ -43,13 +47,11 @@ export const productController = new Elysia({ prefix: "/products" })
 				id,
 				isAdminUser(user),
 			);
-			if (!product) {
-				set.status = 404;
-				return { message: "Producto no encontrado" };
-			}
+			if (!product) return notFound(set, "Producto no encontrado");
 			return product;
 		},
 		{
+			detail: { tags: ["Products"] },
 			isAuth: false,
 			params: slugOrIdParam,
 			response: {
@@ -64,15 +66,15 @@ export const productController = new Elysia({ prefix: "/products" })
 			try {
 				return await productService.create(body);
 			} catch (e) {
-				set.status = 400;
 				const message =
 					e instanceof Error
 						? e.message
 						: "No se pudo crear el producto. Verifique si el slug/SKU es único.";
-				return { message };
+				return badRequest(set, message);
 			}
 		},
 		{
+			detail: { tags: ["Products"] },
 			isAdmin: true,
 			body: schemas.product.insert,
 			response: {
@@ -88,21 +90,18 @@ export const productController = new Elysia({ prefix: "/products" })
 		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedProduct = await productService.update(id, body);
-				if (!updatedProduct) {
-					set.status = 404;
-					return { message: "Producto no encontrado" };
-				}
+				if (!updatedProduct) return notFound(set, "Producto no encontrado");
 				return updatedProduct;
 			} catch (e) {
-				set.status = 400;
 				const message =
 					e instanceof Error
 						? e.message
 						: "No se pudo actualizar el producto. Verifique si el slug/SKU es único.";
-				return { message };
+				return badRequest(set, message);
 			}
 		},
 		{
+			detail: { tags: ["Products"] },
 			isAdmin: true,
 			body: t.Composite([
 				schemas.product.update,
@@ -135,14 +134,12 @@ export const productController = new Elysia({ prefix: "/products" })
 				sku: body.sku,
 			});
 
-			if (error) {
-				set.status = 400;
-				return { message: error };
-			}
+			if (error) return badRequest(set, error);
 
 			return { valid: true };
 		},
 		{
+			detail: { tags: ["Products"] },
 			isAdmin: true,
 			body: t.Object({
 				id: t.Optional(t.String()),
@@ -161,13 +158,11 @@ export const productController = new Elysia({ prefix: "/products" })
 		"/:id",
 		async ({ params: { id }, set }) => {
 			const deletedProduct = await productService.delete(id);
-			if (!deletedProduct) {
-				set.status = 404;
-				return { message: "Producto no encontrado" };
-			}
+			if (!deletedProduct) return notFound(set, "Producto no encontrado");
 			return { message: "Producto eliminado correctamente" };
 		},
 		{
+			detail: { tags: ["Products"] },
 			isAdmin: true,
 			params: slugOrIdParam,
 			response: {
@@ -183,10 +178,10 @@ export const productController = new Elysia({ prefix: "/products" })
 		async ({ body, set }) => {
 			const MAX_BULK_DELETE = 100;
 			if (body.ids.length > MAX_BULK_DELETE) {
-				set.status = 400;
-				return {
-					message: `Máximo ${MAX_BULK_DELETE} productos por operación.`,
-				};
+				return badRequest(
+					set,
+					`Máximo ${MAX_BULK_DELETE} productos por operación.`,
+				);
 			}
 			try {
 				const deletedProducts = await productService.bulkDelete(body.ids);
@@ -194,11 +189,11 @@ export const productController = new Elysia({ prefix: "/products" })
 					message: `${deletedProducts.length} productos eliminados correctamente`,
 				};
 			} catch {
-				set.status = 400;
-				return { message: "No se pudieron eliminar los productos." };
+				return badRequest(set, "No se pudieron eliminar los productos.");
 			}
 		},
 		{
+			detail: { tags: ["Products"] },
 			isAdmin: true,
 			body: t.Object({
 				ids: t.Array(t.String(), { maxItems: 100 }),

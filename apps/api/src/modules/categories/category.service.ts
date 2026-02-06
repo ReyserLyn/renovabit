@@ -1,5 +1,6 @@
 import { db, eq, inArray } from "@renovabit/db";
 import type { NewCategory } from "@renovabit/db/schema";
+import { ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
 import { categories } from "./category.model";
 
@@ -50,7 +51,7 @@ export const categoryService = {
 		}
 
 		const [row] = await db.insert(categories).values(data).returning();
-		if (!row) throw new Error("No se pudo crear la categoría.");
+		if (!row) throw new ValidationError("No se pudo crear la categoría.");
 		return row;
 	},
 
@@ -105,7 +106,7 @@ export const categoryService = {
 			.where(eq(categories.id, id))
 			.returning();
 
-		if (!row) throw new Error("No se pudo actualizar la categoría.");
+		if (!row) throw new ValidationError("No se pudo actualizar la categoría.");
 
 		// Execute recursions after successful update
 		await Promise.all(recursions);
@@ -220,7 +221,7 @@ export const categoryService = {
 
 		// 1. Check for basic self-reference
 		if (targetId && newParentId === targetId) {
-			throw new Error("Una categoría no puede ser su propio padre.");
+			throw new ValidationError("Una categoría no puede ser su propio padre.");
 		}
 
 		// 2. Check for Circular Dependency
@@ -232,7 +233,7 @@ export const categoryService = {
 		while (currentParentId && iterations < MAX_ITERATIONS) {
 			iterations++;
 			if (targetId && currentParentId === targetId) {
-				throw new Error(
+				throw new ValidationError(
 					"No se puede mover una categoría dentro de sus propios hijos.",
 				);
 			}

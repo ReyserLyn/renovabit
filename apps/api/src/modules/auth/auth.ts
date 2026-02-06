@@ -30,7 +30,7 @@ export const auth = betterAuth({
 		},
 	},
 	session: {
-		expiresIn: 60 * 60 * 24 * 7,
+		expiresIn: 60 * 60 * 24,
 		cookieCache: {
 			enabled: true,
 			maxAge: 60 * 5,
@@ -72,5 +72,10 @@ export const auth = betterAuth({
 			},
 		},
 	},
-	plugins: [username(), openAPI()],
+	plugins: [
+		username({
+			usernameNormalization: (u) => u.trim().toLowerCase(),
+		}),
+		openAPI(),
+	],
 });

@@ -2,9 +2,14 @@ import { api } from "@/libs/eden-client/eden-client";
 
 export async function uploadFile(file: File, prefix = "uploads") {
 	// 1. Get presigned URL from our API
+	const contentType = file.type as
+		| "image/jpeg"
+		| "image/png"
+		| "image/webp"
+		| "image/gif";
 	const { data, error } = await api.api.v1.storage["upload-url"].post({
 		filename: file.name,
-		contentType: file.type,
+		contentType,
 		prefix,
 	});
 

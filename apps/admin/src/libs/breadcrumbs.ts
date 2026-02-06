@@ -12,6 +12,7 @@ const ROUTE_BREADCRUMBS: Record<string, BreadcrumbItemConfig[]> = {
 	"/productos": [ROOT, { label: "Productos" }],
 	"/categorias": [ROOT, { label: "Categorías" }],
 	"/marcas": [ROOT, { label: "Marcas" }],
+	"/clientes": [ROOT, { label: "Clientes" }],
 };
 
 /**

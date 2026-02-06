@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-	email: z
+	emailOrUsername: z
 		.string()
-		.min(1, { error: "El correo es obligatorio." })
-		.pipe(z.email({ error: "Introduce un correo válido." })),
+		.min(1, { error: "El correo o usuario es obligatorio." })
+		.max(255),
 	password: z
 		.string()
 		.min(8, { error: "La contraseña debe tener al menos 8 caracteres." }),

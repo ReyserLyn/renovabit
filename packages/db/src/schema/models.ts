@@ -89,6 +89,24 @@ export const schemas = {
 	user: {
 		select: t.Object(models.select.user),
 		update: t.Partial(t.Omit(rawInsert.user, ["id", "createdAt", "updatedAt"])),
+		adminCreate: t.Object({
+			name: t.String({ minLength: 1, maxLength: 255 }),
+			email: t.String({ format: "email", maxLength: 255 }),
+			password: t.String({ minLength: 8, maxLength: 100 }),
+			confirmPassword: t.String({ minLength: 8, maxLength: 100 }),
+			phone: t.Optional(t.String({ maxLength: 50 })),
+			username: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+			displayUsername: t.Optional(t.String({ maxLength: 255 })),
+			role: t.Union([
+				t.Literal("admin"),
+				t.Literal("distributor"),
+				t.Literal("customer"),
+			]),
+		}),
+		adminChangePassword: t.Object({
+			password: t.String({ minLength: 8, maxLength: 100 }),
+			confirmPassword: t.String({ minLength: 8, maxLength: 100 }),
+		}),
 	},
 } as const;
 
@@ -100,3 +118,9 @@ export type CategoryUpdateBody = Static<typeof schemas.category.update>;
 
 export type ProductInsertBody = Static<typeof schemas.product.insert>;
 export type ProductUpdateBody = Static<typeof schemas.product.update>;
+
+export type UserUpdateBody = Static<typeof schemas.user.update>;
+export type AdminCreateUserBody = Static<typeof schemas.user.adminCreate>;
+export type AdminChangePasswordBody = Static<
+	typeof schemas.user.adminChangePassword
+>;
