@@ -1,10 +1,8 @@
 import {
 	ArchiveArrowDownIcon,
 	ArchiveArrowUpIcon,
-	Cancel01Icon,
 	Delete04Icon,
 	Edit02Icon,
-	Tick01Icon,
 	ViewIcon,
 	ViewOffIcon,
 } from "@hugeicons/core-free-icons";
@@ -16,6 +14,7 @@ import { cn } from "@renovabit/ui/lib/utils.js";
 import { ColumnDef } from "@tanstack/react-table";
 import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
+import { StatusCell } from "@/components/table/status-cell";
 import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
 
 // Extend Category type to include parent for the table
@@ -141,23 +140,10 @@ export function getColumns(
 			cell: ({ row }) => {
 				const active = row.original.isActive;
 				return (
-					<>
-						{active ? (
-							<div
-								title="Activa"
-								className="flex items-center justify-center size-6 rounded-full bg-emerald-100 text-emerald-600"
-							>
-								<HugeiconsIcon icon={Tick01Icon} className="size-4" />
-							</div>
-						) : (
-							<div
-								title="Inactiva"
-								className="flex items-center justify-center size-6 rounded-full bg-muted text-muted-foreground"
-							>
-								<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
-							</div>
-						)}
-					</>
+					<StatusCell
+						label={active ? "Activa" : "Inactiva"}
+						variant={active ? "success" : "muted"}
+					/>
 				);
 			},
 		},

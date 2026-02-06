@@ -1,12 +1,10 @@
 import {
 	ArchiveArrowDownIcon,
 	ArchiveArrowUpIcon,
-	Cancel01Icon,
 	Copy01Icon,
 	Delete04Icon,
 	Edit02Icon,
 	StarIcon,
-	Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@renovabit/ui/components/ui/button.js";
@@ -15,6 +13,7 @@ import { cn } from "@renovabit/ui/lib/utils.js";
 import { ColumnDef } from "@tanstack/react-table";
 import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
+import { StatusCell } from "@/components/table/status-cell";
 import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
 import { STATUS_LABELS } from "../../models/product-model";
 import { ProductWithRelations } from "../../services/products-service";
@@ -170,27 +169,13 @@ export function getColumns(
 			header: ({ column }) => <ColumnHeader column={column} title="Estado" />,
 			cell: ({ row }) => {
 				const status = row.original.status;
-				const label = STATUS_LABELS[status];
-				return (
-					<div className="flex items-center gap-2">
-						{status === "active" ? (
-							<div
-								title={label}
-								className="flex shrink-0 items-center justify-center size-6 rounded-full bg-emerald-100 text-emerald-600"
-							>
-								<HugeiconsIcon icon={Tick01Icon} className="size-4" />
-							</div>
-						) : (
-							<div
-								title={label}
-								className="flex shrink-0 items-center justify-center size-6 rounded-full bg-muted text-muted-foreground"
-							>
-								<HugeiconsIcon icon={Cancel01Icon} className="size-4" />
-							</div>
-						)}
-						<span className="text-sm truncate">{label}</span>
-					</div>
-				);
+				const variant =
+					status === "active"
+						? "success"
+						: status === "out_of_stock"
+							? "warning"
+							: "muted";
+				return <StatusCell label={STATUS_LABELS[status]} variant={variant} />;
 			},
 		},
 		{

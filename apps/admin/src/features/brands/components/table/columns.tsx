@@ -6,13 +6,13 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { Brand } from "@renovabit/db/schema";
-import { Badge } from "@renovabit/ui/components/ui/badge.js";
 import { Button } from "@renovabit/ui/components/ui/button.js";
 import { Checkbox } from "@renovabit/ui/components/ui/checkbox.tsx";
 import { cn } from "@renovabit/ui/lib/utils.js";
 import { ColumnDef } from "@tanstack/react-table";
 import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
+import { StatusCell } from "@/components/table/status-cell";
 import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
 import { formatDate } from "@/libs/utils";
 
@@ -109,11 +109,11 @@ export function getColumns(handlers: BrandsTableHandlers): ColumnDef<Brand>[] {
 			header: ({ column }) => <ColumnHeader column={column} title="Estado" />,
 			cell: ({ row }) => {
 				const active = row.original.isActive;
-
 				return (
-					<Badge variant={active ? "default" : "secondary"}>
-						{active ? "Activa" : "Inactiva"}
-					</Badge>
+					<StatusCell
+						label={active ? "Activa" : "Inactiva"}
+						variant={active ? "success" : "muted"}
+					/>
 				);
 			},
 		},
