@@ -8,10 +8,10 @@ import {
 import * as React from "react";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo.ts";
 import { sidebarData } from "../../constants/sidebar-data";
-import { NavLogo } from "../ui/sidebar/nav-logo.tsx";
-import { NavMain } from "../ui/sidebar/nav-main.tsx";
-import { NavSecondary } from "../ui/sidebar/nav-secondary.tsx";
-import { NavUser } from "../ui/sidebar/nav-user.tsx";
+import { NavLogo } from "../sidebar/nav-logo.tsx";
+import { NavMain } from "../sidebar/nav-main.tsx";
+import { NavSecondary } from "../sidebar/nav-secondary.tsx";
+import { NavUser } from "../sidebar/nav-user.tsx";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 	user: (typeof authClientRepo.$Infer.Session)["user"];
