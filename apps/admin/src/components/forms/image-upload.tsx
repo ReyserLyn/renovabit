@@ -191,7 +191,7 @@ export function ImageUpload(props: ImageUploadProps) {
 											}}
 											variant="secondary"
 											size="sm"
-											className="bg-white/90 text-zinc-900 hover:bg-white shadow-sm"
+											className="bg-white text-zinc-900 hover:bg-white/80 shadow-sm"
 											type="button"
 										>
 											<HugeiconsIcon icon={Upload01Icon} className="size-3.5" />
@@ -208,8 +208,13 @@ export function ImageUpload(props: ImageUploadProps) {
 											variant="destructive"
 											size="sm"
 											type="button"
+											aria-label="Eliminar imagen"
+											className="bg-destructive text-white hover:bg-destructive/80 border-0 shadow-sm"
 										>
-											<HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
+											<HugeiconsIcon
+												icon={Cancel01Icon}
+												className="size-3.5 shrink-0"
+											/>
 											Eliminar
 										</Button>
 									</div>

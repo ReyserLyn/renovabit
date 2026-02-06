@@ -590,53 +590,37 @@ export function ProductForm({
 								</FieldDescription>
 								<div className="space-y-3 mt-2">
 									{field.state.value.map((img, index) => (
-										<div key={index} className="flex gap-3 items-start">
-											<div className="flex-1">
-												<ImageUpload
-													value={img.file || img.url}
-													onChange={(val: string | File | undefined) => {
-														if (val === undefined) {
-															const newImages = field.state.value.filter(
-																(_, i) => i !== index,
-															);
-															field.handleChange(newImages);
-															return;
-														}
-														const newImages = [...field.state.value];
-														if (val instanceof File) {
-															newImages[index] = {
-																...newImages[index],
-																file: val,
-																url: "",
-																order: newImages[index]?.order ?? index,
-															};
-														} else if (typeof val === "string") {
-															newImages[index] = {
-																...newImages[index],
-																url: val,
-																file: undefined,
-																order: newImages[index]?.order ?? index,
-															};
-														}
+										<div key={index}>
+											<ImageUpload
+												value={img.file || img.url}
+												onChange={(val: string | File | undefined) => {
+													if (val === undefined) {
+														const newImages = field.state.value.filter(
+															(_, i) => i !== index,
+														);
 														field.handleChange(newImages);
-													}}
-													disabled={isPending}
-												/>
-											</div>
-											<Button
-												type="button"
-												variant="outline"
-												size="icon"
-												onClick={() => {
-													const newImages = field.state.value.filter(
-														(_, i) => i !== index,
-													);
+														return;
+													}
+													const newImages = [...field.state.value];
+													if (val instanceof File) {
+														newImages[index] = {
+															...newImages[index],
+															file: val,
+															url: "",
+															order: newImages[index]?.order ?? index,
+														};
+													} else if (typeof val === "string") {
+														newImages[index] = {
+															...newImages[index],
+															url: val,
+															file: undefined,
+															order: newImages[index]?.order ?? index,
+														};
+													}
 													field.handleChange(newImages);
 												}}
 												disabled={isPending}
-											>
-												<HugeiconsIcon icon={Delete02Icon} className="size-4" />
-											</Button>
+											/>
 										</div>
 									))}
 									{field.state.value.length < 5 && (
