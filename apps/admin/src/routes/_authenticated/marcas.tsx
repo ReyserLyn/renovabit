@@ -1,9 +1,12 @@
+import { Add01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { Brand } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button.tsx";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthenticatedHeader } from "@/components/layout/authenticated-header";
+import { PageHeader } from "@/components/layout/page-header";
 import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action";
 import { BrandFormModal } from "@/features/brands/components/forms/BrandFormModal";
 import { DeleteBrandModal } from "@/features/brands/components/modals/DeleteBrandModal";
@@ -85,11 +88,17 @@ function MarcasPage() {
 				]}
 			/>
 
-			<div className="flex flex-1 flex-col gap-4 p-4">
-				<div className="flex items-center justify-between">
-					<h1 className="text-xl font-semibold tracking-tight">Marcas</h1>
-					<Button onClick={handleAdd}>Añadir marca</Button>
-				</div>
+			<div className="flex flex-1 flex-col gap-8 p-8">
+				<PageHeader
+					title="Marcas"
+					description="Gestiona las marcas asociadas a tus productos."
+					actions={
+						<Button onClick={handleAdd}>
+							<HugeiconsIcon icon={Add01Icon} className="mr-2 size-4" />
+							Nueva marca
+						</Button>
+					}
+				/>
 
 				{!hasData ? (
 					<div className="flex items-center justify-center py-12 text-muted-foreground">
