@@ -44,5 +44,6 @@ data-postgres
 .agents
 .cursor
 .trae
- 
+AGENTS.md
+
 logs
