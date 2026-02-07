@@ -9,6 +9,10 @@ const errorCodes = {
 		en: "Invalid email or password",
 		es: "Correo o contraseña incorrectos.",
 	},
+	INVALID_USERNAME_OR_PASSWORD: {
+		en: "Invalid username or password",
+		es: "Usuario o contraseña incorrectos.",
+	},
 	USER_ALREADY_EXISTS: {
 		en: "User already registered",
 		es: "Ya existe un usuario con ese correo.",
