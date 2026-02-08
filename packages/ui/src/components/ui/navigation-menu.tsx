@@ -1,5 +1,5 @@
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
-import { ArrowRight01Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { cn } from "@renovabit/ui/lib/utils";
 import { cva } from "class-variance-authority";
@@ -70,7 +70,7 @@ function NavigationMenuTrigger({
 		>
 			{children}{" "}
 			<HugeiconsIcon
-				icon={ArrowRight01Icon}
+				icon={ArrowDown01Icon}
 				color="currentColor"
 				className="relative top-px ml-1 size-3 transition duration-300 group-data-open/navigation-menu-trigger:rotate-180 group-data-popup-open/navigation-menu-trigger:rotate-180"
 				aria-hidden="true"

@@ -1,10 +1,7 @@
-import { Button } from "@renovabit/ui/components/ui/button.tsx";
-
 export default function Home() {
 	return (
-		<div className="flex flex-col items-center justify-center h-screen">
-			<h1>Renovabit Store</h1>
-			<Button>Button</Button>
-		</div>
+		<main className="container p-4">
+			<h1 className="mb-4 font-semibold text-2xl">Inicio</h1>
+		</main>
 	);
 }
