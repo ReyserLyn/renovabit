@@ -9,7 +9,8 @@
 		"strictNullChecks": true,
 		"baseUrl": "./",
 		"paths": {
-			"@renovabit/": ["../../packages/"]
+			"@renovabit/ui/*": ["../../packages/ui/src/*"],
+			"@renovabit/*": ["../../packages/*/src"]
 		}
 	},
 	"include": [
@@ -19,5 +20,5 @@
 		"next.config.ts",
 		".next/types/**/*.ts"
 	],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", ".next"]
 }

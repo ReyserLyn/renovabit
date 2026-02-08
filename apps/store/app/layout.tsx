@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@renovabit/ui/styles/globals.css";
+import { Toaster } from "@renovabit/ui/components/ui/sonner";
 import { Outfit } from "next/font/google";
 
 const outfit = Outfit({
@@ -18,7 +19,10 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="es">
-			<body className={outfit.className}>{children}</body>
+			<body className={outfit.className}>
+				<Toaster />
+				{children}
+			</body>
 		</html>
 	);
 }
