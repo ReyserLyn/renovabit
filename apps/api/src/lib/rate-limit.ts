@@ -1,5 +1,6 @@
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
+import { rateLimitErrorResponse } from "@/lib/errors";
 
 export function getClientIp(request: Request): string {
 	return (
@@ -16,8 +17,9 @@ export const validateRateLimitPlugin = new Elysia({
 		max: 10,
 		duration: 60000,
 		generator: (req) => getClientIp(req),
-		errorResponse:
+		errorResponse: rateLimitErrorResponse(
 			"Demasiadas solicitudes de validación. Intenta de nuevo más tarde.",
+		),
 		skip: (req) => !new URL(req.url).pathname.endsWith("/validate"),
 	}),
 );

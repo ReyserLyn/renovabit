@@ -1,0 +1,14 @@
+{
+	"extends": "@renovabit/typescript-config/base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"baseUrl": ".",
+		"paths": {
+			"@renovabit/api": ["../../apps/api/src/index.ts"],
+			"@renovabit/api/*": ["../../apps/api/src/*"],
+			"@/*": ["../../apps/api/src/*"]
+		}
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules"]
+}

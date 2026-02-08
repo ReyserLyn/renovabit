@@ -52,6 +52,21 @@ export type ErrorResponseBody = {
 	details?: unknown;
 };
 
+export const RATE_LIMIT_CODE = "ERR_RATE_LIMIT" as const;
+
+export function rateLimitErrorResponse(message: string): Response {
+	return new Response(
+		JSON.stringify({
+			code: RATE_LIMIT_CODE,
+			message,
+		} satisfies ErrorResponseBody),
+		{
+			status: 429,
+			headers: { "Content-Type": "application/json" },
+		},
+	);
+}
+
 type SetStatus = { status?: number | string };
 
 export function notFound(

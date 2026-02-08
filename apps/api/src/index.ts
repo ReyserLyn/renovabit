@@ -7,6 +7,7 @@ import {
 	ApplicationError,
 	type ErrorResponseBody,
 	mapDbErrorToResponse,
+	rateLimitErrorResponse,
 } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { logixPlugin } from "@/lib/logix";
@@ -95,7 +96,9 @@ const app = new Elysia()
 			max: 100,
 			duration: 60000,
 			generator: getClientIp,
-			errorResponse: "Demasiadas solicitudes. Intenta de nuevo más tarde.",
+			errorResponse: rateLimitErrorResponse(
+				"Demasiadas solicitudes. Intenta de nuevo más tarde.",
+			),
 		}),
 	)
 	.use(logixPlugin)

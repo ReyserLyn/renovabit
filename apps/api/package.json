@@ -14,7 +14,7 @@
 		"@renovabit/storage": "*",
 		"better-auth": "^1.4.17",
 		"drizzle-typebox": "^0.3.3",
-		"elysia": "latest",
+		"elysia": "catalog:",
 		"elysia-rate-limit": "^4.5.0",
 		"logixlysia": "^6.1.0",
 		"pg": "^8.17.2",

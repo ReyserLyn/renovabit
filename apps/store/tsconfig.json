@@ -9,9 +9,13 @@
 		"strictNullChecks": true,
 		"baseUrl": "./",
 		"paths": {
+			"@/*": ["./src/*", "../api/src/*"],
+			"@renovabit/api": ["../api/src/index.ts"],
+			"@renovabit/api-client/*": ["../../packages/api-client/src/*"],
 			"@renovabit/ui/*": ["../../packages/ui/src/*"],
 			"@renovabit/*": ["../../packages/*/src"]
-		}
+		},
+		"strict": true
 	},
 	"include": [
 		"**/*.ts",

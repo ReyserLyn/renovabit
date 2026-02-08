@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: Documentation Elysia */
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
+import { rateLimitErrorResponse } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { getClientIp } from "@/lib/rate-limit";
 import { auth } from "./auth";
@@ -37,7 +38,9 @@ const loginRateLimit = rateLimit({
 	max: 5,
 	duration: 60000,
 	generator: getClientIp,
-	errorResponse: "Demasiados intentos de login. Intenta de nuevo más tarde.",
+	errorResponse: rateLimitErrorResponse(
+		"Demasiados intentos de login. Intenta de nuevo más tarde.",
+	),
 	skip: (request) => {
 		const url = new URL(request.url);
 		return !url.pathname.includes("/sign-in/email");
