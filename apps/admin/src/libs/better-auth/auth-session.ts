@@ -15,7 +15,7 @@ export type GetSessionOptions = { signal?: AbortSignal };
 
 export const getSessionFn = createServerFn({
 	method: "GET",
-}).handler(async (options?: GetSessionOptions) => {
+}).handler(async () => {
 	try {
 		const request = getRequest();
 		if (!request) return null;
@@ -24,7 +24,7 @@ export const getSessionFn = createServerFn({
 		const response = await fetch(url, {
 			method: "GET",
 			headers: request.headers,
-			signal: options?.signal,
+			signal: request.signal,
 			credentials: "include",
 		});
 

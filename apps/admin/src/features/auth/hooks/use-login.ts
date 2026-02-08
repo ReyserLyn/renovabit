@@ -2,7 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo";
-import { getAuthErrorMessage } from "@/libs/better-auth/auth-error-messages";
+import {
+	getAuthErrorMessage,
+	getAuthOrNetworkMessage,
+} from "@/libs/better-auth/auth-error-messages";
 import { getSessionFn } from "@/libs/better-auth/auth-session";
 import type { LoginFormValues } from "../domain/auth-model";
 
@@ -13,33 +16,35 @@ export function useLogin() {
 
 	const loginMutation = useMutation({
 		mutationFn: async ({ emailOrUsername, password }: LoginFormValues) => {
-			const isEmail = emailOrUsername.includes("@");
-			if (isEmail) {
-				const { data, error } = await authClientRepo.signIn.email({
-					email: emailOrUsername.trim(),
-					password,
-				});
+			try {
+				const isEmail = emailOrUsername.includes("@");
+				const { data, error } = isEmail
+					? await authClientRepo.signIn.email({
+							email: emailOrUsername.trim(),
+							password,
+						})
+					: await authClientRepo.signIn.username({
+							username: emailOrUsername.trim().toLowerCase(),
+							password,
+						});
+
 				if (error) {
 					const msg =
 						getAuthErrorMessage(error.code) ||
-						error.message ||
-						"No se pudo iniciar sesión. Comprueba tu conexión e intenta de nuevo.";
+						getAuthOrNetworkMessage(error) ||
+						"No se pudo iniciar sesión. Inténtalo de nuevo.";
 					throw new Error(msg);
 				}
 				return data;
-			}
-			const { data, error } = await authClientRepo.signIn.username({
-				username: emailOrUsername.trim().toLowerCase(),
-				password,
-			});
-			if (error) {
+			} catch (err) {
 				const msg =
-					getAuthErrorMessage(error.code) ||
-					error.message ||
-					"No se pudo iniciar sesión. Comprueba usuario y contraseña.";
+					getAuthErrorMessage(
+						err && typeof err === "object" && "code" in err
+							? String((err as { code: unknown }).code)
+							: undefined,
+					) || getAuthOrNetworkMessage(err);
 				throw new Error(msg);
 			}
-			return data;
 		},
 		onSuccess: async () => {
 			const session = await getSessionFn();

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite dev --port 3002",
     "build": "vite build && tsc --noEmit",
-    "preview": "vite preview --port 3002",
+    "preview": "vite build && vite preview --port 3002",
     "lint": "biome check --write",
     "deploy": "bun run build && wrangler deploy",
     "cf-typegen": "wrangler types"
