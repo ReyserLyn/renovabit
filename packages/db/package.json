@@ -12,7 +12,6 @@
 	"scripts": {
 		"lint": "biome check --write",
 		"db:generate": "drizzle-kit generate",
-
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
@@ -22,10 +21,12 @@
 		"@sinclair/typebox": "^0.34.48",
 		"drizzle-orm": "0.45.1",
 		"drizzle-typebox": "^0.3.3",
+		"drizzle-zod": "^0.8.3",
 		"elysia": "^1.4.22",
 		"pg": "^8.16.3",
 		"postgres": "^3.4.5",
-		"slugify": "^1.6.6"
+		"slugify": "^1.6.6",
+		"zod": "^4.3.6"
 	},
 	"devDependencies": {
 		"@renovabit/biome-config": "^",

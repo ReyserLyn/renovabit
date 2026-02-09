@@ -1,9 +1,15 @@
 import { Elysia, t } from "elysia";
-import { slugOrIdParam } from "@/lib/common-schemas";
+import z from "zod";
+import { idParam } from "@/lib/common-schemas";
 import { badRequest, notFound } from "@/lib/errors";
 import { validateRateLimitPlugin } from "@/lib/rate-limit";
 import { authRoutes, isAdminUser } from "@/modules/auth";
-import { schemas } from "./product.model";
+import {
+	ProductImageInsertBodySchema,
+	ProductInsertBodySchema,
+	ProductSchema,
+	ProductUpdateBodySchema,
+} from "./product.model";
 import { productService } from "./product.service";
 
 export const productController = new Elysia({ prefix: "/products" })
@@ -12,10 +18,10 @@ export const productController = new Elysia({ prefix: "/products" })
 	.get(
 		"/",
 		async ({ query, user }) => {
-			const includeInactive =
-				Boolean(query.includeInactive) && isAdminUser(user);
-			const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
-			const offset = Math.max(0, Number(query.offset) || 0);
+			const includeInactive = !!query.includeInactive && isAdminUser(user);
+			const limit = query.limit ?? 20;
+			const offset = query.offset ?? 0;
+
 			return productService.findMany(
 				{
 					categoryId: query.categoryId,
@@ -30,13 +36,13 @@ export const productController = new Elysia({ prefix: "/products" })
 		},
 		{
 			detail: { tags: ["Products"] },
-			query: t.Object({
-				categoryId: t.Optional(t.String()),
-				brandId: t.Optional(t.String()),
-				featured: t.Optional(t.Boolean()),
-				includeInactive: t.Optional(t.Boolean()),
-				limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
-				offset: t.Optional(t.Numeric({ minimum: 0 })),
+			query: z.object({
+				categoryId: z.uuidv7().optional(),
+				brandId: z.uuidv7().optional(),
+				featured: z.boolean().optional(),
+				includeInactive: z.boolean().optional(),
+				limit: z.number().min(1).max(100).optional(),
+				offset: z.number().min(0).optional(),
 			}),
 		},
 	)
@@ -47,38 +53,31 @@ export const productController = new Elysia({ prefix: "/products" })
 				id,
 				isAdminUser(user),
 			);
+
 			if (!product) return notFound(set, "Producto no encontrado");
 			return product;
 		},
 		{
 			detail: { tags: ["Products"] },
 			isAuth: false,
-			params: slugOrIdParam,
+			params: idParam,
 			response: {
-				200: schemas.product.select,
+				200: ProductSchema,
 				404: t.Object({ message: t.String() }),
 			},
 		},
 	)
 	.post(
 		"/",
-		async ({ body, set }) => {
-			try {
-				return await productService.create(body);
-			} catch (e) {
-				const message =
-					e instanceof Error
-						? e.message
-						: "No se pudo crear el producto. Verifique si el slug/SKU es único.";
-				return badRequest(set, message);
-			}
+		async ({ body }) => {
+			return await productService.create(body);
 		},
 		{
 			detail: { tags: ["Products"] },
 			isAdmin: true,
-			body: schemas.product.insert,
+			body: ProductInsertBodySchema,
 			response: {
-				200: schemas.product.select,
+				200: ProductSchema,
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
@@ -88,37 +87,28 @@ export const productController = new Elysia({ prefix: "/products" })
 	.put(
 		"/:id",
 		async ({ params: { id }, body, set }) => {
-			try {
-				const updatedProduct = await productService.update(id, body);
-				if (!updatedProduct) return notFound(set, "Producto no encontrado");
-				return updatedProduct;
-			} catch (e) {
-				const message =
-					e instanceof Error
-						? e.message
-						: "No se pudo actualizar el producto. Verifique si el slug/SKU es único.";
-				return badRequest(set, message);
-			}
+			const updatedProduct = await productService.update(id, body);
+
+			if (!updatedProduct) return notFound(set, "Producto no encontrado");
+			return updatedProduct;
 		},
 		{
 			detail: { tags: ["Products"] },
 			isAdmin: true,
-			body: t.Composite([
-				schemas.product.update,
-				t.Object({
-					images: t.Optional(
-						t.Array(
-							t.Composite([
-								t.Partial(schemas.productImage.insert),
-								t.Object({ id: t.Optional(t.String()) }),
-							]),
-						),
-					),
+			body: ProductUpdateBodySchema.and(
+				z.object({
+					images: z
+						.array(
+							ProductImageInsertBodySchema.partial().extend({
+								id: z.string().optional(),
+							}),
+						)
+						.optional(),
 				}),
-			]),
-			params: slugOrIdParam,
+			),
+			params: idParam,
 			response: {
-				200: schemas.product.select,
+				200: ProductSchema,
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
@@ -158,13 +148,14 @@ export const productController = new Elysia({ prefix: "/products" })
 		"/:id",
 		async ({ params: { id }, set }) => {
 			const deletedProduct = await productService.delete(id);
+
 			if (!deletedProduct) return notFound(set, "Producto no encontrado");
 			return { message: "Producto eliminado correctamente" };
 		},
 		{
 			detail: { tags: ["Products"] },
 			isAdmin: true,
-			params: slugOrIdParam,
+			params: idParam,
 			response: {
 				200: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
@@ -176,15 +167,9 @@ export const productController = new Elysia({ prefix: "/products" })
 	.delete(
 		"/bulk",
 		async ({ body, set }) => {
-			const MAX_BULK_DELETE = 100;
-			if (body.ids.length > MAX_BULK_DELETE) {
-				return badRequest(
-					set,
-					`Máximo ${MAX_BULK_DELETE} productos por operación.`,
-				);
-			}
 			try {
 				const deletedProducts = await productService.bulkDelete(body.ids);
+
 				return {
 					message: `${deletedProducts.length} productos eliminados correctamente`,
 				};
@@ -195,8 +180,11 @@ export const productController = new Elysia({ prefix: "/products" })
 		{
 			detail: { tags: ["Products"] },
 			isAdmin: true,
-			body: t.Object({
-				ids: t.Array(t.String(), { maxItems: 100 }),
+			body: z.object({
+				ids: z
+					.array(z.uuidv7())
+					.max(100, { error: "Máximo 100 productos por operación." })
+					.min(1, { error: "Mínimo 1 producto por operación." }),
 			}),
 			response: {
 				200: t.Object({ message: t.String() }),

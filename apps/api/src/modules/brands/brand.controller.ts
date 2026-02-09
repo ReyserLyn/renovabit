@@ -1,9 +1,14 @@
 import { Elysia, t } from "elysia";
-import { slugOrIdParam } from "@/lib/common-schemas";
+import z from "zod";
+import { idParam } from "@/lib/common-schemas";
 import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { validateRateLimitPlugin } from "@/lib/rate-limit";
 import { authRoutes, isAdminUser } from "@/modules/auth";
-import { schemas } from "./brand.model";
+import {
+	BrandInsertBodySchema,
+	BrandSchema,
+	BrandUpdateBodySchema,
+} from "./brand.model";
 import { brandService } from "./brand.service";
 
 export const brandController = new Elysia({ prefix: "/brands" })
@@ -16,6 +21,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 				if (!isAdminUser(user)) return forbidden(set, "Forbidden");
 				return brandService.findMany(true);
 			}
+
 			return brandService.findMany();
 		},
 		{
@@ -24,7 +30,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 				includeInactive: t.Optional(t.Boolean()),
 			}),
 			response: {
-				200: t.Array(schemas.brand.select),
+				200: z.array(BrandSchema),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
@@ -34,14 +40,15 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		"/:id",
 		async ({ params: { id }, set }) => {
 			const brand = await brandService.findByIdOrSlug(id);
+
 			if (!brand) return notFound(set, "Marca no encontrada");
 			return brand;
 		},
 		{
 			detail: { tags: ["Brands"] },
-			params: slugOrIdParam,
+			params: idParam,
 			response: {
-				200: schemas.brand.select,
+				200: BrandSchema,
 				404: t.Object({ message: t.String() }),
 			},
 		},
@@ -58,9 +65,9 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		{
 			detail: { tags: ["Brands"] },
 			isAdmin: true,
-			body: schemas.brand.insert,
+			body: BrandInsertBodySchema,
 			response: {
-				200: schemas.brand.select,
+				200: BrandSchema,
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
@@ -72,6 +79,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedBrand = await brandService.update(id, body);
+
 				if (!updatedBrand) return notFound(set, "Marca no encontrada");
 				return updatedBrand;
 			} catch {
@@ -81,10 +89,10 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		{
 			detail: { tags: ["Brands"] },
 			isAdmin: true,
-			body: schemas.brand.update,
-			params: slugOrIdParam,
+			body: BrandUpdateBodySchema,
+			params: idParam,
 			response: {
-				200: schemas.brand.select,
+				200: BrandSchema,
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
@@ -106,10 +114,10 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		{
 			detail: { tags: ["Brands"] },
 			isAdmin: true,
-			body: t.Object({
-				id: t.Optional(t.String()),
-				name: t.Optional(t.String()),
-				slug: t.Optional(t.String()),
+			body: z.object({
+				id: z.uuidv7().optional(),
+				name: z.string().optional(),
+				slug: z.string().optional(),
 			}),
 			response: {
 				200: t.Object({ valid: t.Boolean() }),
@@ -130,7 +138,7 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		{
 			detail: { tags: ["Brands"] },
 			isAdmin: true,
-			params: slugOrIdParam,
+			params: idParam,
 			response: {
 				200: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
@@ -154,8 +162,8 @@ export const brandController = new Elysia({ prefix: "/brands" })
 		{
 			detail: { tags: ["Brands"] },
 			isAdmin: true,
-			body: t.Object({
-				ids: t.Array(t.String()),
+			body: z.object({
+				ids: z.array(z.uuidv7({ error: "ID inválido" })),
 			}),
 			response: {
 				200: t.Object({ message: t.String() }),

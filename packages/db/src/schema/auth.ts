@@ -32,6 +32,11 @@ export const users = pgTable(
 		phone: text("phone"),
 		role: userRoles("role").default("customer").notNull(),
 
+		// Admin plugin fields
+		banned: boolean("banned").default(false),
+		banReason: text("ban_reason"),
+		banExpires: timestamp("ban_expires"),
+
 		...lifecycleDates,
 	},
 	(table) => [index("users_role_idx").on(table.role)],
@@ -109,10 +114,3 @@ export const accountRelations = relations(accounts, ({ one }) => ({
 		references: [users.id],
 	}),
 }));
-
-// Types
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
-export type Session = typeof sessions.$inferSelect;
-export type Account = typeof accounts.$inferSelect;
-export type Verification = typeof verifications.$inferSelect;

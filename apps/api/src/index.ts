@@ -1,6 +1,6 @@
 /// <reference types="bun-types" />
 import { cors } from "@elysiajs/cors";
-import { openapi } from "@elysiajs/openapi";
+import { fromTypes, openapi } from "@elysiajs/openapi";
 import { Elysia } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 import {
@@ -11,7 +11,11 @@ import {
 } from "@/lib/errors";
 import { logger } from "@/lib/logger";
 import { logixPlugin } from "@/lib/logix";
-import { openapiErrorResponseSchema } from "@/lib/openapi-schemas";
+import {
+	mergeOpenApiComponents,
+	openApiZodMapJsonSchema,
+	openapiErrorResponseSchema,
+} from "@/lib/openapi-schemas";
 import { getClientIp } from "@/lib/rate-limit";
 import { securityHeaders } from "@/lib/security-headers";
 import { authRoutes, OpenAPI } from "@/modules/auth";
@@ -25,23 +29,6 @@ import { userController } from "@/modules/users/user.controller";
 
 const PORT = process.env.PORT ? Number.parseInt(process.env.PORT) : 3001;
 const isProd = process.env.NODE_ENV === "production";
-
-function validateEnv(): void {
-	const missing: string[] = [];
-	if (!process.env.BETTER_AUTH_SECRET?.trim())
-		missing.push("BETTER_AUTH_SECRET");
-	if (!process.env.BETTER_AUTH_URL?.trim()) missing.push("BETTER_AUTH_URL");
-	if (isProd && !process.env.OPENAPI_SECRET?.trim())
-		missing.push("OPENAPI_SECRET");
-	if (missing.length > 0) {
-		console.error(
-			"[API] Faltan variables de entorno requeridas:",
-			missing.join(", "),
-		);
-		process.exit(1);
-	}
-}
-validateEnv();
 
 const v1Routes = new Elysia({ prefix: "/v1" })
 	.use(authRoutes)
@@ -58,22 +45,9 @@ const allowedOrigins = [
 	process.env.STORE_URL,
 	"http://localhost:3000",
 	"http://localhost:3001",
-	"http://localhost:4002",
 	"http://localhost:3002",
+	"http://localhost:4002",
 ].filter(Boolean) as string[];
-
-function mergeOpenApiComponents(
-	authComponents: Record<string, unknown>,
-): Record<string, unknown> {
-	const existing =
-		authComponents?.schemas && typeof authComponents.schemas === "object"
-			? (authComponents.schemas as Record<string, unknown>)
-			: {};
-	return {
-		...authComponents,
-		schemas: { ...existing, ErrorResponse: openapiErrorResponseSchema },
-	};
-}
 
 const app = new Elysia()
 	.use(securityHeaders)
@@ -104,6 +78,11 @@ const app = new Elysia()
 	.use(logixPlugin)
 	.use(
 		openapi({
+			references: fromTypes(
+				process.env.NODE_ENV === "production"
+					? "dist/index.d.ts"
+					: "src/index.ts",
+			),
 			documentation: {
 				info: {
 					title: "Renovabit API",
@@ -113,18 +92,9 @@ const app = new Elysia()
 				components: await mergeOpenApiComponents(await OpenAPI.components),
 				paths: await OpenAPI.getPaths(),
 			},
+			mapJsonSchema: openApiZodMapJsonSchema,
 		}),
 	)
-	.onBeforeHandle(async ({ path, headers, set }) => {
-		if (path === "/openapi" && isProd) {
-			const authHeader = headers.authorization;
-			const expectedAuth = `Bearer ${process.env.OPENAPI_SECRET || ""}`;
-			if (!authHeader || authHeader !== expectedAuth) {
-				set.status = 401;
-				return { message: "Unauthorized" };
-			}
-		}
-	})
 	// Error Handling
 	.onError(({ code, error, set }) => {
 		if (code === "NOT_FOUND") {
@@ -184,16 +154,6 @@ const app = new Elysia()
 		);
 	})
 	.listen(PORT);
-
-// Manejo de errores no capturados
-process.on("unhandledRejection", (reason, promise) => {
-	logger.error({ err: reason, promise }, "Unhandled Rejection");
-});
-
-process.on("uncaughtException", (error) => {
-	logger.error({ err: error }, "Uncaught Exception");
-	process.exit(1);
-});
 
 export type App = typeof app;
 export type Session = typeof auth.$Infer.Session;

@@ -1,11 +1,12 @@
 import { and, count, db, eq, inArray } from "@renovabit/db";
-import type { NewProduct, NewProductImage } from "@renovabit/db/schema";
+import { productImages, products } from "@renovabit/db/schema";
 import { ConflictError, ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
-import { productImages, products } from "./product.model";
-
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
+import type {
+	ProductImageInsertBody,
+	ProductInsertBody,
+	ProductUpdateBody,
+} from "./product.model";
 
 export type ListQuery = {
 	categoryId?: string;
@@ -13,25 +14,23 @@ export type ListQuery = {
 	featured?: boolean;
 	includeInactive?: boolean;
 	limit?: number;
+
 	offset?: number;
 };
 
 function buildListWhere(query: ListQuery, includeInactive: boolean) {
 	const filters: ReturnType<typeof eq>[] = [];
+
 	if (query.categoryId) filters.push(eq(products.categoryId, query.categoryId));
 	if (query.brandId) filters.push(eq(products.brandId, query.brandId));
 	if (query.featured) filters.push(eq(products.isFeatured, true));
 	if (!includeInactive) filters.push(eq(products.status, "active"));
+
 	return filters.length > 0 ? and(...filters) : undefined;
 }
 
 export const productService = {
 	async findMany(query: ListQuery = {}, includeInactive = false) {
-		const limit = Math.min(
-			Math.max(1, query.limit ?? DEFAULT_PAGE_SIZE),
-			MAX_PAGE_SIZE,
-		);
-		const offset = Math.max(0, query.offset ?? 0);
 		const whereCondition = buildListWhere(query, includeInactive);
 
 		const [data, totalResult] = await Promise.all([
@@ -43,8 +42,8 @@ export const productService = {
 					category: true,
 				},
 				orderBy: (table, { desc }) => [desc(table.createdAt)] as const,
-				limit,
-				offset,
+				limit: query.limit,
+				offset: query.offset,
 			}),
 			whereCondition
 				? db.select({ count: count() }).from(products).where(whereCondition)
@@ -71,11 +70,7 @@ export const productService = {
 		});
 	},
 
-	async create(
-		data: NewProduct & {
-			images?: Array<Partial<NewProductImage>>;
-		},
-	) {
+	async create(data: ProductInsertBody) {
 		const { images, ...productData } = data;
 		return db.transaction(async (tx) => {
 			const [newProduct] = await tx
@@ -87,16 +82,18 @@ export const productService = {
 				throw new ValidationError("No se pudo crear el producto.");
 			}
 
-			const validImages = images?.filter(
-				(img): img is typeof img & { url: string } => Boolean(img.url),
-			);
+			const validImages = images?.filter((img) =>
+				Boolean((img as ProductImageInsertBody).url),
+			) as Array<ProductImageInsertBody & { url: string }> | undefined;
 			if (validImages?.length) {
 				await tx.insert(productImages).values(
-					validImages.map((img, index) => ({
-						...img,
-						productId: newProduct.id,
-						order: img.order ?? index,
-					})) as NewProductImage[],
+					validImages.map(
+						(img, index): ProductImageInsertBody => ({
+							...img,
+							productId: newProduct.id,
+							order: img.order ?? index,
+						}),
+					),
 				);
 			}
 
@@ -115,8 +112,8 @@ export const productService = {
 
 	async update(
 		id: string,
-		data: Partial<NewProduct> & {
-			images?: Array<Partial<NewProductImage> & { id?: string }>;
+		data: ProductUpdateBody & {
+			images?: Array<Partial<ProductImageInsertBody> & { id?: string }>;
 		},
 	) {
 		const { images, ...productData } = data;
@@ -190,8 +187,6 @@ export const productService = {
 							.set({
 								order,
 								alt: img.alt,
-								// Typically URL doesn't change for an existing image ID, but if it did, we'd handle it.
-								// For now assumes ID match means same image.
 							})
 							.where(eq(productImages.id, img.id));
 					} else if (img.url) {

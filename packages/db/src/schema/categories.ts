@@ -52,6 +52,3 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
 		relationName: "category_hierarchy",
 	}),
 }));
-
-export type Category = typeof categories.$inferSelect;
-export type NewCategory = typeof categories.$inferInsert;

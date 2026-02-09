@@ -1,358 +1,231 @@
-import { accounts, count, db, eq, inArray, sql, users } from "@renovabit/db";
-import type { NewUser } from "@renovabit/db/schema";
-import {
-	ConflictError,
-	ForbiddenError,
-	NotFoundError,
-	ValidationError,
-} from "@/lib/errors";
-import { validatePasswordStrength } from "@/lib/password-validation";
+import { db, eq, sessions, users } from "@renovabit/db";
+import { InternalServerError } from "elysia";
+import { NotFoundError } from "@/lib/errors";
 import { auth } from "@/modules/auth/auth";
-import type {
+import {
 	AdminChangePasswordBody,
 	AdminCreateUserBody,
+	UserUpdateBody,
 } from "./user.model";
 
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 100;
-
-/** Username: una sola palabra, minúsculas, para unicidad y login. */
-function normalizeUsername(u: string | undefined | null): string | undefined {
-	const firstWord = u?.trim().split(/\s+/)[0];
-	return firstWord && firstWord.length > 0
-		? firstWord.toLowerCase()
-		: undefined;
-}
-
 export const userService = {
-	async findMany(options?: { limit?: number; offset?: number }) {
-		const limit = Math.min(
-			Math.max(1, options?.limit ?? DEFAULT_PAGE_SIZE),
-			MAX_PAGE_SIZE,
-		);
-		const offset = Math.max(0, options?.offset ?? 0);
-
-		const [data, totalResult] = await Promise.all([
-			db.query.users.findMany({
-				orderBy: (table, { desc }) => [desc(table.createdAt)],
-				limit,
-				offset,
-			}),
-			db.select({ count: count() }).from(users),
-		]);
-
-		const total = Number(totalResult[0]?.count ?? 0);
-		return { data, total };
+	async getUsers() {
+		return db.query.users.findMany();
 	},
 
-	async findById(id: string) {
+	async getUserById(id: string) {
 		return db.query.users.findFirst({
 			where: eq(users.id, id),
 		});
 	},
 
-	async checkUniqueness(
-		id: string | undefined,
-		data: { email?: string; username?: string },
-	) {
-		const email = data.email?.trim() || undefined;
-		const username = normalizeUsername(data.username);
+	async update(id: string, data: UserUpdateBody, headers: Headers) {
+		const existingUser = await this.getUserById(id);
 
-		// Timing attack prevention: siempre ejecutar la consulta, incluso si no hay datos
-		const startTime = Date.now();
-
-		const existing = await db.query.users.findFirst({
-			where: (table, { or, and, eq, ne }) => {
-				const matches = [];
-				if (email) matches.push(eq(table.email, email));
-				if (username) matches.push(sql`LOWER(${table.username}) = ${username}`);
-
-				const conflict = or(...matches);
-				return id ? and(conflict, ne(table.id, id)) : conflict;
-			},
-		});
-
-		const elapsed = Date.now() - startTime;
-		if (elapsed < 50) {
-			await new Promise((resolve) => setTimeout(resolve, 50 - elapsed));
+		if (!existingUser) {
+			throw new NotFoundError("Usuario no encontrado");
 		}
 
-		if (existing) {
-			if (email && existing.email === email) {
-				return "Ya existe un usuario con este correo electrónico.";
-			}
-			if (username && existing.username?.toLowerCase() === username) {
-				return "El nombre de usuario ya está en uso. Prueba con otro distinto.";
-			}
-		}
-
-		return null;
-	},
-
-	async update(id: string, data: Partial<NewUser>) {
-		if (data.displayUsername?.trim() && /\s/.test(data.displayUsername)) {
-			throw new ValidationError(
-				"El usuario debe ser una sola palabra (sin espacios).",
-			);
-		}
-		const payload = { ...data };
-		if (payload.username !== undefined) {
-			payload.username = normalizeUsername(payload.username) ?? undefined;
-		}
-		const [row] = await db
-			.update(users)
-			.set(payload)
-			.where(eq(users.id, id))
-			.returning();
-		return row;
-	},
-
-	async delete(id: string, currentUserId?: string) {
-		const userToDelete = await this.findById(id);
-		if (!userToDelete) {
-			return null;
-		}
-
-		// Prevenir que un admin se elimine a sí mismo
-		if (currentUserId && userToDelete.id === currentUserId) {
-			throw new ForbiddenError("No puedes eliminarte a ti mismo");
-		}
-
-		// Prevenir eliminar el último admin
-		if (userToDelete.role === "admin") {
-			const adminCount = await db.query.users.findMany({
-				where: (table, { eq }) => eq(table.role, "admin"),
+		try {
+			await auth.api.adminUpdateUser({
+				body: {
+					userId: id,
+					data,
+				},
+				headers,
 			});
-
-			if (adminCount.length <= 1) {
-				throw new ForbiddenError(
-					"No se puede eliminar el último administrador. Debe haber al menos un administrador en el sistema.",
-				);
+			// Devolver el usuario actualizado desde la base de datos
+			const updatedUser = await this.getUserById(id);
+			if (!updatedUser) {
+				throw new NotFoundError("Usuario no encontrado después de actualizar");
 			}
+			return updatedUser;
+		} catch {
+			throw new InternalServerError("Error al actualizar el usuario");
 		}
-
-		const [row] = await db.delete(users).where(eq(users.id, id)).returning();
-		return row;
 	},
 
-	async bulkDelete(ids: string[], currentUserId: string) {
+	async delete(id: string, headers: Headers) {
+		const userToDelete = await this.getUserById(id);
+
+		if (!userToDelete) {
+			throw new NotFoundError("Usuario no encontrado");
+		}
+
+		try {
+			const result = await auth.api.removeUser({
+				body: {
+					userId: id,
+				},
+				headers,
+			});
+			return result;
+		} catch {
+			throw new InternalServerError("Error al eliminar el usuario");
+		}
+	},
+
+	async bulkDelete(ids: string[], headers: Headers) {
 		if (ids.length === 0) return { deleted: [], errors: [] };
 
-		const usersToDelete = await db.query.users.findMany({
-			where: (table, { inArray }) => inArray(table.id, ids),
-		});
-
+		const deleted: Array<{ id: string }> = [];
 		const errors: Array<{ id: string; message: string }> = [];
 
-		if (usersToDelete.length === 0) {
-			ids.forEach((id) => {
-				errors.push({
-					id,
-					message: "Usuario no encontrado",
+		for (const userId of ids) {
+			try {
+				await auth.api.removeUser({
+					body: {
+						userId: userId,
+					},
+					headers,
 				});
-			});
-			return { deleted: [], errors };
-		}
-
-		const notFoundIds = ids.filter(
-			(id) => !usersToDelete.some((u) => u.id === id),
-		);
-		notFoundIds.forEach((id) => {
-			errors.push({
-				id,
-				message: "Usuario no encontrado",
-			});
-		});
-
-		const adminCount = await db.query.users.findMany({
-			where: (table, { eq }) => eq(table.role, "admin"),
-		});
-
-		const validIds: string[] = [];
-
-		for (const user of usersToDelete) {
-			if (user.id === currentUserId) {
+				deleted.push({ id: userId });
+			} catch (error) {
+				const message =
+					error instanceof Error
+						? error.message
+						: "Error al eliminar el usuario";
 				errors.push({
-					id: user.id,
-					message: "No puedes eliminarte a ti mismo",
+					id: userId,
+					message,
 				});
-				continue;
 			}
-
-			if (user.role === "admin") {
-				const remainingAdmins = adminCount.filter((a) => a.id !== user.id);
-				if (remainingAdmins.length < 1) {
-					errors.push({
-						id: user.id,
-						message:
-							"No se puede eliminar el último administrador. Debe haber al menos un administrador en el sistema.",
-					});
-					continue;
-				}
-			}
-
-			validIds.push(user.id);
 		}
-
-		if (validIds.length === 0) {
-			return { deleted: [], errors };
-		}
-
-		const deleted = await db
-			.delete(users)
-			.where(inArray(users.id, validIds))
-			.returning();
 
 		return { deleted, errors };
 	},
 
-	/** Crea usuario desde admin (Better Auth, sin autoSignIn). */
-	async adminCreateUser(data: AdminCreateUserBody) {
-		if (data.displayUsername?.trim() && /\s/.test(data.displayUsername)) {
-			throw new ValidationError(
-				"El usuario debe ser una sola palabra (sin espacios).",
-			);
-		}
-		// Validar que las contraseñas coincidan
-		if (data.password !== data.confirmPassword) {
-			throw new ValidationError("Las contraseñas no coinciden");
-		}
-
-		// Validar fortaleza de contraseña en backend según el rol
-		const passwordValidation = validatePasswordStrength(
-			data.password,
-			data.role,
-		);
-		if (!passwordValidation.valid) {
-			throw new ValidationError(
-				passwordValidation.error || "Contraseña inválida",
-			);
-		}
-
-		// Verificar si el email ya existe
-		const existingUser = await db.query.users.findFirst({
-			where: eq(users.email, data.email),
-		});
-
-		if (existingUser) {
-			throw new ConflictError(
-				"Ya existe un usuario con este correo electrónico",
-			);
-		}
-
-		const normalizedUsername = normalizeUsername(data.username);
-
-		// Verificar si el username ya existe (comparación case-insensitive)
-		if (normalizedUsername) {
-			const existingByUsername = await db.query.users.findFirst({
-				where: sql`LOWER(${users.username}) = ${normalizedUsername}`,
-			});
-
-			if (existingByUsername) {
-				throw new ConflictError(
-					"El nombre de usuario ya está en uso. Prueba con otro distinto.",
-				);
-			}
-		}
-
-		// Crear usuario usando Better Auth API (username se normaliza también en el plugin)
+	async createUser(data: AdminCreateUserBody, headers: Headers) {
 		try {
-			const result = await auth.api.signUpEmail({
+			const result = await auth.api.createUser({
 				body: {
-					name: data.name,
 					email: data.email,
 					password: data.password,
-					username: normalizedUsername ?? data.username?.trim() ?? undefined,
-					displayUsername: data.displayUsername?.trim() || undefined,
-					phone: data.phone,
-					role: data.role,
+					name: data.name,
+					data: {
+						username: data.username,
+						displayUsername: data.displayUsername,
+						phone: data.phone,
+						role: data.role,
+					},
 				},
-				headers: new Headers(),
+				headers,
 			});
 
-			// Retornar el usuario creado (sin contraseña).
 			if (!result.user) {
-				throw new ValidationError("No se pudo crear el usuario");
+				throw new InternalServerError("No se pudo crear el usuario");
 			}
-
 			return result.user;
-		} catch (error) {
-			if (error instanceof ConflictError || error instanceof ValidationError) {
-				throw error;
-			}
-			const msg =
-				error instanceof Error ? error.message.toLowerCase() : String(error);
-
-			// Mapear mensajes comunes de Better Auth a español
-			if (msg.includes("username is already taken")) {
-				throw new ConflictError(
-					"El nombre de usuario ya está en uso. Prueba con otro distinto.",
-				);
-			}
-
-			if (
-				msg.includes("email is already in use") ||
-				msg.includes("email already")
-			) {
-				throw new ConflictError(
-					"Ya existe un usuario con este correo electrónico.",
-				);
-			}
-
-			throw new ValidationError(
-				"No se pudo crear el usuario. Revisa los datos o prueba con otros diferentes.",
-			);
+		} catch {
+			throw new InternalServerError("Error al crear el usuario");
 		}
 	},
 
-	/** Cambio de contraseña desde admin (Better Auth). */
-	async adminChangePassword(userId: string, data: AdminChangePasswordBody) {
-		// Validar que las contraseñas coincidan
-		if (data.password !== data.confirmPassword) {
-			throw new ValidationError("Las contraseñas no coinciden");
-		}
+	async adminChangePassword(
+		userId: string,
+		data: AdminChangePasswordBody,
+		headers: Headers,
+	) {
+		const user = await this.getUserById(userId);
 
-		// Verificar que el usuario existe
-		const user = await this.findById(userId);
 		if (!user) {
 			throw new NotFoundError("Usuario no encontrado");
 		}
 
-		// Validar fortaleza de contraseña en backend según el rol del usuario
-		const passwordValidation = validatePasswordStrength(
-			data.password,
-			user.role,
-		);
-		if (!passwordValidation.valid) {
-			throw new ValidationError(
-				passwordValidation.error || "Contraseña inválida",
-			);
+		try {
+			await auth.api.setUserPassword({
+				body: {
+					userId: userId,
+					newPassword: data.password,
+				},
+				headers,
+			});
+			return user;
+		} catch {
+			throw new InternalServerError("Error al cambiar la contraseña");
+		}
+	},
+
+	async banUser(
+		userId: string,
+		headers: Headers,
+		options?: { banReason?: string; banExpiresIn?: number },
+	) {
+		try {
+			await auth.api.banUser({
+				body: {
+					userId,
+					banReason: options?.banReason,
+					banExpiresIn: options?.banExpiresIn,
+				},
+				headers,
+			});
+			// Devolver el usuario actualizado desde la base de datos
+			const user = await this.getUserById(userId);
+			if (!user) {
+				throw new NotFoundError("Usuario no encontrado después de banear");
+			}
+			return user;
+		} catch {
+			throw new InternalServerError("Error al banear el usuario");
+		}
+	},
+
+	async unbanUser(userId: string, headers: Headers) {
+		try {
+			await auth.api.unbanUser({
+				body: {
+					userId,
+				},
+				headers,
+			});
+			// Devolver el usuario actualizado desde la base de datos
+			const user = await this.getUserById(userId);
+			if (!user) {
+				throw new NotFoundError("Usuario no encontrado después de desbanear");
+			}
+			return user;
+		} catch {
+			throw new InternalServerError("Error al desbanear el usuario");
+		}
+	},
+
+	async listUserSessions(userId: string) {
+		const user = await this.getUserById(userId);
+		if (!user) {
+			throw new NotFoundError("Usuario no encontrado");
 		}
 
-		// Buscar la cuenta asociada (donde se guarda la contraseña)
-		const account = await db.query.accounts.findFirst({
-			where: eq(accounts.userId, userId),
+		return db.query.sessions.findMany({
+			where: eq(sessions.userId, userId),
 		});
+	},
 
-		if (!account) {
-			throw new NotFoundError("No se encontró una cuenta asociada al usuario");
+	async revokeUserSession(sessionToken: string, headers: Headers) {
+		try {
+			const result = await auth.api.revokeUserSession({
+				body: {
+					sessionToken,
+				},
+				headers,
+			});
+			return result.success;
+		} catch {
+			throw new InternalServerError("Error al revocar la sesión");
 		}
+	},
 
-		// Hash de la nueva contraseña usando la misma función que Better Auth
-		const hashedPassword = await Bun.password.hash(data.password);
-
-		// Actualizar la contraseña en la tabla accounts
-		const [updatedAccount] = await db
-			.update(accounts)
-			.set({ password: hashedPassword })
-			.where(eq(accounts.userId, userId))
-			.returning();
-
-		if (!updatedAccount) {
-			throw new ValidationError("No se pudo actualizar la contraseña");
+	async revokeAllUserSessions(userId: string, headers: Headers) {
+		try {
+			const result = await auth.api.revokeUserSessions({
+				body: {
+					userId,
+				},
+				headers,
+			});
+			return result.success;
+		} catch {
+			throw new InternalServerError("Error al revocar todas las sesiones");
 		}
-
-		// Retornar el usuario actualizado
-		return user;
 	},
 };

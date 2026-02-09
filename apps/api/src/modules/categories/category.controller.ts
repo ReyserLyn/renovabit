@@ -1,15 +1,22 @@
 import { Elysia, t } from "elysia";
-import { slugOrIdParam } from "@/lib/common-schemas";
+import z from "zod";
+import { idParam } from "@/lib/common-schemas";
 import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { validateRateLimitPlugin } from "@/lib/rate-limit";
 import { authRoutes, isAdminUser } from "@/modules/auth";
-import { schemas } from "./category.model";
+import {
+	CategoryInsertBodySchema,
+	CategorySchema,
+	CategoryUpdateBodySchema,
+	categoryTreeSchema,
+	navbarCategorySchema,
+} from "./category.model";
 import { categoryService } from "./category.service";
 
 export const categoryController = new Elysia({ prefix: "/categories" })
 	.use(authRoutes)
 	.use(validateRateLimitPlugin)
-	.get("/navbar", () => categoryService.findManyForNavbar(), {
+	.get("/navbar", () => categoryService.getForNavbar(), {
 		detail: { tags: ["Categories"] },
 	})
 	.get(
@@ -22,9 +29,9 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 						"No tiene permisos para ver categorías inactivas.",
 					);
 				}
-				return categoryService.findMany(true);
+				return categoryService.getAll(true);
 			}
-			return categoryService.findMany(false);
+			return categoryService.getAll(false);
 		},
 		{
 			detail: { tags: ["Categories"] },
@@ -32,24 +39,7 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 				includeInactive: t.Optional(t.Boolean()),
 			}),
 			response: {
-				200: t.Array(
-					t.Composite([
-						schemas.category.select,
-						t.Object({
-							parent: t.Nullable(schemas.category.select),
-							children: t.Optional(
-								t.Array(
-									t.Composite([
-										schemas.category.select,
-										t.Object({
-											children: t.Optional(t.Array(schemas.category.select)),
-										}),
-									]),
-								),
-							),
-						}),
-					]),
-				),
+				200: navbarCategorySchema,
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
 			},
@@ -58,7 +48,7 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 	.get(
 		"/:id",
 		async ({ params: { id }, set, user }) => {
-			const category = await categoryService.findByIdOrSlug(
+			const category = await categoryService.getByIdOrSlug(
 				id,
 				isAdminUser(user),
 			);
@@ -67,15 +57,9 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		},
 		{
 			detail: { tags: ["Categories"] },
-			params: slugOrIdParam,
+			params: idParam,
 			response: {
-				200: t.Composite([
-					schemas.category.select,
-					t.Object({
-						parent: t.Nullable(schemas.category.select),
-						children: t.Optional(t.Array(schemas.category.select)),
-					}),
-				]),
+				200: categoryTreeSchema,
 				404: t.Object({ message: t.String() }),
 			},
 		},
@@ -85,20 +69,16 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		async ({ body, set }) => {
 			try {
 				return await categoryService.create(body);
-			} catch (e) {
-				const message =
-					e instanceof Error
-						? e.message
-						: "No se pudo crear la categoria. El slug debe ser único.";
-				return badRequest(set, message);
+			} catch {
+				return badRequest(set, "No se pudo crear la categoría.");
 			}
 		},
 		{
 			detail: { tags: ["Categories"] },
 			isAdmin: true,
-			body: schemas.category.insert,
+			body: CategoryInsertBodySchema,
 			response: {
-				200: schemas.category.select,
+				200: CategorySchema,
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
@@ -110,23 +90,20 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		async ({ params: { id }, body, set }) => {
 			try {
 				const updatedCategory = await categoryService.update(id, body);
+
 				if (!updatedCategory) return notFound(set, "Categoría no encontrada");
 				return updatedCategory;
-			} catch (e) {
-				const message =
-					e instanceof Error
-						? e.message
-						: "No se pudo actualizar la categoría. Verifique si el slug es único.";
-				return badRequest(set, message);
+			} catch {
+				return badRequest(set, "No se pudo actualizar la categoría.");
 			}
 		},
 		{
 			detail: { tags: ["Categories"] },
 			isAdmin: true,
-			body: schemas.category.update,
-			params: slugOrIdParam,
+			body: CategoryUpdateBodySchema,
+			params: idParam,
 			response: {
-				200: schemas.category.select,
+				200: CategorySchema,
 				400: t.Object({ message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
@@ -148,10 +125,10 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		{
 			detail: { tags: ["Categories"] },
 			isAdmin: true,
-			body: t.Object({
-				id: t.Optional(t.String()),
-				name: t.Optional(t.String()),
-				slug: t.Optional(t.String()),
+			body: z.object({
+				id: z.uuidv7().optional(),
+				name: z.string().optional(),
+				slug: z.string().optional(),
 			}),
 			response: {
 				200: t.Object({ valid: t.Boolean() }),
@@ -166,19 +143,17 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		async ({ params: { id }, set }) => {
 			try {
 				const deletedCategory = await categoryService.delete(id);
+
 				if (!deletedCategory) return notFound(set, "Categoría no encontrada");
 				return { message: "Categoría eliminada correctamente" };
 			} catch {
-				return badRequest(
-					set,
-					"No se pudo eliminar la categoría. Puede tener productos hijos.",
-				);
+				return badRequest(set, "No se pudo eliminar la categoría.");
 			}
 		},
 		{
 			detail: { tags: ["Categories"] },
 			isAdmin: true,
-			params: slugOrIdParam,
+			params: idParam,
 			response: {
 				200: t.Object({ message: t.String() }),
 				400: t.Object({ message: t.String() }),
@@ -203,8 +178,8 @@ export const categoryController = new Elysia({ prefix: "/categories" })
 		{
 			detail: { tags: ["Categories"] },
 			isAdmin: true,
-			body: t.Object({
-				ids: t.Array(t.String()),
+			body: z.object({
+				ids: z.array(z.uuidv7()),
 			}),
 			response: {
 				200: t.Object({ message: t.String() }),

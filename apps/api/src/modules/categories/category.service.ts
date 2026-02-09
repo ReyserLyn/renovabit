@@ -1,11 +1,10 @@
-import { db, eq, inArray } from "@renovabit/db";
-import type { NewCategory } from "@renovabit/db/schema";
+import { categories, db, eq, inArray } from "@renovabit/db";
 import { ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
-import { categories } from "./category.model";
+import { CategoryInsertBody, CategoryUpdateBody } from "./category.model";
 
 export const categoryService = {
-	async findManyForNavbar() {
+	async getForNavbar() {
 		const all = await db.query.categories.findMany({
 			where: (table, { eq, and }) =>
 				and(eq(table.showInNavbar, true), eq(table.isActive, true)),
@@ -18,10 +17,11 @@ export const categoryService = {
 				},
 			},
 		});
+
 		return all.filter((cat) => !cat.parentId);
 	},
 
-	async findMany(includeInactive = false) {
+	async getAll(includeInactive = false) {
 		return db.query.categories.findMany({
 			where: (table, { eq }) =>
 				includeInactive ? undefined : eq(table.isActive, true),
@@ -30,7 +30,7 @@ export const categoryService = {
 		});
 	},
 
-	async findByIdOrSlug(id: string, includeInactive = false) {
+	async getByIdOrSlug(id: string, includeInactive = false) {
 		return db.query.categories.findFirst({
 			where: (table, { eq, or, and }) => {
 				const cond = or(eq(table.id, id), eq(table.slug, id));
@@ -40,12 +40,11 @@ export const categoryService = {
 		});
 	},
 
-	async create(data: typeof categories.$inferInsert) {
+	async create(data: CategoryInsertBody) {
 		if (data.isActive === false) {
 			data.showInNavbar = false;
 		}
 
-		// Validate Hierarchy
 		if (data.parentId) {
 			await this.validateParentChange(null, data.parentId);
 		}
@@ -55,10 +54,9 @@ export const categoryService = {
 		return row;
 	},
 
-	async update(id: string, data: Partial<NewCategory>) {
-		const oldCategory = await this.findByIdOrSlug(id, true);
+	async update(id: string, data: CategoryUpdateBody) {
+		const oldCategory = await this.getByIdOrSlug(id, true);
 
-		// Validate Hierarchy changes
 		if (
 			data.parentId !== undefined &&
 			data.parentId !== oldCategory?.parentId
@@ -73,7 +71,7 @@ export const categoryService = {
 		}
 
 		// 2. Cascade Logic (Recursive)
-		const recursions: Promise<unknown>[] = [];
+		const recursions: Promise<void>[] = [];
 
 		if (data.isActive === false) {
 			recursions.push(this.propagateStatusToChildren(id, "isActive", false));
@@ -108,13 +106,11 @@ export const categoryService = {
 
 		if (!row) throw new ValidationError("No se pudo actualizar la categoría.");
 
-		// Execute recursions after successful update
 		await Promise.all(recursions);
 
 		return row;
 	},
 
-	// Helper for recursive updates using BFS
 	async propagateStatusToChildren(
 		parentId: string,
 		field: "isActive" | "showInNavbar",
@@ -170,7 +166,7 @@ export const categoryService = {
 	},
 
 	async delete(id: string) {
-		const category = await this.findByIdOrSlug(id, true);
+		const category = await this.getByIdOrSlug(id, true);
 
 		const [row] = await db
 			.delete(categories)

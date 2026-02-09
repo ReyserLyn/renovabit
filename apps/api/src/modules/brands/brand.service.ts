@@ -1,12 +1,11 @@
 import { db, eq, inArray } from "@renovabit/db";
-import type { NewBrand } from "@renovabit/db/schema";
+import { brands } from "@renovabit/db/schema";
 import { NotFoundError, ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
-import type { Brand } from "./brand.model";
-import { brands } from "./brand.model";
+import { BrandInsertBody, BrandUpdateBody } from "./brand.model";
 
 export const brandService = {
-	async findMany(includeInactive = false): Promise<Brand[]> {
+	async findMany(includeInactive = false) {
 		return db.query.brands.findMany({
 			where: (table, { eq }) =>
 				includeInactive ? undefined : eq(table.isActive, true),
@@ -23,14 +22,14 @@ export const brandService = {
 		});
 	},
 
-	async create(data: typeof brands.$inferInsert) {
+	async create(data: BrandInsertBody) {
 		const [row] = await db.insert(brands).values(data).returning();
-		if (!row) throw new ValidationError("No se pudo crear la marca.");
 
+		if (!row) throw new ValidationError("No se pudo crear la marca.");
 		return row;
 	},
 
-	async update(id: string, data: Partial<NewBrand>) {
+	async update(id: string, data: BrandUpdateBody) {
 		if (data.logo !== undefined) {
 			const oldBrand = await this.findByIdOrSlug(id);
 

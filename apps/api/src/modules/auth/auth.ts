@@ -2,7 +2,7 @@ import { db } from "@renovabit/db";
 import * as schema from "@renovabit/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { openAPI, username } from "better-auth/plugins";
+import { admin, openAPI, username } from "better-auth/plugins";
 
 export const auth = betterAuth({
 	baseURL: process.env.BETTER_AUTH_URL as string,
@@ -20,6 +20,7 @@ export const auth = betterAuth({
 		provider: "pg",
 		usePlural: true,
 		schema,
+		camelCase: false,
 	}),
 	emailAndPassword: {
 		enabled: true,
@@ -71,10 +72,41 @@ export const auth = betterAuth({
 				input: true,
 			},
 		},
+		deleteUser: {
+			enabled: true,
+			beforeDelete: async (user) => {
+				const fullUser = await db.query.users.findFirst({
+					where: (table, { eq }) => eq(table.id, user.id),
+				});
+
+				if (fullUser?.role === "admin") {
+					const adminCount = await db.query.users.findMany({
+						where: (table, { eq }) => eq(table.role, "admin"),
+					});
+
+					if (adminCount.length <= 1) {
+						const { APIError } = await import("better-auth/api");
+						throw new APIError("BAD_REQUEST", {
+							message:
+								"No se puede eliminar el último administrador. Debe haber al menos un administrador en el sistema.",
+						});
+					}
+				}
+			},
+		},
 	},
 	plugins: [
 		username({
 			usernameNormalization: (u) => u.trim().toLowerCase(),
+		}),
+		admin({
+			defaultRole: "customer",
+			adminRoles: ["admin"],
+			bannedUserMessage:
+				"Has sido baneado de esta aplicación. Por favor contacta al soporte si crees que esto es un error.",
+			impersonationSessionDuration: 60 * 60,
+			defaultBanReason: "Sin razón especificada",
+			allowImpersonatingAdmins: false,
 		}),
 		openAPI(),
 	],
