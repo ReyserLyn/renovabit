@@ -80,8 +80,10 @@ export const userController = new Elysia({ prefix: "/users" })
 	.delete(
 		"/:id",
 		async ({ params: { id }, set, request }) => {
-			const headers = new Headers(request.headers);
+			const user = await userService.getUserById(id);
+			if (!user) return notFound(set, "Usuario no encontrado");
 
+			const headers = new Headers(request.headers);
 			await userService.delete(id, headers);
 			return { message: "Usuario eliminado correctamente" };
 		},
@@ -237,7 +239,7 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.post(
 		"/:id/unban",
-		async ({ params: { id }, set, request }) => {
+		async ({ params: { id }, request }) => {
 			const headers = new Headers(request.headers);
 			const user = await userService.unbanUser(id, headers);
 			return user;
@@ -257,7 +259,7 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.get(
 		"/:id/sessions",
-		async ({ params: { id }, request }) => {
+		async ({ params: { id } }) => {
 			const sessions = await userService.listUserSessions(id);
 			return sessions;
 		},
@@ -276,7 +278,7 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.delete(
 		"/sessions/:token",
-		async ({ params: { token }, set, request }) => {
+		async ({ params: { token }, request }) => {
 			const headers = new Headers(request.headers);
 			const success = await userService.revokeUserSession(token, headers);
 
@@ -302,7 +304,7 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.delete(
 		"/:id/sessions",
-		async ({ params: { id }, set, request }) => {
+		async ({ params: { id }, request }) => {
 			const headers = new Headers(request.headers);
 			const success = await userService.revokeAllUserSessions(id, headers);
 			return { success, message: "Todas las sesiones revocadas correctamente" };

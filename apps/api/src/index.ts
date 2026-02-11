@@ -14,7 +14,6 @@ import { logixPlugin } from "@/lib/logix";
 import {
 	mergeOpenApiComponents,
 	openApiZodMapJsonSchema,
-	openapiErrorResponseSchema,
 } from "@/lib/openapi-schemas";
 import { getClientIp } from "@/lib/rate-limit";
 import { securityHeaders } from "@/lib/security-headers";
