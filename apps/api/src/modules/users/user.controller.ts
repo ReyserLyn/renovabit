@@ -7,6 +7,7 @@ import { authRoutes } from "@/modules/auth";
 import {
 	AdminChangePasswordBodySchema,
 	AdminCreateUserBodySchema,
+	UserBanSchema,
 	UserSchema,
 	UserSessionSchema,
 	UserUpdateBodySchema,
@@ -150,6 +151,7 @@ export const userController = new Elysia({ prefix: "/users" })
 						t.Object({
 							id: t.String(),
 							message: t.String(),
+							code: t.Optional(t.String()),
 						}),
 					),
 				}),
@@ -160,6 +162,7 @@ export const userController = new Elysia({ prefix: "/users" })
 							t.Object({
 								id: t.String(),
 								message: t.String(),
+								code: t.Optional(t.String()),
 							}),
 						),
 					),
@@ -183,9 +186,10 @@ export const userController = new Elysia({ prefix: "/users" })
 			body: AdminCreateUserBodySchema,
 			response: {
 				201: UserSchema,
-				400: t.Object({ message: t.String() }),
+				400: t.Object({ code: t.Optional(t.String()), message: t.String() }),
 				401: t.Object({ message: t.String() }),
 				403: t.Object({ message: t.String() }),
+				409: t.Object({ code: t.Optional(t.String()), message: t.String() }),
 			},
 		},
 	)
@@ -212,22 +216,16 @@ export const userController = new Elysia({ prefix: "/users" })
 	)
 	.post(
 		"/:id/ban",
-		async ({ params: { id }, body, set, request }) => {
+		async ({ params: { id }, body, request }) => {
 			const headers = new Headers(request.headers);
-			const user = await userService.banUser(id, headers, {
-				banReason: body.banReason,
-				banExpiresIn: body.banExpiresIn,
-			});
+			const user = await userService.banUser(id, headers, body);
 			return user;
 		},
 		{
 			detail: { tags: ["Users"] },
 			isAdmin: true,
 			params: idParam,
-			body: z.object({
-				banReason: z.string().optional(),
-				banExpiresIn: z.number().optional(),
-			}),
+			body: UserBanSchema,
 			response: {
 				200: UserSchema,
 				400: t.Object({ message: t.String() }),

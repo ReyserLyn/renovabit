@@ -1,5 +1,4 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
-import type { Category } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -16,14 +15,15 @@ import { CategoryTreePreview } from "@/features/categories/components/CategoryTr
 import { CategoryFormModal } from "@/features/categories/components/modals/CategoryFormModal";
 import { DeleteCategoryModal } from "@/features/categories/components/modals/DeleteCategoryModal";
 import { ToggleCategoryStatusModal } from "@/features/categories/components/modals/ToggleCategoryStatusModal";
-import {
-	type CategoryWithParent,
-	getColumns,
-} from "@/features/categories/components/table/columns";
+import { getColumns } from "@/features/categories/components/table/columns";
 import {
 	useBulkDeleteCategories,
 	useCategories,
 } from "@/features/categories/hooks";
+import type {
+	Category,
+	CategoryTree,
+} from "@/features/categories/model/category-model";
 import { categoriesKeys } from "@/features/categories/services/categories-service";
 import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
@@ -41,8 +41,8 @@ function CategoriasPage() {
 		isError,
 		refetch: refetchCategories,
 	} = useCategories(true);
-	const categories = Array.isArray(categoriesRaw)
-		? (categoriesRaw as CategoryWithParent[])
+	const categories: CategoryTree[] = Array.isArray(categoriesRaw)
+		? categoriesRaw
 		: [];
 
 	const hasData = categories.length > 0 || !isPending;

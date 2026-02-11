@@ -1,8 +1,8 @@
-import type { ProductUpdateBody } from "@renovabit/db/schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useBrands } from "@/features/brands/hooks";
 import { useCategories } from "@/features/categories/hooks";
+import { ProductUpdateBody } from "../models/product-model";
 import type { ProductFiltersState } from "../parsers/product-filters";
 import {
 	getProductListParamsFromFilters,
@@ -82,14 +82,10 @@ export function useProductListParams(): ProductListParamsResult {
 	const listParams = useMemo((): ProductListParams => {
 		const base = getProductListParamsFromFilters(filters);
 		const categoryId = base.category
-			? (categories as { slug: string; id: string }[]).find(
-					(c) => c.slug === base.category,
-				)?.id
+			? categories.find((c) => c.slug === base.category)?.id
 			: undefined;
 		const brandId = base.brand
-			? (brands as { slug: string; id: string }[]).find(
-					(b) => b.slug === base.brand,
-				)?.id
+			? brands.find((b) => b.slug === base.brand)?.id
 			: undefined;
 		return {
 			categoryId,

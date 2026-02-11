@@ -1,23 +1,21 @@
-import {
-	type Brand,
-	type Category,
-	type Product,
-	type ProductImage,
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
+import { Brand } from "@/features/brands/model/brand-model";
+import { Category } from "@/features/categories/model/category-model";
+import type {
+	Product,
+	ProductImage,
 	ProductInsertBody,
 	ProductUpdateBody,
-} from "@renovabit/db/schema";
-import { keepPreviousData, queryOptions } from "@tanstack/react-query";
+} from "@/features/products/models/product-model";
 import { api } from "@/libs/eden-client/eden-client";
 import { handleEdenError } from "@/libs/eden-client/utils";
 
-/** Factory de query keys para productos (invalidaciones tipadas) */
 export const productsKeys = {
 	all: ["products"] as const,
 	list: (params: ProductListParams) => ["products", params] as const,
 	detail: (id: string) => ["products", id] as const,
 };
 
-/** Producto con relaciones (brand, category, images) tal como lo devuelve la API */
 export type ProductWithRelations = Product & {
 	images: ProductImage[];
 	brand: Brand | null;
@@ -36,22 +34,16 @@ export type ProductListParams = ProductListFilters & {
 	offset?: number;
 };
 
-export type ProductsListResult = {
-	data: ProductWithRelations[];
-	total: number;
-};
-
-export async function fetchProducts(
-	params: ProductListParams = {},
-): Promise<ProductsListResult> {
+export async function fetchProducts(params: ProductListParams = {}) {
+	const includeInactive = params.includeInactive ?? true;
 	const res = await api.api.v1.products.get({
 		query: {
 			categoryId: params.categoryId,
 			brandId: params.brandId,
 			featured: params.featured,
-			includeInactive: params.includeInactive,
-			limit: params.limit ?? 20,
-			offset: params.offset ?? 0,
+			includeInactive,
+			limit: params.limit,
+			offset: params.offset,
 		},
 	});
 
@@ -59,10 +51,7 @@ export async function fetchProducts(
 		handleEdenError(res, "Error al cargar productos");
 	}
 
-	const raw = res.data as { data?: ProductWithRelations[]; total?: number };
-	const data = Array.isArray(raw?.data) ? raw.data : [];
-	const total = typeof raw?.total === "number" ? raw.total : data.length;
-	return { data, total };
+	return res.data;
 }
 
 export async function fetchProduct(id: string) {
@@ -80,7 +69,7 @@ export async function validateProduct(params: {
 	id?: string;
 	slug: string;
 	sku: string;
-}): Promise<void> {
+}) {
 	const res = await api.api.v1.products.validate.post(params);
 
 	if (res.error || !res.data) {
@@ -99,7 +88,6 @@ export async function createProduct(body: ProductInsertBody) {
 }
 
 export async function updateProduct(id: string, body: ProductUpdateBody) {
-	// @ts-ignore - The types need to propagate from the updated controller
 	const res = await api.api.v1.products({ id }).put(body);
 
 	if (res.error || !res.data) {
@@ -127,7 +115,7 @@ export async function bulkDeleteProducts(ids: string[]) {
 
 export const productsQueryOptions = (params: ProductListParams) =>
 	queryOptions({
-		queryKey: ["products", params],
+		queryKey: productsKeys.list(params),
 		queryFn: () => fetchProducts(params),
 		placeholderData: keepPreviousData,
 		staleTime: 1000 * 60 * 5,

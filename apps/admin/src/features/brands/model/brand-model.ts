@@ -1,39 +1,22 @@
-import slugifyLib from "slugify";
+import { schemas } from "@renovabit/db/schema";
 import { z } from "zod";
+import { logoFormField } from "@/constants/file-upload";
 
-export function slugify(name: string): string {
-	return slugifyLib(name, {
-		lower: true,
-		strict: true,
-		locale: "es",
-	});
-}
+export const BrandSchema = schemas.brand.select;
+export const BrandInsertBodySchema = schemas.brand.insert;
+export const BrandUpdateBodySchema = schemas.brand.update;
 
-export const brandFormSchema = z.object({
-	name: z
-		.string()
-		.min(1, { error: "El nombre es obligatorio." })
-		.max(100, { error: "El nombre no puede superar 100 caracteres." }),
-	slug: z
-		.string()
-		.min(1, { error: "El slug es obligatorio." })
-		.max(100, { error: "El slug no puede superar 100 caracteres." })
-		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-			error: "El slug solo puede contener minúsculas, números y guiones.",
-		}),
-	logo: z
-		.union([
-			z.url({ error: "Introduce una URL válida." }),
-			z.literal(""),
-			z.instanceof(File),
-		])
-		.optional(),
-	isActive: z.boolean(),
+export type Brand = z.infer<typeof BrandSchema>;
+export type BrandInsertBody = z.infer<typeof BrandInsertBodySchema>;
+export type BrandUpdateBody = z.infer<typeof BrandUpdateBodySchema>;
+
+export const BrandFormValuesSchema = BrandInsertBodySchema.extend({
+	logo: logoFormField,
 });
 
-export type BrandFormValues = z.infer<typeof brandFormSchema>;
+export type BrandFormValues = z.infer<typeof BrandFormValuesSchema>;
 
-export const defaultBrandFormValues: BrandFormValues = {
+export const defaultBrandFormValues: BrandInsertBody = {
 	name: "",
 	slug: "",
 	logo: "",

@@ -1,7 +1,7 @@
-import type { Brand } from "@renovabit/db/schema";
 import { toast } from "sonner";
 import { ActionModal } from "@/components/modals/ActionModal";
 import { useUpdateBrand } from "../../hooks";
+import type { Brand } from "../../model/brand-model";
 
 interface ToggleBrandStatusModalProps {
 	open: boolean;

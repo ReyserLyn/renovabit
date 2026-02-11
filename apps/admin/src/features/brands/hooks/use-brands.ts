@@ -1,5 +1,5 @@
-import { BrandInsertBody, BrandUpdateBody } from "@renovabit/db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { BrandInsertBody, BrandUpdateBody } from "../model/brand-model";
 import {
 	brandQueryOptions,
 	brandsKeys,

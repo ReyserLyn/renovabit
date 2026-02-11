@@ -15,13 +15,13 @@ import { lifecycleDates, primaryKey } from "./_utils";
 import { brands } from "./brands";
 import { categories } from "./categories";
 
-export type Json =
-	| string
-	| number
-	| boolean
-	| null
-	| { [key: string]: Json }
-	| Json[];
+export type ProductSpecification = {
+	id: string;
+	key: string;
+	value: string;
+};
+
+export type ProductSpecifications = ProductSpecification[];
 
 export const productStatusEnum = pgEnum("product_status", [
 	"active",
@@ -58,7 +58,10 @@ export const products = pgTable(
 		}),
 
 		// Especificaciones Técnicas
-		specifications: jsonb("specifications").$type<Json>().default({}).notNull(),
+		specifications: jsonb("specifications")
+			.$type<ProductSpecifications>()
+			.default([])
+			.notNull(),
 
 		// Control de estado
 		status: productStatusEnum("status").default("active").notNull(),

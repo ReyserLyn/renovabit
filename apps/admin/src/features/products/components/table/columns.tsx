@@ -15,6 +15,7 @@ import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
 import { StatusCell } from "@/components/table/status-cell";
 import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
+import { formatDate } from "@/libs/utils";
 import { STATUS_LABELS } from "../../models/product-model";
 import { ProductWithRelations } from "../../services/products-service";
 
@@ -189,6 +190,14 @@ export function getColumns(
 					<HugeiconsIcon icon={StarIcon} className="size-5 text-yellow-400" />
 				) : null;
 			},
+		},
+		{
+			accessorKey: "createdAt",
+			meta: { label: "Fecha de creación" },
+			header: ({ column }) => (
+				<ColumnHeader column={column} title="Fecha de creación" />
+			),
+			cell: ({ row }) => formatDate(row.original.createdAt),
 		},
 		{
 			id: "actions",

@@ -1,7 +1,10 @@
-import { CategoryInsertBody, CategoryUpdateBody } from "@renovabit/db/schema";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/libs/eden-client/eden-client";
 import { handleEdenError } from "@/libs/eden-client/utils";
+import {
+	CategoryInsertBody,
+	CategoryUpdateBody,
+} from "../model/category-model";
 
 export const categoriesKeys = {
 	all: ["categories"] as const,

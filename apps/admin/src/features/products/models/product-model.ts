@@ -1,71 +1,58 @@
-import slugifyLib from "slugify";
+import {
+	productImageForProductSchema,
+	productSpecificationSchema,
+	schemas,
+} from "@renovabit/db/schema";
 import { z } from "zod";
+import { logoFormField } from "@/constants/file-upload";
 
-export function slugify(name: string): string {
-	return slugifyLib(name, {
-		lower: true,
-		strict: true,
-		locale: "es",
-	});
-}
+// Productos
+export const ProductSchema = schemas.product.select;
+export const ProductInsertBodySchema = schemas.product.insert;
+export const ProductUpdateBodySchema = schemas.product.update;
 
-export const STATUS_LABELS: Record<
-	"active" | "inactive" | "out_of_stock",
-	string
-> = {
+export type Product = z.infer<typeof ProductSchema>;
+export type ProductInsertBody = z.infer<typeof ProductInsertBodySchema>;
+export type ProductUpdateBody = z.infer<typeof ProductUpdateBodySchema>;
+
+// Imágenes de productos
+export const ProductImageSchema = schemas.productImage.select;
+export const ProductImageInsertBodySchema = schemas.productImage.insert;
+export const ProductImageUpdateBodySchema = schemas.productImage.update;
+
+export type ProductImage = z.infer<typeof ProductImageSchema>;
+export type ProductImageInsertBody = z.infer<
+	typeof ProductImageInsertBodySchema
+>;
+export type ProductImageUpdateBody = z.infer<
+	typeof ProductImageUpdateBodySchema
+>;
+
+// Estados de productos
+export const STATUS_LABELS = {
 	active: "Activo",
 	inactive: "Inactivo",
 	out_of_stock: "Agotado",
-};
+} as const satisfies Record<Product["status"], string>;
 
-export const productFormSchema = z.object({
-	name: z
-		.string()
-		.min(1, { error: "El nombre es obligatorio." })
-		.max(255, { error: "El nombre no puede superar 255 caracteres." }),
-	slug: z
-		.string()
-		.min(1, { error: "El slug es obligatorio." })
-		.max(255, { error: "El slug no puede superar 255 caracteres." })
-		.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
-			error: "El slug solo puede contener minúsculas, números y guiones.",
-		}),
-	sku: z
-		.string()
-		.min(1, { error: "El SKU es obligatorio." })
-		.max(100, { error: "El SKU no puede superar 100 caracteres." }),
-	description: z
-		.string()
-		.max(1000, { error: "La descripción no puede superar 1000 caracteres." })
-		.optional(),
-	price: z
-		.string()
-		.regex(/^\d+(\.\d{1,2})?$/, { error: "Formato inválido. Ejemplo: 99.99" }),
-	stock: z.int().min(0, { error: "El stock debe ser un número entero >= 0." }),
-	brandId: z.uuid({ error: "ID de marca no válido." }).optional(),
-	categoryId: z.uuid({ error: "ID de categoría no válido." }).optional(),
-	status: z.enum(["active", "inactive", "out_of_stock"]),
-	isFeatured: z.boolean(),
-	specEntries: z.array(
-		z.object({
-			id: z.string(),
-			key: z.string().max(120, { error: "Máx. 120 caracteres" }),
-			value: z.string().max(255, { error: "Máx. 255 caracteres" }),
-		}),
-	),
+// Especificaciones de productos
+export type ProductSpecificationEntry = z.infer<
+	typeof productSpecificationSchema
+>;
+
+// Formulario de productos
+export const ProductFormValuesSchema = ProductInsertBodySchema.extend({
 	images: z.array(
-		z.object({
-			id: z.string().optional(),
-			url: z.union([z.url({ error: "URL inválida" }), z.literal("")]),
-			file: z.instanceof(File).optional(),
-			alt: z.string().optional(),
-			order: z.int().min(0),
+		productImageForProductSchema.partial({ url: true }).extend({
+			file: logoFormField,
+			id: z.uuidv7().optional(),
 		}),
 	),
 });
 
-export type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductFormValues = z.input<typeof ProductFormValuesSchema>;
 
+// Valores por defecto del formulario de productos
 export const defaultProductFormValues: ProductFormValues = {
 	name: "",
 	slug: "",
@@ -77,29 +64,6 @@ export const defaultProductFormValues: ProductFormValues = {
 	categoryId: undefined,
 	status: "active",
 	isFeatured: false,
-	specEntries: [],
+	specifications: [],
 	images: [],
 };
-
-/** Convierte record de especificaciones (API) a array para el formulario */
-export function specRecordToEntries(
-	record: Record<string, string>,
-): Array<{ id: string; key: string; value: string }> {
-	return Object.entries(record).map(([key, value], i) => ({
-		id: `spec-${i}-${key}`,
-		key,
-		value,
-	}));
-}
-
-/** Convierte array del formulario a record para la API (claves y valores trim, sin vacíos) */
-export function specEntriesToRecord(
-	entries: Array<{ id: string; key: string; value: string }>,
-): Record<string, string> {
-	const out: Record<string, string> = {};
-	for (const { key, value } of entries) {
-		const k = key.trim();
-		if (k) out[k] = value.trim();
-	}
-	return out;
-}

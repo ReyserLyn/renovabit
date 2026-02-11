@@ -4,10 +4,14 @@ import {
 	Edit02Icon,
 	ResetPasswordIcon,
 	ShoppingCartCheck02FreeIcons,
+	TimeScheduleIcon,
+	UserBlock01Icon,
 	UserMultiple02FreeIcons,
 	UserShield01Icon,
+	UserUnlock01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Badge } from "@renovabit/ui/components/ui/badge";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
 import { cn } from "@renovabit/ui/lib/utils";
@@ -15,21 +19,25 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { ColumnHeader } from "@/components/table/column-header";
 import { formatDate } from "@/libs/utils";
-import type { AdminUser } from "../../model/user-model";
+import type { User } from "../../model/user-model";
 import {
 	getRoleLabel,
 	getUserDisplayName,
 	roleWeight,
+	USER_ROLE_VALUES,
 } from "../../model/user-model";
 
 export type UserColumnHandlers = {
-	onEdit: (user: AdminUser) => void;
-	onDelete: (user: AdminUser) => void;
-	onChangePassword: (user: AdminUser) => void;
+	onEdit: (user: User) => void;
+	onDelete: (user: User) => void;
+	onChangePassword: (user: User) => void;
+	onBan: (user: User) => void;
+	onUnban: (user: User) => void;
+	onViewSessions: (user: User) => void;
 };
 
 const roleConfig: Record<
-	AdminUser["role"],
+	User["role"],
 	{
 		icon:
 			| typeof UserShield01Icon
@@ -60,7 +68,7 @@ const roleConfig: Record<
 	},
 };
 
-function copyUserInfo(user: AdminUser) {
+function copyUserInfo(user: User) {
 	const usuario = user.displayUsername?.trim() || "—";
 	const info = [
 		`Nombre: ${user.name?.trim() || "—"}`,
@@ -83,7 +91,7 @@ function copyUserInfo(user: AdminUser) {
 	);
 }
 
-export function copyBulkUserInfo(users: AdminUser[]) {
+export function copyBulkUserInfo(users: User[]) {
 	if (users.length === 0) return;
 
 	const combinedInfo = users
@@ -112,11 +120,7 @@ export function copyBulkUserInfo(users: AdminUser[]) {
 	);
 }
 
-export function getColumns(
-	handlers: UserColumnHandlers,
-): ColumnDef<AdminUser>[] {
-	const { onEdit, onDelete, onChangePassword } = handlers;
-
+export function getColumns(handlers: UserColumnHandlers): ColumnDef<User>[] {
 	return [
 		{
 			id: "select",
@@ -176,10 +180,27 @@ export function getColumns(
 				const user = row.original;
 				const display = user.displayUsername?.trim() || "—";
 				const loginHandle = user.username ? `@${user.username}` : "—";
+				const isBanned =
+					user.banned &&
+					(!user.banExpires || new Date(user.banExpires) > new Date());
 
 				return (
 					<div className="flex flex-col gap-0.5">
-						<span className="font-medium text-foreground">{display}</span>
+						<div className="flex items-center gap-2">
+							<span className="font-medium text-foreground">{display}</span>
+							{isBanned && (
+								<Badge
+									variant="destructive"
+									className="h-5 px-1.5 text-[10px] uppercase tracking-wider"
+								>
+									<HugeiconsIcon
+										icon={UserBlock01Icon}
+										className="mr-1 size-3"
+									/>
+									Baneado
+								</Badge>
+							)}
+						</div>
 						<span className="text-xs text-muted-foreground">{loginHandle}</span>
 					</div>
 				);
@@ -210,11 +231,11 @@ export function getColumns(
 				);
 			},
 			sortingFn: (rowA, rowB, columnId) => {
-				const a = rowA.getValue(columnId) as AdminUser["role"];
-				const b = rowB.getValue(columnId) as AdminUser["role"];
-				const weightA = roleWeight[a] ?? 0;
-				const weightB = roleWeight[b] ?? 0;
-				return weightA - weightB;
+				const rawA = rowA.getValue(columnId);
+				const rawB = rowB.getValue(columnId);
+				const a = USER_ROLE_VALUES.find((r) => r === rawA) ?? "customer";
+				const b = USER_ROLE_VALUES.find((r) => r === rawB) ?? "customer";
+				return roleWeight[a] - roleWeight[b];
 			},
 		},
 		{
@@ -244,23 +265,32 @@ export function getColumns(
 					className="min-w-[140px]"
 				/>
 			),
-			cell: ({ row }) => {
-				const value = row.getValue("createdAt") as string | Date | null;
-				return (
-					<span className="text-sm text-muted-foreground">
-						{formatDate(value)}
-					</span>
-				);
-			},
+			cell: ({ row }) => (
+				<span className="text-sm text-muted-foreground">
+					{formatDate(row.original.createdAt)}
+				</span>
+			),
 		},
 		{
 			id: "actions",
 			header: "Acciones",
 			cell: ({ row }) => {
 				const user = row.original;
+				const {
+					onEdit,
+					onDelete,
+					onChangePassword,
+					onBan,
+					onUnban,
+					onViewSessions,
+				} = handlers;
+
+				const isBanned =
+					user.banned &&
+					(!user.banExpires || new Date(user.banExpires) > new Date());
 
 				return (
-					<div className="flex gap-2">
+					<div className="flex gap-1.5">
 						<Button
 							type="button"
 							variant="ghost"
@@ -272,6 +302,45 @@ export function getColumns(
 						>
 							<HugeiconsIcon icon={Copy01Icon} className="size-4" />
 						</Button>
+
+						<Button
+							type="button"
+							variant="ghost"
+							size="icon"
+							className="size-8"
+							onClick={() => onViewSessions(user)}
+							aria-label={`Ver sesiones de ${getUserDisplayName(user)}`}
+							title="Ver sesiones activas"
+						>
+							<HugeiconsIcon icon={TimeScheduleIcon} className="size-4" />
+						</Button>
+
+						{isBanned ? (
+							<Button
+								type="button"
+								variant="outline"
+								size="icon"
+								className="size-8 border-destructive/20 text-destructive hover:bg-destructive/10"
+								onClick={() => onUnban(user)}
+								aria-label={`Desbanear usuario ${getUserDisplayName(user)}`}
+								title="Desbanear usuario"
+							>
+								<HugeiconsIcon icon={UserUnlock01Icon} className="size-4" />
+							</Button>
+						) : (
+							<Button
+								type="button"
+								variant="ghost"
+								size="icon"
+								className="size-8 text-orange-600 dark:text-orange-400"
+								onClick={() => onBan(user)}
+								aria-label={`Banear usuario ${getUserDisplayName(user)}`}
+								title="Banear usuario"
+							>
+								<HugeiconsIcon icon={UserBlock01Icon} className="size-4" />
+							</Button>
+						)}
+
 						<Button
 							type="button"
 							variant="ghost"
@@ -283,6 +352,7 @@ export function getColumns(
 						>
 							<HugeiconsIcon icon={ResetPasswordIcon} className="size-4" />
 						</Button>
+
 						<Button
 							type="button"
 							variant="ghost"
@@ -290,16 +360,19 @@ export function getColumns(
 							className="size-8"
 							onClick={() => onEdit(user)}
 							aria-label={`Editar usuario ${getUserDisplayName(user)}`}
+							title="Editar usuario"
 						>
 							<HugeiconsIcon icon={Edit02Icon} className="size-4" />
 						</Button>
+
 						<Button
 							type="button"
 							variant="ghost"
 							size="icon"
-							className={cn("size-8 text-destructive")}
+							className="size-8 text-destructive"
 							onClick={() => onDelete(user)}
 							aria-label={`Eliminar usuario ${getUserDisplayName(user)}`}
+							title="Eliminar usuario"
 						>
 							<HugeiconsIcon icon={Delete04Icon} className="size-4" />
 						</Button>

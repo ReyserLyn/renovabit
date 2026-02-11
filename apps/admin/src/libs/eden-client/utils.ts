@@ -3,6 +3,7 @@
  */
 interface ApiErrorResponse {
 	message: string;
+	code?: string;
 	[key: string]: unknown;
 }
 
@@ -40,13 +41,16 @@ function isEdenError(error: unknown): error is EdenError {
 }
 
 /**
- * Extrae un mensaje de error legible de una respuesta de Eden Treaty.
+ * Extrae mensaje y código de error de una respuesta de Eden Treaty.
  */
-export function getErrorMessage(
+export function getErrorFromResponse(
 	res: unknown,
 	defaultMessage = "Ocurrió un error inesperado",
-): string {
-	if (!res || typeof res !== "object") return defaultMessage;
+): {
+	message: string;
+	code?: string;
+} {
+	if (!res || typeof res !== "object") return { message: defaultMessage };
 
 	// Eden Treaty devuelve un objeto que puede tener una propiedad 'error'
 	if ("error" in res && res.error !== null) {
@@ -55,7 +59,13 @@ export function getErrorMessage(
 		if (isEdenError(errorObj)) {
 			// El campo 'value' contiene el JSON devuelto por el servidor
 			if (isApiErrorResponse(errorObj.value)) {
-				return errorObj.value.message;
+				return {
+					message: errorObj.value.message,
+					code:
+						typeof errorObj.value.code === "string"
+							? errorObj.value.code
+							: undefined,
+				};
 			}
 
 			// Si es un error de validación de Elysia/TypeBox
@@ -64,7 +74,7 @@ export function getErrorMessage(
 				if ("errors" in value && Array.isArray(value.errors)) {
 					const firstError = value.errors[0] as Record<string, unknown>;
 					if (firstError && typeof firstError.message === "string") {
-						return firstError.message;
+						return { message: firstError.message };
 					}
 				}
 			}
@@ -72,9 +82,11 @@ export function getErrorMessage(
 
 		// Si res.error es simplemente una instancia de Error
 		if (errorObj instanceof Error) {
-			return errorObj.message !== "[object Object]"
-				? errorObj.message
-				: defaultMessage;
+			const message =
+				errorObj.message !== "[object Object]"
+					? errorObj.message
+					: defaultMessage;
+			return { message };
 		}
 	}
 
@@ -82,17 +94,40 @@ export function getErrorMessage(
 	const response = res as { status?: number; data?: unknown };
 	if (response.status && (response.status < 200 || response.status >= 300)) {
 		if (isApiErrorResponse(response.data)) {
-			return response.data.message;
+			const data = response.data as ApiErrorResponse;
+			return {
+				message: data.message,
+				code: typeof data.code === "string" ? data.code : undefined,
+			};
 		}
-		return `Error (Status ${response.status})`;
+		return { message: `Error (Status ${response.status})` };
 	}
 
-	return defaultMessage;
+	return { message: defaultMessage };
 }
 
 /**
- * Lanza un Error con un mensaje legible extraído de la respuesta de Eden.
+ * Extrae un mensaje de error legible de una respuesta de Eden Treaty.
+ */
+export function getErrorMessage(
+	res: unknown,
+	defaultMessage = "Ocurrió un error inesperado",
+): string {
+	return getErrorFromResponse(res, defaultMessage).message;
+}
+
+/**
+ * Lanza un Error con mensaje y código extraídos de la respuesta de Eden.
+ * El código se adjunta en la propiedad `code` para que getAuthMessage pueda traducir.
  */
 export function handleEdenError(res: unknown, defaultMessage?: string): never {
-	throw new Error(getErrorMessage(res, defaultMessage));
+	const { message, code } = getErrorFromResponse(
+		res,
+		defaultMessage ?? "Ocurrió un error inesperado",
+	);
+	const err = new Error(message);
+	if (code) {
+		Object.defineProperty(err, "code", { value: code, enumerable: true });
+	}
+	throw err;
 }

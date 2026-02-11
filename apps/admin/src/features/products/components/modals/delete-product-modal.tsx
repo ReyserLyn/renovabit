@@ -1,12 +1,12 @@
 import { toast } from "sonner";
 import { ActionModal } from "@/components/modals/ActionModal";
 import { useDeleteProduct } from "../../hooks";
-import type { ProductWithRelations } from "../../services/products-service";
+import { Product } from "../../models/product-model";
 
 interface DeleteProductModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	product: ProductWithRelations | null;
+	product: Product | null;
 }
 
 export function DeleteProductModal({

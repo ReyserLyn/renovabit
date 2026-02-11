@@ -7,51 +7,45 @@ import {
 } from "@renovabit/ui/components/ui/dialog";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useAdminChangeUserPassword } from "../../hooks";
-import type { User, UserPasswordFormValues } from "../../model/user-model";
+import { useBanUser } from "../../hooks";
+import type { BanUserFormValues, User } from "../../model/user-model";
 import { getUserDisplayName } from "../../model/user-model";
-import { UserPasswordForm } from "../forms/UserPasswordForm";
+import { BanUserForm } from "../forms/BanUserForm";
 
-interface UserPasswordModalProps {
+interface BanUserModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	user: User | null;
 }
 
-export function UserPasswordModal({
-	open,
-	onOpenChange,
-	user,
-}: UserPasswordModalProps) {
-	const changePassword = useAdminChangeUserPassword();
-	const isPending = changePassword.isPending;
+export function BanUserModal({ open, onOpenChange, user }: BanUserModalProps) {
+	const banUser = useBanUser();
+	const isPending = banUser.isPending;
 	const displayName = user ? getUserDisplayName(user) : "Usuario";
 
 	const handleSubmit = useCallback(
-		async (values: UserPasswordFormValues) => {
+		async (values: BanUserFormValues) => {
 			if (!user) return;
 
 			const promise = (async () => {
-				await changePassword.mutateAsync({
+				await banUser.mutateAsync({
 					id: user.id,
 					body: {
-						password: values.password,
-						confirmPassword: values.confirmPassword,
+						banReason: values.banReason,
+						banExpiresIn: values.banExpiresIn,
 					},
 				});
 				onOpenChange(false);
 			})();
 
 			await toast.promise(promise, {
-				loading: "Cambiando contraseña…",
-				success: `La contraseña de "${displayName}" ha sido actualizada.`,
+				loading: "Baneando usuario…",
+				success: `El usuario "${displayName}" ha sido baneado.`,
 				error: (err) =>
-					err instanceof Error
-						? err.message
-						: "No se pudo cambiar la contraseña.",
+					err instanceof Error ? err.message : "No se pudo banear el usuario.",
 			});
 		},
-		[user, changePassword, onOpenChange, displayName],
+		[user, banUser, onOpenChange, displayName],
 	);
 
 	const handleOpenChange = useCallback(
@@ -69,19 +63,18 @@ export function UserPasswordModal({
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogContent className="sm:max-w-md" showCloseButton={!isPending}>
 				<DialogHeader>
-					<DialogTitle>Cambiar contraseña</DialogTitle>
+					<DialogTitle>Banear usuario</DialogTitle>
 					<DialogDescription>
-						Establece una nueva contraseña para <strong>{displayName}</strong>.
-						El usuario deberá usar esta contraseña para iniciar sesión.
+						El usuario <strong>{displayName}</strong> no podrá acceder a la
+						plataforma mientras esté baneado.
 					</DialogDescription>
 				</DialogHeader>
 
-				<UserPasswordForm
-					isPending={isPending}
+				<BanUserForm
 					onSubmit={handleSubmit}
 					onCancel={() => onOpenChange(false)}
-					submitLabel="Cambiar contraseña"
-					userRole={user?.role}
+					isPending={isPending}
+					submitLabel="Banear usuario"
 				/>
 			</DialogContent>
 		</Dialog>

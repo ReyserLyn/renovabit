@@ -1,4 +1,3 @@
-import type { Brand } from "@renovabit/db/schema";
 import {
 	Dialog,
 	DialogContent,
@@ -10,9 +9,9 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { uploadFile } from "@/features/storage/storage-utils";
 import { useCreateBrand, useUpdateBrand } from "../../hooks";
-import type { BrandFormValues } from "../../model/brand-model";
+import type { Brand, BrandFormValues } from "../../model/brand-model";
 import { validateBrand } from "../../services/brands-service";
-import { BrandForm } from "./BrandForm";
+import { BrandForm } from "../forms/BrandForm";
 
 interface BrandFormModalProps {
 	open: boolean;
@@ -40,7 +39,7 @@ export function BrandFormModal({
 				slug: values.slug,
 			});
 
-			let logoUrl = typeof values.logo === "string" ? values.logo : "";
+			let logoUrl = values.logo instanceof File ? "" : (values.logo ?? "");
 
 			// 2. STORAGE
 			if (values.logo instanceof File) {
@@ -50,12 +49,15 @@ export function BrandFormModal({
 
 			const body = {
 				...values,
-				logo: logoUrl.trim() || null,
+				logo: logoUrl.trim() || undefined,
 			};
 
 			// 3. DATABASE
 			if (isEditing && brand) {
-				await updateBrand.mutateAsync({ id: brand.id, body });
+				await updateBrand.mutateAsync({
+					id: brand.id,
+					body,
+				});
 			} else {
 				await createBrand.mutateAsync(body);
 			}

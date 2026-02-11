@@ -1,7 +1,7 @@
-import type { Category } from "@renovabit/db/schema";
 import { toast } from "sonner";
 import { ActionModal } from "@/components/modals/ActionModal";
 import { useDeleteCategory } from "../../hooks";
+import { Category } from "../../model/category-model";
 
 interface DeleteCategoryModalProps {
 	open: boolean;

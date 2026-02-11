@@ -1,5 +1,8 @@
-import { CategoryInsertBody, CategoryUpdateBody } from "@renovabit/db/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	CategoryInsertBody,
+	CategoryUpdateBody,
+} from "../model/category-model";
 import {
 	bulkDeleteCategories,
 	categoriesKeys,

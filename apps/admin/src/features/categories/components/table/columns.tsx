@@ -7,7 +7,6 @@ import {
 	ViewOffIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { Category } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
 import { cn } from "@renovabit/ui/lib/utils";
@@ -16,21 +15,17 @@ import { Image } from "@unpic/react";
 import { ColumnHeader } from "@/components/table/column-header";
 import { StatusCell } from "@/components/table/status-cell";
 import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
-
-// Extend Category type to include parent for the table
-export type CategoryWithParent = Category & {
-	parent?: Category | null;
-};
+import { CategoryTree } from "../../model/category-model";
 
 export type CategoryColumnHandlers = {
-	onEdit: (category: CategoryWithParent) => void;
-	onDelete: (category: CategoryWithParent) => void;
-	onDeactivate: (category: CategoryWithParent) => void;
+	onEdit: (category: CategoryTree) => void;
+	onDelete: (category: CategoryTree) => void;
+	onDeactivate: (category: CategoryTree) => void;
 };
 
 export function getColumns(
 	handlers: CategoryColumnHandlers,
-): ColumnDef<CategoryWithParent>[] {
+): ColumnDef<CategoryTree>[] {
 	const { onEdit, onDelete, onDeactivate } = handlers;
 
 	return [

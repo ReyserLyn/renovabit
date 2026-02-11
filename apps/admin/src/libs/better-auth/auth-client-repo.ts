@@ -1,4 +1,5 @@
 import {
+	adminClient,
 	inferAdditionalFields,
 	usernameClient,
 } from "better-auth/client/plugins";
@@ -20,6 +21,7 @@ const authClientRepo = createAuthClient({
 	basePath: "/api/v1/auth",
 	plugins: [
 		usernameClient(),
+		adminClient(),
 		inferAdditionalFields({
 			user: {
 				username: { type: "string" },

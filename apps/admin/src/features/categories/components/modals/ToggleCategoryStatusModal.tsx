@@ -1,7 +1,7 @@
-import type { Category } from "@renovabit/db/schema";
 import { toast } from "sonner";
 import { ActionModal } from "@/components/modals/ActionModal";
 import { useUpdateCategory } from "../../hooks";
+import { Category } from "../../model/category-model";
 
 interface ToggleCategoryStatusModalProps {
 	open: boolean;
@@ -15,25 +15,26 @@ export function ToggleCategoryStatusModal({
 	category,
 }: ToggleCategoryStatusModalProps) {
 	const updateCategory = useUpdateCategory();
+	const isActivating = category ? !category.isActive : false;
 
 	const handleConfirm = async () => {
 		if (!category) return;
 
+		const nextActive = !category.isActive;
+
 		const promise = (async () => {
 			await updateCategory.mutateAsync({
 				id: category.id,
-				body: { isActive: !category.isActive },
+				body: { isActive: nextActive },
 			});
 			onOpenChange(false);
 		})();
 
 		toast.promise(promise, {
-			loading: category.isActive
-				? "Desactivando categoría…"
-				: "Activando categoría…",
-			success: category.isActive
-				? "Categoría desactivada correctamente."
-				: "Categoría activada correctamente.",
+			loading: "Cambiando estado…",
+			success: nextActive
+				? `La categoría "${category.name}" ahora está activa.`
+				: `La categoría "${category.name}" ha sido desactivada.`,
 			error: (err) =>
 				err instanceof Error ? err.message : "Error al cambiar el estado.",
 		});
@@ -43,20 +44,24 @@ export function ToggleCategoryStatusModal({
 		<ActionModal
 			open={open}
 			onOpenChange={onOpenChange}
-			title={
-				category?.isActive ? "¿Desactivar categoría?" : "¿Activar categoría?"
-			}
+			title={isActivating ? "¿Activar categoría?" : "¿Desactivar categoría?"}
 			description={
-				<>
-					¿Estás seguro de que deseas{" "}
-					{category?.isActive ? "desactivar" : "activar"} la categoría{" "}
-					<strong>{category?.name}</strong>?
-				</>
+				isActivating ? (
+					<>
+						La categoría <strong>{category?.name}</strong> volverá a estar
+						activa y visible.
+					</>
+				) : (
+					<>
+						La categoría <strong>{category?.name}</strong> dejará de estar
+						activa y se ocultará de los listados.
+					</>
+				)
 			}
 			onConfirm={handleConfirm}
 			isPending={updateCategory.isPending}
-			confirmLabel={category?.isActive ? "Desactivar" : "Activar"}
-			variant={category?.isActive ? "destructive" : "default"}
+			confirmLabel={isActivating ? "Activar" : "Desactivar"}
+			variant={isActivating ? "default" : "destructive"}
 		/>
 	);
 }

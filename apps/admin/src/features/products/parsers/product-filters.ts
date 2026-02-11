@@ -32,11 +32,11 @@ export function useProductFilters() {
 	});
 }
 
+const VALID_PAGE_SIZES = new Set<number>(PAGE_SIZE_OPTIONS);
+
 /** Tamaño de página válido para la API (clamp a opciones permitidas) */
 function getValidPageSize(size: number): number {
-	return PAGE_SIZE_OPTIONS.includes(size as (typeof PAGE_SIZE_OPTIONS)[number])
-		? size
-		: DEFAULT_PAGE_SIZE;
+	return VALID_PAGE_SIZES.has(size) ? size : DEFAULT_PAGE_SIZE;
 }
 
 /** Parámetros base para la lista (slugs); la página resuelve slug → id para la API */

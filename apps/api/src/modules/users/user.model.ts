@@ -19,3 +19,6 @@ export type AdminChangePasswordBody = z.infer<
 
 export const UserSessionSchema = schemas.user.session;
 export type UserSession = z.infer<typeof UserSessionSchema>;
+
+export const UserBanSchema = schemas.user.ban;
+export type UserBan = z.infer<typeof UserBanSchema>;

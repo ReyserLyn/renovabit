@@ -2,11 +2,7 @@ import { and, count, db, eq, inArray } from "@renovabit/db";
 import { productImages, products } from "@renovabit/db/schema";
 import { ConflictError, ValidationError } from "@/lib/errors";
 import { storageService } from "@/modules/storage/storage.service";
-import type {
-	ProductImageInsertBody,
-	ProductInsertBody,
-	ProductUpdateBody,
-} from "./product.model";
+import type { ProductInsertBody, ProductUpdateBody } from "./product.model";
 
 export type ListQuery = {
 	categoryId?: string;
@@ -72,6 +68,7 @@ export const productService = {
 
 	async create(data: ProductInsertBody) {
 		const { images, ...productData } = data;
+
 		return db.transaction(async (tx) => {
 			const [newProduct] = await tx
 				.insert(products)
@@ -82,18 +79,13 @@ export const productService = {
 				throw new ValidationError("No se pudo crear el producto.");
 			}
 
-			const validImages = images?.filter((img) =>
-				Boolean((img as ProductImageInsertBody).url),
-			) as Array<ProductImageInsertBody & { url: string }> | undefined;
-			if (validImages?.length) {
+			if (images?.length) {
 				await tx.insert(productImages).values(
-					validImages.map(
-						(img, index): ProductImageInsertBody => ({
-							...img,
-							productId: newProduct.id,
-							order: img.order ?? index,
-						}),
-					),
+					images.map((img, index) => ({
+						...img,
+						productId: newProduct.id,
+						order: img.order ?? index,
+					})),
 				);
 			}
 
@@ -110,12 +102,7 @@ export const productService = {
 		});
 	},
 
-	async update(
-		id: string,
-		data: ProductUpdateBody & {
-			images?: Array<Partial<ProductImageInsertBody> & { id?: string }>;
-		},
-	) {
+	async update(id: string, data: ProductUpdateBody) {
 		const { images, ...productData } = data;
 
 		// 1. Validar unicidad si se actualiza slug o sku
@@ -148,6 +135,7 @@ export const productService = {
 				const newImageIds = new Set(
 					images.filter((img) => img.id).map((img) => img.id),
 				);
+
 				const imagesToDelete = currentImages.filter(
 					(img) => !newImageIds.has(img.id),
 				);

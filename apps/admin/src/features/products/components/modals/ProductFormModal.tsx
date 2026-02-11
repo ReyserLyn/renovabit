@@ -1,4 +1,3 @@
-import type { ProductInsertBody } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Dialog,
@@ -12,10 +11,9 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { uploadFile } from "@/features/storage/storage-utils";
 import { useCreateProduct, useUpdateProduct } from "../../hooks";
-import type { ProductFormValues } from "../../models/product-model";
-import {
-	specEntriesToRecord,
-	specRecordToEntries,
+import type {
+	ProductFormValues,
+	ProductImage,
 } from "../../models/product-model";
 import type { ProductWithRelations } from "../../services/products-service";
 import { validateProduct } from "../../services/products-service";
@@ -57,48 +55,42 @@ export function ProductFormModal({
 				sku: values.sku,
 			});
 
-			// 2. UPLOAD DE IMÁGENES
-			const uploadedImages = await Promise.all(
-				values.images.map(async (img) => {
-					if (img.file instanceof File) {
-						const { url } = await uploadFile(img.file, "products");
-						return { url, alt: img.alt || null, order: img.order };
-					}
-					if (img.url) {
-						return { url: img.url, alt: img.alt || null, order: img.order };
-					}
-					return null;
-				}),
-			);
+			// 2. PROCESAR / SUBIR IMÁGENES
+			const uploadedImages = (
+				await Promise.all(
+					values.images.map(async (img) => {
+						if (img.file instanceof File) {
+							const { url } = await uploadFile(img.file, "products");
 
-			const filteredImages = uploadedImages.filter(
-				(img): img is { url: string; alt: string | null; order: number } =>
-					img !== null,
-			);
+							return {
+								url,
+								alt: img.alt || undefined,
+								order: img.order,
+							};
+						}
+						if (img.url) {
+							return {
+								id: img.id,
+								url: img.url,
+								alt: img.alt || undefined,
+								order: img.order,
+							};
+						}
+						return undefined;
+					}),
+				)
+			).filter((img): img is NonNullable<typeof img> => !!img);
 
-			// 3. TRANSFORMAR DATOS
-			const specifications = specEntriesToRecord(values.specEntries);
-
-			const body: ProductInsertBody = {
-				name: values.name,
-				slug: values.slug,
-				sku: values.sku,
-				description: values.description || null,
-				price: values.price,
-				stock: values.stock,
-				brandId: values.brandId || null,
-				categoryId: values.categoryId || null,
-				status: values.status,
-				isFeatured: values.isFeatured,
-				specifications,
-				images: filteredImages,
+			// 3. GUARDAR EN DB
+			const base = {
+				...values,
+				images: uploadedImages,
+				specifications: values.specifications ?? [],
 			};
-
-			// 4. GUARDAR EN DB
 			if (isEditing && product) {
-				await updateProduct.mutateAsync({ id: product.id, body });
+				await updateProduct.mutateAsync({ id: product.id, body: base });
 			} else {
-				await createProduct.mutateAsync(body);
+				await createProduct.mutateAsync(base);
 			}
 
 			onOpenChange(false);
@@ -170,23 +162,14 @@ export function ProductFormModal({
 										categoryId: product.categoryId || undefined,
 										status: product.status,
 										isFeatured: product.isFeatured,
-										specEntries: specRecordToEntries(
-											(product.specifications as Record<string, string>) || {},
-										),
+										specifications: product.specifications,
 										images:
-											product.images?.map(
-												(img: {
-													id: string;
-													url: string;
-													alt?: string | null;
-													order: number;
-												}) => ({
-													id: img.id,
-													url: img.url,
-													alt: img.alt || "",
-													order: img.order || 0,
-												}),
-											) || [],
+											product.images?.map((img: ProductImage) => ({
+												id: img.id,
+												url: img.url,
+												alt: img.alt || "",
+												order: img.order || 0,
+											})) || [],
 									}
 								: undefined
 						}

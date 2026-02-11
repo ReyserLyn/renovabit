@@ -5,7 +5,6 @@ import {
 	Edit02Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { Brand } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { Checkbox } from "@renovabit/ui/components/ui/checkbox";
 import { cn } from "@renovabit/ui/lib/utils";
@@ -15,6 +14,7 @@ import { ColumnHeader } from "@/components/table/column-header";
 import { StatusCell } from "@/components/table/status-cell";
 import { getCloudflareTransformUrl } from "@/libs/cloudflare-transform";
 import { formatDate } from "@/libs/utils";
+import type { Brand } from "../../model/brand-model";
 
 export type BrandColumnHandlers = {
 	onEdit: (brand: Brand) => void;

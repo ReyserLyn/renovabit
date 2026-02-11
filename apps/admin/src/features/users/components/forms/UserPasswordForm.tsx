@@ -16,12 +16,12 @@ import { Spinner } from "@renovabit/ui/components/ui/spinner";
 import { useForm } from "@tanstack/react-form";
 import { useEffect, useMemo, useState } from "react";
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
-import type { AdminUser } from "../../model/user-model";
 import {
 	defaultUserPasswordFormValues,
 	generateSecurePassword,
+	getUserPasswordFormValuesSchema,
+	type User,
 	type UserPasswordFormValues,
-	userPasswordFormSchema,
 } from "../../model/user-model";
 
 const formId = "user-password-form";
@@ -32,7 +32,7 @@ type UserPasswordFormProps = {
 	onCancel: () => void;
 	isPending?: boolean;
 	submitLabel: string;
-	userRole?: AdminUser["role"];
+	userRole?: User["role"];
 };
 
 export function UserPasswordForm({
@@ -46,14 +46,19 @@ export function UserPasswordForm({
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+	const schema = useMemo(
+		() => getUserPasswordFormValuesSchema(userRole),
+		[userRole],
+	);
+
 	const form = useForm({
 		defaultValues: {
 			...defaultUserPasswordFormValues,
 			...initialValues,
 		},
 		validators: {
-			onChange: userPasswordFormSchema,
-			onSubmit: userPasswordFormSchema,
+			onChange: schema,
+			onSubmit: schema,
 		},
 		onSubmit: async ({ value }) => {
 			await onSubmit(value);
@@ -107,8 +112,6 @@ export function UserPasswordForm({
 											onBlur={field.handleBlur}
 											onChange={(e) => field.handleChange(e.target.value)}
 											disabled={isPending}
-											required
-											minLength={8}
 											autoComplete="new-password"
 											aria-invalid={isInvalid}
 											aria-describedby={isInvalid ? errorId : undefined}
@@ -184,8 +187,6 @@ export function UserPasswordForm({
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
 										disabled={isPending}
-										required
-										minLength={8}
 										autoComplete="new-password"
 										aria-invalid={isInvalid}
 										aria-describedby={isInvalid ? errorId : undefined}

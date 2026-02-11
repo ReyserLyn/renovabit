@@ -5,7 +5,6 @@ import { badRequest, notFound } from "@/lib/errors";
 import { validateRateLimitPlugin } from "@/lib/rate-limit";
 import { authRoutes, isAdminUser } from "@/modules/auth";
 import {
-	ProductImageInsertBodySchema,
 	ProductInsertBodySchema,
 	ProductSchema,
 	ProductUpdateBodySchema,
@@ -36,13 +35,13 @@ export const productController = new Elysia({ prefix: "/products" })
 		},
 		{
 			detail: { tags: ["Products"] },
-			query: z.object({
-				categoryId: z.uuidv7().optional(),
-				brandId: z.uuidv7().optional(),
-				featured: z.boolean().optional(),
-				includeInactive: z.boolean().optional(),
-				limit: z.number().min(1).max(100).optional(),
-				offset: z.number().min(0).optional(),
+			query: t.Object({
+				categoryId: t.Optional(t.String()),
+				brandId: t.Optional(t.String()),
+				featured: t.Optional(t.Boolean()),
+				includeInactive: t.Optional(t.Boolean()),
+				limit: t.Optional(t.Numeric({ minimum: 1, maximum: 100 })),
+				offset: t.Optional(t.Numeric({ minimum: 0 })),
 			}),
 		},
 	)
@@ -95,17 +94,7 @@ export const productController = new Elysia({ prefix: "/products" })
 		{
 			detail: { tags: ["Products"] },
 			isAdmin: true,
-			body: ProductUpdateBodySchema.and(
-				z.object({
-					images: z
-						.array(
-							ProductImageInsertBodySchema.partial().extend({
-								id: z.string().optional(),
-							}),
-						)
-						.optional(),
-				}),
-			),
+			body: ProductUpdateBodySchema,
 			params: idParam,
 			response: {
 				200: ProductSchema,

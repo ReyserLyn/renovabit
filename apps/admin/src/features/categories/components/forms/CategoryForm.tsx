@@ -22,12 +22,12 @@ import { useForm, useStore } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
 import { ImageUpload } from "@/components/forms/image-upload";
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
+import { slugify } from "@/libs/slugify";
 import { useCategories } from "../../hooks";
 import {
-	type CategoryFormValues,
-	categoryFormSchema,
+	CategoryFormValues,
+	CategoryFormValuesSchema,
 	defaultCategoryFormValues,
-	slugify,
 } from "../../model/category-model";
 
 const formId = "category-form";
@@ -60,8 +60,8 @@ export function CategoryForm({
 			...initialValues,
 		},
 		validators: {
-			onChange: categoryFormSchema,
-			onSubmit: categoryFormSchema,
+			onChange: CategoryFormValuesSchema,
+			onSubmit: CategoryFormValuesSchema,
 		},
 		onSubmit: async ({ value }) => {
 			await onSubmit(value);
@@ -326,7 +326,6 @@ export function CategoryForm({
 					<form.Field
 						name="showInNavbar"
 						children={(field) => {
-							// We subscribe to the isActive state to control enablement
 							const isInvalid =
 								field.state.meta.isTouched && !field.state.meta.isValid;
 							return (

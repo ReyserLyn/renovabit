@@ -5,7 +5,6 @@ import {
 	ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import type { Category } from "@renovabit/db/schema";
 import { Badge } from "@renovabit/ui/components/ui/badge";
 import { Button } from "@renovabit/ui/components/ui/button";
 import {
@@ -21,19 +20,18 @@ import {
 } from "@renovabit/ui/components/ui/collapsible";
 import { cn } from "@renovabit/ui/lib/utils";
 import { useMemo } from "react";
+import type { Category } from "../model/category-model";
 
-interface CategoryTreePreviewProps {
+type CategoryTreeNode = Category & { children: CategoryTreeNode[] };
+
+export function CategoryTreePreview({
+	categories,
+}: {
 	categories: Category[];
-}
-
-interface TreeItem extends Category {
-	children: TreeItem[];
-}
-
-export function CategoryTreePreview({ categories }: CategoryTreePreviewProps) {
+}) {
 	const tree = useMemo(() => {
-		const categoryMap = new Map<string, TreeItem>();
-		const roots: TreeItem[] = [];
+		const categoryMap = new Map<string, CategoryTreeNode>();
+		const roots: CategoryTreeNode[] = [];
 
 		// Initialize all items
 		for (const cat of categories) {
@@ -42,7 +40,9 @@ export function CategoryTreePreview({ categories }: CategoryTreePreviewProps) {
 
 		// Build hierarchy
 		for (const cat of categories) {
-			const item = categoryMap.get(cat.id)!;
+			const item = categoryMap.get(cat.id);
+			if (!item) continue;
+
 			if (cat.parentId && categoryMap.has(cat.parentId)) {
 				categoryMap.get(cat.parentId)!.children.push(item);
 			} else {
@@ -51,7 +51,7 @@ export function CategoryTreePreview({ categories }: CategoryTreePreviewProps) {
 		}
 
 		// Sort each level by order then name
-		const sortItems = (items: TreeItem[]) => {
+		const sortItems = (items: CategoryTreeNode[]) => {
 			items.sort((a, b) => {
 				if (a.order !== b.order) return a.order - b.order;
 				return a.name.localeCompare(b.name);
@@ -67,7 +67,7 @@ export function CategoryTreePreview({ categories }: CategoryTreePreviewProps) {
 		return roots;
 	}, [categories]);
 
-	const renderItem = (item: TreeItem, level = 0) => {
+	const renderItem = (item: CategoryTreeNode, level = 0) => {
 		const hasChildren = item.children.length > 0;
 
 		if (hasChildren) {
@@ -87,16 +87,20 @@ export function CategoryTreePreview({ categories }: CategoryTreePreviewProps) {
 									icon={ArrowRight01Icon}
 									className="size-3.5 transition-transform group-data-[state=open]:rotate-90 text-muted-foreground"
 								/>
+
 								<HugeiconsIcon
 									icon={Folder01Icon}
 									className="size-4 text-primary/70"
 								/>
+
 								<span className="truncate flex-1 text-left">{item.name}</span>
+
 								{!item.isActive && (
 									<Badge variant="outline" className="text-[10px] h-4 px-1">
 										Inactiva
 									</Badge>
 								)}
+
 								{item.showInNavbar && (
 									<div
 										className="size-1.5 rounded-full bg-green-500"
@@ -122,16 +126,20 @@ export function CategoryTreePreview({ categories }: CategoryTreePreviewProps) {
 				)}
 			>
 				<div className="size-3.5" />
+
 				<HugeiconsIcon
 					icon={Menu01Icon}
 					className="size-4 text-muted-foreground"
 				/>
+
 				<span className="truncate flex-1">{item.name}</span>
+
 				{!item.isActive && (
 					<Badge variant="outline" className="text-[10px] h-4 px-1">
 						Inactiva
 					</Badge>
 				)}
+
 				{item.showInNavbar && (
 					<div
 						className="size-1.5 rounded-full bg-green-500"

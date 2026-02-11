@@ -12,11 +12,11 @@ import { useForm } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
 import { ImageUpload } from "@/components/forms/image-upload";
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
+import { slugify } from "@/libs/slugify";
 import {
 	type BrandFormValues,
-	brandFormSchema,
+	BrandFormValuesSchema,
 	defaultBrandFormValues,
-	slugify,
 } from "../../model/brand-model";
 
 const formId = "brand-form";
@@ -44,8 +44,8 @@ export function BrandForm({
 			...initialValues,
 		},
 		validators: {
-			onChange: brandFormSchema,
-			onSubmit: brandFormSchema,
+			onChange: BrandFormValuesSchema,
+			onSubmit: BrandFormValuesSchema,
 		},
 		onSubmit: async ({ value }) => {
 			await onSubmit(value);
@@ -163,9 +163,9 @@ export function BrandForm({
 								</FieldLabel>
 								<ImageUpload
 									label="Logo de la Marca"
-									value={field.state.value}
+									value={field.state.value ?? undefined}
 									onChange={(val: string | File | undefined) =>
-										field.handleChange(val ?? "")
+										field.handleChange(val ?? undefined)
 									}
 									disabled={isPending}
 								/>

@@ -1,10 +1,19 @@
-import { db, eq, sessions, users } from "@renovabit/db";
+import {
+	db,
+	eq,
+	sessions,
+	users,
+	validatePasswordForRole,
+} from "@renovabit/db";
+import { deriveUsername } from "@renovabit/db/schema";
 import { InternalServerError } from "elysia";
-import { NotFoundError } from "@/lib/errors";
+import { handleAuthError, parseAuthError } from "@/lib/better-auth-errors";
+import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors";
 import { auth } from "@/modules/auth/auth";
 import {
 	AdminChangePasswordBody,
 	AdminCreateUserBody,
+	UserBan,
 	UserUpdateBody,
 } from "./user.model";
 
@@ -26,6 +35,37 @@ export const userService = {
 			throw new NotFoundError("Usuario no encontrado");
 		}
 
+		// Validar unicidad de email si cambió
+		if (data.email !== undefined && data.email !== existingUser.email) {
+			const existingByEmail = await db.query.users.findFirst({
+				where: eq(users.email, data.email),
+			});
+			if (existingByEmail) {
+				throw new ConflictError(
+					"El correo electrónico ya está en uso",
+					undefined,
+					"EMAIL_ALREADY_IN_USE",
+				);
+			}
+		}
+
+		// Validar unicidad de username si displayUsername cambió
+		if (data.displayUsername !== undefined) {
+			const newUsername = deriveUsername(data.displayUsername);
+			if (newUsername && newUsername !== existingUser.username) {
+				const existingByUsername = await db.query.users.findFirst({
+					where: eq(users.username, newUsername),
+				});
+				if (existingByUsername && existingByUsername.id !== id) {
+					throw new ConflictError(
+						"El nombre de usuario ya está en uso",
+						undefined,
+						"USERNAME_IS_ALREADY_TAKEN",
+					);
+				}
+			}
+		}
+
 		try {
 			await auth.api.adminUpdateUser({
 				body: {
@@ -34,14 +74,13 @@ export const userService = {
 				},
 				headers,
 			});
-			// Devolver el usuario actualizado desde la base de datos
 			const updatedUser = await this.getUserById(id);
 			if (!updatedUser) {
 				throw new NotFoundError("Usuario no encontrado después de actualizar");
 			}
 			return updatedUser;
-		} catch {
-			throw new InternalServerError("Error al actualizar el usuario");
+		} catch (error) {
+			handleAuthError(error, "Failed to update user");
 		}
 	},
 
@@ -60,8 +99,8 @@ export const userService = {
 				headers,
 			});
 			return result;
-		} catch {
-			throw new InternalServerError("Error al eliminar el usuario");
+		} catch (error) {
+			handleAuthError(error, "Failed to delete user");
 		}
 	},
 
@@ -69,7 +108,7 @@ export const userService = {
 		if (ids.length === 0) return { deleted: [], errors: [] };
 
 		const deleted: Array<{ id: string }> = [];
-		const errors: Array<{ id: string; message: string }> = [];
+		const errors: Array<{ id: string; message: string; code?: string }> = [];
 
 		for (const userId of ids) {
 			try {
@@ -81,14 +120,11 @@ export const userService = {
 				});
 				deleted.push({ id: userId });
 			} catch (error) {
-				const message =
-					error instanceof Error
-						? error.message
-						: "Error al eliminar el usuario";
-				errors.push({
-					id: userId,
-					message,
-				});
+				const { message, code } = parseAuthError(
+					error,
+					"Failed to delete user",
+				);
+				errors.push({ id: userId, message, ...(code && { code }) });
 			}
 		}
 
@@ -96,6 +132,19 @@ export const userService = {
 	},
 
 	async createUser(data: AdminCreateUserBody, headers: Headers) {
+		if (data.username) {
+			const existingByUsername = await db.query.users.findFirst({
+				where: eq(users.username, data.username),
+			});
+			if (existingByUsername) {
+				throw new ConflictError(
+					"Username already in use",
+					undefined,
+					"USERNAME_IS_ALREADY_TAKEN",
+				);
+			}
+		}
+
 		try {
 			const result = await auth.api.createUser({
 				body: {
@@ -116,8 +165,8 @@ export const userService = {
 				throw new InternalServerError("No se pudo crear el usuario");
 			}
 			return result.user;
-		} catch {
-			throw new InternalServerError("Error al crear el usuario");
+		} catch (error) {
+			handleAuthError(error, "Failed to create user");
 		}
 	},
 
@@ -132,6 +181,11 @@ export const userService = {
 			throw new NotFoundError("Usuario no encontrado");
 		}
 
+		const pwdCheck = validatePasswordForRole(data.password, user.role);
+		if (!pwdCheck.valid) {
+			throw new ValidationError(pwdCheck.message);
+		}
+
 		try {
 			await auth.api.setUserPassword({
 				body: {
@@ -141,33 +195,28 @@ export const userService = {
 				headers,
 			});
 			return user;
-		} catch {
-			throw new InternalServerError("Error al cambiar la contraseña");
+		} catch (error) {
+			handleAuthError(error, "Failed to change password");
 		}
 	},
 
-	async banUser(
-		userId: string,
-		headers: Headers,
-		options?: { banReason?: string; banExpiresIn?: number },
-	) {
+	async banUser(userId: string, headers: Headers, data: UserBan) {
 		try {
 			await auth.api.banUser({
 				body: {
 					userId,
-					banReason: options?.banReason,
-					banExpiresIn: options?.banExpiresIn,
+					banReason: data.banReason,
+					banExpiresIn: data.banExpiresIn,
 				},
 				headers,
 			});
-			// Devolver el usuario actualizado desde la base de datos
 			const user = await this.getUserById(userId);
 			if (!user) {
 				throw new NotFoundError("Usuario no encontrado después de banear");
 			}
 			return user;
-		} catch {
-			throw new InternalServerError("Error al banear el usuario");
+		} catch (error) {
+			handleAuthError(error, "Failed to ban user");
 		}
 	},
 
@@ -185,8 +234,8 @@ export const userService = {
 				throw new NotFoundError("Usuario no encontrado después de desbanear");
 			}
 			return user;
-		} catch {
-			throw new InternalServerError("Error al desbanear el usuario");
+		} catch (error) {
+			handleAuthError(error, "Failed to unban user");
 		}
 	},
 
@@ -203,29 +252,29 @@ export const userService = {
 
 	async revokeUserSession(sessionToken: string, headers: Headers) {
 		try {
-			const result = await auth.api.revokeUserSession({
+			const { success } = await auth.api.revokeUserSession({
 				body: {
 					sessionToken,
 				},
 				headers,
 			});
-			return result.success;
-		} catch {
-			throw new InternalServerError("Error al revocar la sesión");
+			return success;
+		} catch (error) {
+			handleAuthError(error, "Failed to revoke session");
 		}
 	},
 
 	async revokeAllUserSessions(userId: string, headers: Headers) {
 		try {
-			const result = await auth.api.revokeUserSessions({
+			const { success } = await auth.api.revokeUserSessions({
 				body: {
 					userId,
 				},
 				headers,
 			});
-			return result.success;
-		} catch {
-			throw new InternalServerError("Error al revocar todas las sesiones");
+			return success;
+		} catch (error) {
+			handleAuthError(error, "Failed to revoke all sessions");
 		}
 	},
 };

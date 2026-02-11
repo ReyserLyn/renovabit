@@ -5,9 +5,24 @@ import {
 } from "drizzle-zod";
 import z from "zod";
 import { sessions, users } from "./auth";
+
+export function deriveUsername(
+	displayUsername: string | undefined,
+): string | undefined {
+	if (!displayUsername?.trim()) return undefined;
+	const first = displayUsername.trim().split(/\s+/)[0];
+	return first ? first.toLowerCase() : undefined;
+}
+
 import { brands } from "./brands";
 import { categories } from "./categories";
 import { productImages, products } from "./products";
+
+export const productSpecificationSchema = z.object({
+	id: z.string(),
+	key: z.string().trim().max(120, { error: "Máx. 120 caracteres" }),
+	value: z.string().trim().max(255, { error: "Máx. 255 caracteres" }),
+});
 
 const validations = {
 	brand: {
@@ -86,13 +101,7 @@ const validations = {
 		categoryId: z.uuid({ error: "ID de categoría no válido." }).optional(),
 		status: z.enum(["active", "inactive", "out_of_stock"]),
 		isFeatured: z.boolean(),
-		specifications: z.array(
-			z.object({
-				id: z.string(),
-				key: z.string().max(120, { error: "Máx. 120 caracteres" }),
-				value: z.string().max(255, { error: "Máx. 255 caracteres" }),
-			}),
-		),
+		specifications: z.array(productSpecificationSchema).default([]),
 	},
 	productImage: {
 		url: z.url({ error: "Introduce una URL válida" }),
@@ -116,16 +125,7 @@ const validations = {
 			.string()
 			.max(50, { error: "El teléfono no puede superar 50 caracteres" })
 			.optional(),
-		username: z
-			.string()
-			.min(1, { error: "El nombre de usuario es requerido" })
-			.max(100, {
-				error: "El nombre de usuario no puede superar 100 caracteres",
-			})
-			.regex(/^\S*$/, {
-				error: "El nombre de usuario no puede contener espacios",
-			})
-			.optional(),
+		/** Nombre de usuario para mostrar. username se deriva de aquí. */
 		displayUsername: z
 			.string()
 			.min(1, { error: "El nombre de usuario es requerido" })
@@ -134,9 +134,8 @@ const validations = {
 			})
 			.regex(/^\S*$/, {
 				error: "El nombre de usuario no puede contener espacios",
-			})
-			.optional(),
-		role: z.enum(["admin", "distributor", "customer"], {
+			}),
+		role: z.enum(["admin", "customer", "distributor"], {
 			error: "El rol seleccionado no es válido",
 		}),
 	},
@@ -146,6 +145,102 @@ const passwordSchema = z
 	.string()
 	.min(8, { error: "La contraseña debe tener al menos 8 caracteres" })
 	.max(255, { error: "La contraseña no puede superar 255 caracteres" });
+
+const PASSWORD_STRENGTH_ERROR_CUSTOMER =
+	"La contraseña debe tener al menos 8 caracteres y un número.";
+
+const PASSWORD_STRENGTH_ERROR_ADMIN =
+	"La contraseña debe contener al menos una mayúscula, una minúscula, un número y un símbolo (!@#$%^&*).";
+
+const PASSWORD_CHARS = {
+	lower: "abcdefghijklmnopqrstuvwxyz",
+	upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	digit: "0123456789",
+	symbol: "!@#$%^&*",
+} as const;
+
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 16;
+
+function secureRandomInt(max: number): number {
+	const value = crypto.getRandomValues(new Uint32Array(1))[0];
+	return (value ?? 0) % max;
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+	const out = [...arr];
+	for (let i = out.length - 1; i > 0; i--) {
+		const j = secureRandomInt(i + 1);
+		const tmp = out[i];
+		out[i] = out[j]!;
+		out[j] = tmp!;
+	}
+	return out;
+}
+
+/** Genera una contraseña que cumple los requisitos mínimos del rol (puede ser más fuerte) */
+export function generateSecurePassword(
+	role: "admin" | "customer" | "distributor",
+): string {
+	const length =
+		PASSWORD_MIN_LENGTH +
+		secureRandomInt(PASSWORD_MAX_LENGTH - PASSWORD_MIN_LENGTH + 1);
+	const chars: string[] = [];
+
+	if (role === "customer") {
+		// Cliente: mínimo 8 chars + 1 número
+		chars.push(
+			PASSWORD_CHARS.digit.charAt(secureRandomInt(PASSWORD_CHARS.digit.length)),
+		);
+		const charset =
+			PASSWORD_CHARS.lower + PASSWORD_CHARS.upper + PASSWORD_CHARS.digit;
+		while (chars.length < length) {
+			chars.push(charset.charAt(secureRandomInt(charset.length)));
+		}
+	} else {
+		// Admin y distributor: mínimo 1 de cada tipo
+		chars.push(
+			PASSWORD_CHARS.upper.charAt(secureRandomInt(PASSWORD_CHARS.upper.length)),
+			PASSWORD_CHARS.lower.charAt(secureRandomInt(PASSWORD_CHARS.lower.length)),
+			PASSWORD_CHARS.digit.charAt(secureRandomInt(PASSWORD_CHARS.digit.length)),
+			PASSWORD_CHARS.symbol.charAt(
+				secureRandomInt(PASSWORD_CHARS.symbol.length),
+			),
+		);
+		const charset =
+			PASSWORD_CHARS.lower +
+			PASSWORD_CHARS.upper +
+			PASSWORD_CHARS.digit +
+			PASSWORD_CHARS.symbol;
+		while (chars.length < length) {
+			chars.push(charset.charAt(secureRandomInt(charset.length)));
+		}
+	}
+
+	return shuffleArray(chars).join("");
+}
+
+/** Valida que la contraseña cumpla requisitos por rol */
+export function validatePasswordForRole(
+	password: string,
+	role: "admin" | "customer" | "distributor",
+): { valid: true } | { valid: false; message: string } {
+	if (role === "customer") {
+		if (!/[0-9]/.test(password)) {
+			return { valid: false, message: PASSWORD_STRENGTH_ERROR_CUSTOMER };
+		}
+		return { valid: true };
+	}
+	// admin y distributor: mínimo 1 de cada tipo (mayúscula, minúscula, número, símbolo)
+	const hasUpperCase = /[A-Z]/.test(password);
+	const hasLowerCase = /[a-z]/.test(password);
+	const hasNumber = /[0-9]/.test(password);
+	const hasSymbol = /[!@#$%^&*]/.test(password);
+	if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSymbol) {
+		return { valid: false, message: PASSWORD_STRENGTH_ERROR_ADMIN };
+	}
+	return { valid: true };
+}
 
 const rawSelect = {
 	brand: createSelectSchema(brands),
@@ -178,6 +273,11 @@ const omitLifecycleDates = {
 	updatedAt: true,
 } as const;
 
+export const productImageForProductSchema = rawInsert.productImage.omit({
+	...omitLifecycleDates,
+	productId: true,
+});
+
 // schemas de las tabla
 export const schemas = {
 	brand: {
@@ -188,37 +288,51 @@ export const schemas = {
 	category: {
 		select: rawSelect.category,
 		insert: rawInsert.category.omit(omitLifecycleDates),
-		update: rawUpdate.category.omit(omitLifecycleDates),
+		update: rawUpdate.category.omit(omitLifecycleDates).partial(),
 	},
 	product: {
-		insert: rawInsert.product.omit(omitLifecycleDates).and(
-			z.object({
+		select: rawSelect.product,
+		insert: rawInsert.product.omit(omitLifecycleDates).extend({
+			images: z.array(productImageForProductSchema).optional().default([]),
+		}),
+		update: rawUpdate.product
+			.omit(omitLifecycleDates)
+			.partial()
+			.extend({
 				images: z
-					.array(rawInsert.productImage.omit(omitLifecycleDates).partial())
+					.array(rawUpdate.productImage.omit({ productId: true }).partial())
 					.optional(),
 			}),
-		),
-		update: rawUpdate.product.omit(omitLifecycleDates).partial(),
-		select: rawSelect.product,
 	},
 	productImage: {
+		select: rawSelect.productImage,
 		insert: rawInsert.productImage.omit(omitLifecycleDates),
 		update: rawUpdate.productImage.omit(omitLifecycleDates).partial(),
-		select: rawSelect.productImage,
 	},
 	user: {
 		select: rawSelect.user,
 		insert: rawInsert.user.omit(omitLifecycleDates),
-		update: rawUpdate.user.omit(omitLifecycleDates),
+		update: rawUpdate.user
+			.omit(omitLifecycleDates)
+			.partial()
+			.transform((data) => {
+				if (data.displayUsername !== undefined)
+					return { ...data, username: deriveUsername(data.displayUsername) };
+				return data;
+			}),
 
 		session: rawSelect.session,
 
 		adminCreate: rawInsert.user
-			.omit(omitLifecycleDates)
+			.omit({ ...omitLifecycleDates, username: true })
 			.extend({
 				password: passwordSchema,
 				confirmPassword: z.string(),
 			})
+			.transform((data) => ({
+				...data,
+				username: deriveUsername(data.displayUsername),
+			}))
 			.superRefine((data, ctx) => {
 				if (data.password !== data.confirmPassword) {
 					ctx.addIssue({
@@ -227,18 +341,13 @@ export const schemas = {
 						path: ["confirmPassword"],
 					});
 				}
-				if (data.role === "admin" || data.role === "distributor") {
-					const hasUpperCase = /[A-Z]/.test(data.password);
-					const hasLowerCase = /[a-z]/.test(data.password);
-					const hasNumber = /[0-9]/.test(data.password);
-					if (!hasUpperCase || !hasLowerCase || !hasNumber) {
-						ctx.addIssue({
-							code: "custom",
-							message:
-								"La contraseña debe contener al menos una mayúscula, una minúscula y un número",
-							path: ["password"],
-						});
-					}
+				const result = validatePasswordForRole(data.password, data.role);
+				if (!result.valid) {
+					ctx.addIssue({
+						code: "custom",
+						message: result.message,
+						path: ["password"],
+					});
 				}
 			}),
 
@@ -256,5 +365,14 @@ export const schemas = {
 					});
 				}
 			}),
+
+		ban: z.object({
+			banReason: z
+				.string()
+				.max(500, { error: "La razón del baneo es demasiado larga." }),
+			banExpiresIn: z.number().int().min(0, {
+				error: "Use 0 para baneo permanente o un número positivo (segundos).",
+			}),
+		}),
 	},
 } as const;

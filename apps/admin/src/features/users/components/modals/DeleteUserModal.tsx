@@ -1,13 +1,15 @@
+import { useCallback } from "react";
 import { toast } from "sonner";
 import { ActionModal } from "@/components/modals/ActionModal";
+import { getAuthMessage } from "@/libs/better-auth/auth-error-messages";
 import { useDeleteUser } from "../../hooks";
-import type { AdminUser } from "../../model/user-model";
+import type { User } from "../../model/user-model";
 import { getUserDisplayName } from "../../model/user-model";
 
 interface DeleteUserModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	user: AdminUser | null;
+	user: User | null;
 }
 
 export function DeleteUserModal({
@@ -16,8 +18,10 @@ export function DeleteUserModal({
 	user,
 }: DeleteUserModalProps) {
 	const deleteUser = useDeleteUser();
+	const isPending = deleteUser.isPending;
+	const displayName = user ? getUserDisplayName(user) : "este usuario";
 
-	const handleConfirm = async () => {
+	const handleConfirm = useCallback(async () => {
 		if (!user) return;
 
 		const promise = (async () => {
@@ -25,15 +29,12 @@ export function DeleteUserModal({
 			onOpenChange(false);
 		})();
 
-		toast.promise(promise, {
+		await toast.promise(promise, {
 			loading: "Eliminando usuario…",
-			success: `El usuario "${getUserDisplayName(user)}" ha sido eliminado.`,
-			error: (err) =>
-				err instanceof Error ? err.message : "No se pudo eliminar el usuario.",
+			success: `El usuario "${displayName}" ha sido eliminado.`,
+			error: (err) => getAuthMessage(err) || "No se pudo eliminar el usuario.",
 		});
-	};
-
-	const displayName = user ? getUserDisplayName(user) : "este usuario";
+	}, [user, deleteUser, onOpenChange, displayName]);
 
 	return (
 		<ActionModal
@@ -47,7 +48,7 @@ export function DeleteUserModal({
 				</>
 			}
 			onConfirm={handleConfirm}
-			isPending={deleteUser.isPending}
+			isPending={isPending}
 			confirmLabel="Eliminar usuario"
 			variant="destructive"
 		/>

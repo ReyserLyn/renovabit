@@ -7,28 +7,28 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@renovabit/ui/components/ui/select";
-import type { UserRoleFilter } from "../../parsers/user-filters";
-import { useUserFilters } from "../../parsers/user-filters";
+import { ROLE_FILTER_LABELS, USER_ROLE_VALUES } from "../../model/user-model";
+import {
+	USER_ROLE_FILTER_OPTIONS,
+	type UserRoleFilter,
+	useUserFilters,
+} from "../../parsers/user-filters";
+
+function isUserRoleFilter(val: string): val is UserRoleFilter {
+	return USER_ROLE_FILTER_OPTIONS.some((r) => r === val);
+}
 
 function getRoleFilterLabel(role: UserRoleFilter): string {
-	switch (role) {
-		case "admin":
-			return "Administradores";
-		case "distributor":
-			return "Distribuidores";
-		case "customer":
-			return "Clientes";
-		case "all":
-		default:
-			return "Todos los roles";
-	}
+	if (role === "all") return "Todos los roles";
+	return ROLE_FILTER_LABELS[role];
 }
 
 export function UserFilters() {
 	const [filters, setFilters] = useUserFilters();
 
 	const handleRoleChange = (value: string | null) => {
-		const nextRole = (value ?? "all") as UserRoleFilter;
+		const raw = value ?? "all";
+		const nextRole: UserRoleFilter = isUserRoleFilter(raw) ? raw : "all";
 		setFilters({
 			role: nextRole,
 		});
@@ -51,14 +51,18 @@ export function UserFilters() {
 				<Select value={filters.role} onValueChange={handleRoleChange}>
 					<SelectTrigger id="filter-role" className="w-[200px]">
 						<SelectValue placeholder="Todos los roles">
-							{getRoleFilterLabel(filters.role)}
+							{getRoleFilterLabel(
+								isUserRoleFilter(filters.role) ? filters.role : "all",
+							)}
 						</SelectValue>
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">Todos los roles</SelectItem>
-						<SelectItem value="admin">Administradores</SelectItem>
-						<SelectItem value="distributor">Distribuidores</SelectItem>
-						<SelectItem value="customer">Clientes</SelectItem>
+						{USER_ROLE_VALUES.map((role) => (
+							<SelectItem key={role} value={role}>
+								{ROLE_FILTER_LABELS[role]}
+							</SelectItem>
+						))}
 					</SelectContent>
 				</Select>
 			</div>

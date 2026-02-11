@@ -4,6 +4,7 @@ import {
 	ViewOffIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { deriveUsername } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Field,
@@ -21,51 +22,100 @@ import {
 	SelectValue,
 } from "@renovabit/ui/components/ui/select";
 import { Spinner } from "@renovabit/ui/components/ui/spinner";
-import { useForm, useStore } from "@tanstack/react-form";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type AnyFieldApi, useForm, useStore } from "@tanstack/react-form";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
 import {
 	defaultUserFormValues,
 	defaultUserUpdateFormValues,
 	generateSecurePassword,
 	getRoleLabel,
+	USER_ROLE_VALUES,
 	type UserFormValues,
+	UserFormValuesSchema,
 	type UserUpdateFormValues,
-	userFormSchema,
-	userUpdateFormSchema,
+	UserUpdateFormValuesSchema,
 } from "../../model/user-model";
 
 const formId = "user-form";
 
+/**
+ * Normaliza los valores para la comparación de "sucio" (dirty check).
+ * Ignora espacios adicionales y trata strings vacíos como null para campos opcionales.
+ */
 function serializeForDirtyCompare(
-	values: Partial<UserFormValues> | Partial<UserUpdateFormValues> | undefined,
+	values: Partial<UserFormValues> | Partial<UserUpdateFormValues>,
 ): string {
 	if (!values) return "";
 
+	const trim = (v?: string | null) => v?.trim() ?? "";
+	const trimOrNull = (v?: string | null) => v?.trim() || null;
+
 	const normalized: Record<string, unknown> = {};
 
-	if ("name" in values) normalized.name = values.name?.trim() ?? "";
-	if ("email" in values) normalized.email = values.email?.trim() ?? "";
-	if ("phone" in values) normalized.phone = values.phone?.trim() || null;
-	if ("username" in values)
-		normalized.username = values.username?.trim() || null;
+	if ("name" in values) normalized.name = trim(values.name);
+	if ("email" in values) normalized.email = trim(values.email);
+	if ("phone" in values) normalized.phone = trimOrNull(values.phone);
 	if ("displayUsername" in values)
-		normalized.displayUsername = values.displayUsername?.trim() || null;
+		normalized.displayUsername = trimOrNull(values.displayUsername);
 	if ("role" in values) normalized.role = values.role;
 
-	if ("password" in values && values.password) {
+	if ("password" in values && values.password)
 		normalized.password = values.password;
-	}
-	if ("confirmPassword" in values && values.confirmPassword) {
+	if ("confirmPassword" in values && values.confirmPassword)
 		normalized.confirmPassword = values.confirmPassword;
-	}
 
 	return JSON.stringify(normalized);
 }
 
+interface CommonFormFieldProps {
+	field: AnyFieldApi;
+	label: string;
+	description?: string;
+	required?: boolean;
+	children: (props: {
+		id: string;
+		isInvalid: boolean;
+		errorId: string;
+	}) => ReactNode;
+}
+
+/**
+ * Componente interno para reducir el boilerplate de cada campo del formulario.
+ */
+function FormFieldWrapper({
+	field,
+	label,
+	description,
+	required,
+	children,
+}: CommonFormFieldProps) {
+	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+	const errorId = getFieldErrorId(formId, field.name);
+
+	return (
+		<Field data-invalid={isInvalid}>
+			<FieldLabel htmlFor={`${formId}-${field.name}`}>
+				{label} {required && <span className="text-destructive">*</span>}
+			</FieldLabel>
+			{description && <FieldDescription>{description}</FieldDescription>}
+			{children({ id: `${formId}-${field.name}`, isInvalid, errorId })}
+			{isInvalid && (
+				<FieldError
+					id={errorId}
+					errors={normalizeFieldErrors(field.state.meta.errors)}
+				/>
+			)}
+		</Field>
+	);
+}
+
 type UserFormProps = {
 	isEditing?: boolean;
+	/** Valores iniciales al abrir el formulario. Para edición, solo se resetea cuando initialValuesKey cambia. */
 	initialValues?: Partial<UserFormValues> | Partial<UserUpdateFormValues>;
+	/** Clave estable (ej. user.id) para evitar resets por cambios de referencia en initialValues. */
+	initialValuesKey?: string;
 	onSubmit: (values: UserFormValues | UserUpdateFormValues) => Promise<void>;
 	onCancel: () => void;
 	isPending?: boolean;
@@ -76,14 +126,18 @@ type UserFormProps = {
 export function UserForm({
 	isEditing = false,
 	initialValues,
+	initialValuesKey,
 	onSubmit,
 	onCancel,
 	isPending,
 	submitLabel,
 	onDirtyChange,
 }: UserFormProps) {
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 	const schema = useMemo(
-		() => (isEditing ? userUpdateFormSchema : userFormSchema),
+		() => (isEditing ? UserUpdateFormValuesSchema : UserFormValuesSchema),
 		[isEditing],
 	);
 	const defaultValues = useMemo(
@@ -95,7 +149,7 @@ export function UserForm({
 		defaultValues: {
 			...defaultValues,
 			...initialValues,
-		} as UserFormValues | UserUpdateFormValues,
+		},
 		validators: {
 			onChange: schema,
 			onSubmit: schema,
@@ -105,58 +159,44 @@ export function UserForm({
 		},
 	});
 
+	// Gestión de estado "dirty"
 	const initialSnapshotRef = useRef(
 		serializeForDirtyCompare(initialValues ?? defaultValues),
 	);
 	const lastReportedDirtyRef = useRef<boolean>(false);
 
-	const serializedInitialValues = useMemo(
-		() => serializeForDirtyCompare(initialValues),
-		[
-			initialValues?.name,
-			initialValues?.email,
-			initialValues?.phone,
-			initialValues?.username,
-			initialValues?.displayUsername,
-			initialValues?.role,
-			"password" in (initialValues ?? {})
-				? (initialValues as UserFormValues)?.password
-				: undefined,
-			"confirmPassword" in (initialValues ?? {})
-				? (initialValues as UserFormValues)?.confirmPassword
-				: undefined,
-		],
-	);
-
-	useEffect(() => {
-		if (initialValues) {
-			form.reset({
-				...defaultValues,
-				...initialValues,
-			} as UserFormValues | UserUpdateFormValues);
-			initialSnapshotRef.current = serializedInitialValues;
-			lastReportedDirtyRef.current = false;
-		}
-	}, [serializedInitialValues, defaultValues]);
-
 	const currentValues = useStore(form.store, (state) => state.values);
-	const currentRole = useStore(
-		form.store,
-		(state) => (state.values as UserFormValues | UserUpdateFormValues).role,
-	);
-	const [showPassword, setShowPassword] = useState(false);
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const currentRole = useStore(form.store, (state) => {
+		const role = state.values.role;
+		return USER_ROLE_VALUES.find((r) => r === role) ?? "customer";
+	});
 
 	useEffect(() => {
-		const snapshot = serializeForDirtyCompare(
-			currentValues as Partial<UserFormValues> | Partial<UserUpdateFormValues>,
-		);
+		const snapshot = serializeForDirtyCompare(currentValues);
 		const dirty = snapshot !== initialSnapshotRef.current;
 		if (dirty !== lastReportedDirtyRef.current) {
 			lastReportedDirtyRef.current = dirty;
 			onDirtyChange?.(dirty);
 		}
 	}, [currentValues, onDirtyChange]);
+
+	// Resetear solo al cambiar de usuario/create (evita reset por cambio de referencia de initialValues)
+	const lastKeyRef = useRef<string | null>(null);
+	useEffect(() => {
+		const key = initialValuesKey ?? (initialValues ? "init" : null);
+		if (key !== null && key !== lastKeyRef.current) {
+			lastKeyRef.current = key;
+			const values = { ...defaultValues, ...initialValues };
+			form.reset(values);
+			initialSnapshotRef.current = serializeForDirtyCompare(values);
+			lastReportedDirtyRef.current = false;
+		}
+	}, [initialValues, initialValuesKey, defaultValues, form.reset]);
+
+	const usernamePreview = useMemo(
+		() => deriveUsername(currentValues.displayUsername) ?? "—",
+		[currentValues.displayUsername],
+	);
 
 	return (
 		<form
@@ -172,53 +212,38 @@ export function UserForm({
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<form.Field
 						name="name"
-						children={(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							const errorId = getFieldErrorId(formId, field.name);
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={`${formId}-${field.name}`}>
-										Nombre{" "}
-										{!isEditing && <span className="text-destructive">*</span>}
-									</FieldLabel>
+						children={(field) => (
+							<FormFieldWrapper
+								field={field}
+								label="Nombre"
+								required={!isEditing}
+							>
+								{(props) => (
 									<Input
-										id={`${formId}-${field.name}`}
+										{...props}
 										name={field.name}
 										placeholder="Nombre completo"
 										value={field.state.value || ""}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
 										disabled={isPending}
-										required={!isEditing}
-										aria-invalid={isInvalid}
-										aria-describedby={isInvalid ? errorId : undefined}
 									/>
-									{isInvalid && (
-										<FieldError
-											id={errorId}
-											errors={normalizeFieldErrors(field.state.meta.errors)}
-										/>
-									)}
-								</Field>
-							);
-						}}
+								)}
+							</FormFieldWrapper>
+						)}
 					/>
 
 					<form.Field
 						name="email"
-						children={(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							const errorId = getFieldErrorId(formId, field.name);
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={`${formId}-${field.name}`}>
-										Correo electrónico{" "}
-										{!isEditing && <span className="text-destructive">*</span>}
-									</FieldLabel>
+						children={(field) => (
+							<FormFieldWrapper
+								field={field}
+								label="Correo electrónico"
+								required={!isEditing}
+							>
+								{(props) => (
 									<Input
-										id={`${formId}-${field.name}`}
+										{...props}
 										name={field.name}
 										type="email"
 										placeholder="usuario@ejemplo.com"
@@ -226,20 +251,11 @@ export function UserForm({
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
 										disabled={isPending}
-										required={!isEditing}
 										autoComplete="email"
-										aria-invalid={isInvalid}
-										aria-describedby={isInvalid ? errorId : undefined}
 									/>
-									{isInvalid && (
-										<FieldError
-											id={errorId}
-											errors={normalizeFieldErrors(field.state.meta.errors)}
-										/>
-									)}
-								</Field>
-							);
-						}}
+								)}
+							</FormFieldWrapper>
+						)}
 					/>
 				</div>
 
@@ -247,31 +263,20 @@ export function UserForm({
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<form.Field
 							name="password"
-							children={(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								const errorId = getFieldErrorId(formId, field.name);
-								return (
-									<Field data-invalid={isInvalid}>
-										<FieldLabel htmlFor={`${formId}-${field.name}`}>
-											Contraseña <span className="text-destructive">*</span>
-										</FieldLabel>
+							children={(field) => (
+								<FormFieldWrapper field={field} label="Contraseña" required>
+									{(props) => (
 										<div className="flex gap-2">
 											<div className="relative flex-1">
 												<Input
-													id={`${formId}-${field.name}`}
-													name={field.name}
+													{...props}
 													type={showPassword ? "text" : "password"}
 													placeholder="Mínimo 8 caracteres"
 													value={field.state.value || ""}
 													onBlur={field.handleBlur}
 													onChange={(e) => field.handleChange(e.target.value)}
 													disabled={isPending}
-													required
-													minLength={8}
 													autoComplete="new-password"
-													aria-invalid={isInvalid}
-													aria-describedby={isInvalid ? errorId : undefined}
 													className="pr-10"
 												/>
 												<Button
@@ -281,11 +286,6 @@ export function UserForm({
 													className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
 													onClick={() => setShowPassword(!showPassword)}
 													disabled={isPending}
-													title={
-														showPassword
-															? "Ocultar contraseña"
-															: "Mostrar contraseña"
-													}
 												>
 													<HugeiconsIcon
 														icon={showPassword ? ViewOffIcon : ViewIcon}
@@ -298,15 +298,12 @@ export function UserForm({
 												variant="outline"
 												size="icon"
 												onClick={() => {
-													const newPassword = generateSecurePassword(
-														currentRole || "customer",
-													);
-													field.handleChange(newPassword);
-													form.setFieldValue("confirmPassword", newPassword);
+													const pwd = generateSecurePassword(currentRole);
+													field.handleChange(pwd);
+													form.setFieldValue("confirmPassword", pwd);
 												}}
 												disabled={isPending}
-												title="Generar contraseña segura"
-												aria-label="Generar contraseña segura"
+												title="Generar contraseña"
 											>
 												<HugeiconsIcon
 													icon={KeyGeneratorFobIcon}
@@ -314,44 +311,30 @@ export function UserForm({
 												/>
 											</Button>
 										</div>
-										{isInvalid && (
-											<FieldError
-												id={errorId}
-												errors={normalizeFieldErrors(field.state.meta.errors)}
-											/>
-										)}
-									</Field>
-								);
-							}}
+									)}
+								</FormFieldWrapper>
+							)}
 						/>
 
 						<form.Field
 							name="confirmPassword"
-							children={(field) => {
-								const isInvalid =
-									field.state.meta.isTouched && !field.state.meta.isValid;
-								const errorId = getFieldErrorId(formId, field.name);
-								return (
-									<Field data-invalid={isInvalid}>
-										<FieldLabel htmlFor={`${formId}-${field.name}`}>
-											Repetir contraseña{" "}
-											<span className="text-destructive">*</span>
-										</FieldLabel>
+							children={(field) => (
+								<FormFieldWrapper
+									field={field}
+									label="Repetir contraseña"
+									required
+								>
+									{(props) => (
 										<div className="relative">
 											<Input
-												id={`${formId}-${field.name}`}
-												name={field.name}
+												{...props}
 												type={showConfirmPassword ? "text" : "password"}
 												placeholder="Repite la contraseña"
 												value={field.state.value || ""}
 												onBlur={field.handleBlur}
 												onChange={(e) => field.handleChange(e.target.value)}
 												disabled={isPending}
-												required
-												minLength={8}
 												autoComplete="new-password"
-												aria-invalid={isInvalid}
-												aria-describedby={isInvalid ? errorId : undefined}
 												className="pr-10"
 											/>
 											<Button
@@ -363,11 +346,6 @@ export function UserForm({
 													setShowConfirmPassword(!showConfirmPassword)
 												}
 												disabled={isPending}
-												title={
-													showConfirmPassword
-														? "Ocultar contraseña"
-														: "Mostrar contraseña"
-												}
 											>
 												<HugeiconsIcon
 													icon={showConfirmPassword ? ViewOffIcon : ViewIcon}
@@ -375,15 +353,9 @@ export function UserForm({
 												/>
 											</Button>
 										</div>
-										{isInvalid && (
-											<FieldError
-												id={errorId}
-												errors={normalizeFieldErrors(field.state.meta.errors)}
-											/>
-										)}
-									</Field>
-								);
-							}}
+									)}
+								</FormFieldWrapper>
+							)}
 						/>
 					</div>
 				)}
@@ -391,59 +363,35 @@ export function UserForm({
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<form.Field
 						name="displayUsername"
-						children={(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							const errorId = getFieldErrorId(formId, field.name);
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={`${formId}-${field.name}`}>
-										Usuario
-									</FieldLabel>
-									<FieldDescription>
-										Una sola palabra, como se verá (ej. RenovaBit)
-									</FieldDescription>
+						children={(field) => (
+							<FormFieldWrapper
+								field={field}
+								label="Usuario"
+								description="Una sola palabra (ej. RenovaBit)"
+								required={!isEditing}
+							>
+								{(props) => (
 									<Input
-										id={`${formId}-${field.name}`}
-										name={field.name}
+										{...props}
 										placeholder="RenovaBit"
 										value={field.state.value || ""}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
 										disabled={isPending}
 										autoComplete="username"
-										aria-invalid={isInvalid}
-										aria-describedby={isInvalid ? errorId : undefined}
 									/>
-									{isInvalid && (
-										<FieldError
-											id={errorId}
-											errors={normalizeFieldErrors(field.state.meta.errors)}
-										/>
-									)}
-								</Field>
-							);
-						}}
+								)}
+							</FormFieldWrapper>
+						)}
 					/>
 
 					<Field>
-						<FieldLabel>Usuario único (para login)</FieldLabel>
-						<FieldDescription>
-							Se usa para iniciar sesión con @usuario
-						</FieldDescription>
+						<FieldLabel>Usuario único (login)</FieldLabel>
+						<FieldDescription>Se usa para iniciar sesión</FieldDescription>
 						<Input
 							disabled
-							value={
-								(
-									(currentValues as { displayUsername?: string })
-										?.displayUsername ?? ""
-								)
-									.trim()
-									.split(/\s+/)[0]
-									?.toLowerCase() || "—"
-							}
+							value={usernamePreview}
 							className="bg-muted font-mono text-muted-foreground"
-							aria-readonly
 						/>
 					</Field>
 				</div>
@@ -451,92 +399,56 @@ export function UserForm({
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<form.Field
 						name="phone"
-						children={(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							const errorId = getFieldErrorId(formId, field.name);
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={`${formId}-${field.name}`}>
-										Teléfono
-									</FieldLabel>
+						children={(field) => (
+							<FormFieldWrapper field={field} label="Teléfono">
+								{(props) => (
 									<Input
-										id={`${formId}-${field.name}`}
-										name={field.name}
+										{...props}
 										type="tel"
 										placeholder="Opcional"
 										value={field.state.value || ""}
 										onBlur={field.handleBlur}
 										onChange={(e) => field.handleChange(e.target.value)}
 										disabled={isPending}
-										aria-invalid={isInvalid}
-										aria-describedby={isInvalid ? errorId : undefined}
 									/>
-									{isInvalid && (
-										<FieldError
-											id={errorId}
-											errors={normalizeFieldErrors(field.state.meta.errors)}
-										/>
-									)}
-								</Field>
-							);
-						}}
+								)}
+							</FormFieldWrapper>
+						)}
 					/>
 
 					<form.Field
 						name="role"
-						children={(field) => {
-							const isInvalid =
-								field.state.meta.isTouched && !field.state.meta.isValid;
-							const errorId = getFieldErrorId(formId, field.name);
-							return (
-								<Field data-invalid={isInvalid}>
-									<FieldLabel htmlFor={`${formId}-${field.name}`}>
-										Rol
-									</FieldLabel>
+						children={(field) => (
+							<FormFieldWrapper field={field} label="Rol">
+								{(props) => (
 									<Select
 										value={field.state.value}
-										onValueChange={(value) =>
-											field.handleChange(
-												value as "admin" | "distributor" | "customer",
-											)
-										}
+										onValueChange={(val) => {
+											const role = USER_ROLE_VALUES.find((r) => r === val);
+											if (role) field.handleChange(role);
+										}}
 										disabled={isPending}
 									>
-										<SelectTrigger
-											id={`${formId}-${field.name}`}
-											aria-invalid={isInvalid}
-											aria-describedby={isInvalid ? errorId : undefined}
-										>
+										<SelectTrigger {...props}>
 											<SelectValue placeholder="Selecciona un rol">
-												{getRoleLabel(field.state.value)}
+												{getRoleLabel(
+													USER_ROLE_VALUES.find(
+														(r) => r === field.state.value,
+													) ?? "customer",
+												)}
 											</SelectValue>
 										</SelectTrigger>
 										<SelectContent>
-											<SelectItem value="admin">
-												{getRoleLabel("admin")}
-											</SelectItem>
-											<SelectItem value="distributor">
-												{getRoleLabel("distributor")}
-											</SelectItem>
-											<SelectItem value="customer">
-												{getRoleLabel("customer")}
-											</SelectItem>
+											{USER_ROLE_VALUES.map((role) => (
+												<SelectItem key={role} value={role}>
+													{getRoleLabel(role)}
+												</SelectItem>
+											))}
 										</SelectContent>
 									</Select>
-									<FieldDescription className="text-xs text-muted-foreground">
-										El rol define el nivel de acceso: Administrador &gt;
-										Distribuidor &gt; Cliente.
-									</FieldDescription>
-									{isInvalid && (
-										<FieldError
-											id={errorId}
-											errors={normalizeFieldErrors(field.state.meta.errors)}
-										/>
-									)}
-								</Field>
-							);
-						}}
+								)}
+							</FormFieldWrapper>
+						)}
 					/>
 				</div>
 			</FieldGroup>
@@ -550,10 +462,10 @@ export function UserForm({
 				>
 					Cancelar
 				</Button>
-				<Button type="submit" disabled={isPending} aria-busy={isPending}>
+				<Button type="submit" disabled={isPending}>
 					{isPending ? (
 						<>
-							<Spinner className="size-4 shrink-0" aria-hidden />
+							<Spinner className="size-4 shrink-0" />
 							<span>Guardando…</span>
 						</>
 					) : (

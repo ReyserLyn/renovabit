@@ -14,14 +14,18 @@ export class ApplicationError extends Error {
 }
 
 export class NotFoundError extends ApplicationError {
-	constructor(message: string = "Recurso no encontrado", details?: unknown) {
-		super(message, "ERR_NOT_FOUND", 404, details);
+	constructor(
+		message: string = "Recurso no encontrado",
+		details?: unknown,
+		responseCode?: string,
+	) {
+		super(message, responseCode ?? "ERR_NOT_FOUND", 404, details);
 	}
 }
 
 export class ConflictError extends ApplicationError {
-	constructor(message: string, details?: unknown) {
-		super(message, "ERR_CONFLICT", 409, details);
+	constructor(message: string, details?: unknown, responseCode?: string) {
+		super(message, responseCode ?? "ERR_CONFLICT", 409, details);
 	}
 }
 
@@ -32,8 +36,14 @@ export class ValidationError extends ApplicationError {
 }
 
 export class BadRequestError extends ApplicationError {
-	constructor(message: string, details?: unknown) {
-		super(message, "ERR_BAD_REQUEST", 400, details);
+	constructor(message: string, details?: unknown, responseCode?: string) {
+		super(message, responseCode ?? "ERR_BAD_REQUEST", 400, details);
+	}
+}
+
+export class InternalError extends ApplicationError {
+	constructor(message: string, details?: unknown, responseCode?: string) {
+		super(message, responseCode ?? "ERR_INTERNAL", 500, details);
 	}
 }
 
@@ -41,8 +51,9 @@ export class ForbiddenError extends ApplicationError {
 	constructor(
 		message: string = "No tienes permiso para esta acción",
 		details?: unknown,
+		responseCode?: string,
 	) {
-		super(message, "ERR_FORBIDDEN", 403, details);
+		super(message, responseCode ?? "ERR_FORBIDDEN", 403, details);
 	}
 }
 

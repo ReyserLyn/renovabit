@@ -1,4 +1,3 @@
-import type { Category, CategoryInsertBody } from "@renovabit/db/schema";
 import {
 	Dialog,
 	DialogContent,
@@ -10,7 +9,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { uploadFile } from "@/features/storage/storage-utils";
 import { useCreateCategory, useUpdateCategory } from "../../hooks";
-import type { CategoryFormValues } from "../../model/category-model";
+import { Category, CategoryFormValues } from "../../model/category-model";
 import { validateCategory } from "../../services/categories-service";
 import { CategoryForm } from "../forms/CategoryForm";
 
@@ -48,15 +47,9 @@ export function CategoryFormModal({
 				imageUrl = url;
 			}
 
-			const body: CategoryInsertBody = {
-				name: values.name,
-				slug: values.slug,
-				description: values.description || null,
-				imageUrl: imageUrl.trim() || null,
-				parentId: values.parentId || null,
-				order: values.order,
-				showInNavbar: values.showInNavbar,
-				isActive: values.isActive,
+			const body = {
+				...values,
+				imageUrl: imageUrl.trim() || "",
 			};
 
 			// 3. DATABASE

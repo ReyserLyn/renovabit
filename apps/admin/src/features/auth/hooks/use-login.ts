@@ -2,10 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { authClientRepo } from "@/libs/better-auth/auth-client-repo";
-import {
-	getAuthErrorMessage,
-	getAuthOrNetworkMessage,
-} from "@/libs/better-auth/auth-error-messages";
+import { getAuthMessage } from "@/libs/better-auth/auth-error-messages";
 import { getSessionFn } from "@/libs/better-auth/auth-session";
 import type { LoginFormValues } from "../domain/auth-model";
 
@@ -29,21 +26,11 @@ export function useLogin() {
 						});
 
 				if (error) {
-					const msg =
-						getAuthErrorMessage(error.code) ||
-						getAuthOrNetworkMessage(error) ||
-						"No se pudo iniciar sesión. Inténtalo de nuevo.";
-					throw new Error(msg);
+					throw new Error(getAuthMessage(error));
 				}
 				return data;
 			} catch (err) {
-				const msg =
-					getAuthErrorMessage(
-						err && typeof err === "object" && "code" in err
-							? String((err as { code: unknown }).code)
-							: undefined,
-					) || getAuthOrNetworkMessage(err);
-				throw new Error(msg);
+				throw new Error(getAuthMessage(err));
 			}
 		},
 		onSuccess: async () => {

@@ -12,17 +12,25 @@ import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action
 import { DataTable } from "@/components/table/data-table";
 import { TableSkeleton } from "@/components/table/table-skeleton";
 import { UserFilters } from "@/features/users/components/filters/UserFilters";
+import { BanUserModal } from "@/features/users/components/modals/BanUserModal";
 import { DeleteUserModal } from "@/features/users/components/modals/DeleteUserModal";
 import { UserFormModal } from "@/features/users/components/modals/UserFormModal";
 import { UserPasswordModal } from "@/features/users/components/modals/UserPasswordModal";
+import { UserSessionsModal } from "@/features/users/components/modals/UserSessionsModal";
 import {
 	copyBulkUserInfo,
 	getColumns,
 } from "@/features/users/components/table/columns";
-import { useBulkDeleteUsers, useUsers } from "@/features/users/hooks";
-import type { AdminUser } from "@/features/users/model/user-model";
+import {
+	useBulkDeleteUsers,
+	useUnbanUser,
+	useUsers,
+} from "@/features/users/hooks";
+import type { User } from "@/features/users/model/user-model";
+import { USER_ROLE_VALUES } from "@/features/users/model/user-model";
 import { useUserFilters } from "@/features/users/parsers/user-filters";
 import { usersKeys } from "@/features/users/services/users-service";
+import { getAuthMessage } from "@/libs/better-auth/auth-error-messages";
 import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
@@ -33,46 +41,76 @@ function ClientesPage() {
 	const queryClient = useQueryClient();
 	const breadcrumbs = useBreadcrumbs();
 	const {
-		data: usersResponse = { data: [], total: 0 },
+		data: users = [],
 		isPending,
 		isError,
 		isFetching,
 		refetch,
 	} = useUsers();
-	const users = usersResponse.data;
 	const [filters] = useUserFilters();
 
 	const [formModalOpen, setFormModalOpen] = useState(false);
-	const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
+	const [editingUser, setEditingUser] = useState<User | null>(null);
 
 	const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-	const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+	const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
 	const [passwordModalOpen, setPasswordModalOpen] = useState(false);
-	const [userForPassword, setUserForPassword] = useState<AdminUser | null>(
-		null,
-	);
+	const [userForPassword, setUserForPassword] = useState<User | null>(null);
+
+	const [banModalOpen, setBanModalOpen] = useState(false);
+	const [userToBan, setUserToBan] = useState<User | null>(null);
+
+	const [sessionsModalOpen, setSessionsModalOpen] = useState(false);
+	const [userForSessions, setUserForSessions] = useState<User | null>(null);
 
 	const bulkDeleteUsers = useBulkDeleteUsers();
+	const unbanUserMutation = useUnbanUser();
 
 	const handleCreate = useCallback(() => {
 		setEditingUser(null);
 		setFormModalOpen(true);
 	}, []);
 
-	const handleEdit = useCallback((user: AdminUser) => {
+	const handleEdit = useCallback((user: User) => {
 		setEditingUser(user);
 		setFormModalOpen(true);
 	}, []);
 
-	const handleDelete = useCallback((user: AdminUser) => {
+	const handleDelete = useCallback((user: User) => {
 		setUserToDelete(user);
 		setDeleteModalOpen(true);
 	}, []);
 
-	const handleChangePassword = useCallback((user: AdminUser) => {
+	const handleChangePassword = useCallback((user: User) => {
 		setUserForPassword(user);
 		setPasswordModalOpen(true);
+	}, []);
+
+	const handleBan = useCallback((user: User) => {
+		setUserToBan(user);
+		setBanModalOpen(true);
+	}, []);
+
+	const handleUnban = useCallback(
+		async (user: User) => {
+			const promise = unbanUserMutation.mutateAsync(user.id);
+
+			await toast.promise(promise, {
+				loading: "Desbaneando usuario…",
+				success: "Usuario desbaneado correctamente.",
+				error: (err) =>
+					err instanceof Error
+						? err.message
+						: "No se pudo desbanear el usuario.",
+			});
+		},
+		[unbanUserMutation],
+	);
+
+	const handleViewSessions = useCallback((user: User) => {
+		setUserForSessions(user);
+		setSessionsModalOpen(true);
 	}, []);
 
 	const handleRefresh = useCallback(() => {
@@ -83,10 +121,62 @@ function ClientesPage() {
 		refetch();
 	}, [refetch]);
 
+	const handleBulkDelete = useCallback(
+		async (rows: User[]) => {
+			const ids = rows.map((user) => user.id);
+			try {
+				const result = await bulkDeleteUsers.mutateAsync(ids);
+				if (result.errors && result.errors.length > 0) {
+					const errorMessages = result.errors
+						.map((e) => getAuthMessage(e))
+						.join(". ");
+					if (result.deleted > 0) {
+						toast.success(`${result.deleted} usuario(s) eliminados.`);
+					}
+					toast.error(
+						`${result.errors.length} usuario(s) no pudieron eliminarse: ${errorMessages}`,
+					);
+				} else {
+					toast.success(
+						`${result.deleted} usuario(s) eliminados correctamente.`,
+					);
+				}
+			} catch (error) {
+				toast.error(
+					getAuthMessage(error) ||
+						"No se pudieron eliminar los usuarios. Vuelve a intentarlo.",
+				);
+			}
+		},
+		[bulkDeleteUsers],
+	);
+
+	const handleDeleteModalOpenChange = useCallback((open: boolean) => {
+		setDeleteModalOpen(open);
+		if (!open) setUserToDelete(null);
+	}, []);
+
+	const handlePasswordModalOpenChange = useCallback((open: boolean) => {
+		setPasswordModalOpen(open);
+		if (!open) setUserForPassword(null);
+	}, []);
+
+	const handleBanModalOpenChange = useCallback((open: boolean) => {
+		setBanModalOpen(open);
+		if (!open) setUserToBan(null);
+	}, []);
+
+	const handleSessionsModalOpenChange = useCallback((open: boolean) => {
+		setSessionsModalOpen(open);
+		if (!open) setUserForSessions(null);
+	}, []);
+
 	const filteredUsers = useMemo(() => {
 		const role = filters.role;
 		if (role === "all") return users;
-		return users.filter((user) => user.role === role);
+		const validRole = USER_ROLE_VALUES.find((r) => r === role);
+		if (!validRole) return users;
+		return users.filter((user) => user.role === validRole);
 	}, [users, filters]);
 
 	const columns = useMemo(
@@ -95,8 +185,18 @@ function ClientesPage() {
 				onEdit: handleEdit,
 				onDelete: handleDelete,
 				onChangePassword: handleChangePassword,
+				onBan: handleBan,
+				onUnban: handleUnban,
+				onViewSessions: handleViewSessions,
 			}),
-		[handleEdit, handleDelete, handleChangePassword],
+		[
+			handleEdit,
+			handleDelete,
+			handleChangePassword,
+			handleBan,
+			handleUnban,
+			handleViewSessions,
+		],
 	);
 
 	return (
@@ -146,43 +246,13 @@ function ClientesPage() {
 							<>
 								<DataTableBulkCopyAction
 									table={table}
-									onCopy={(rows: AdminUser[]) => {
-										copyBulkUserInfo(rows);
-									}}
+									onCopy={copyBulkUserInfo}
 									itemName="usuarios"
 									itemNameSingular="usuario"
 								/>
 								<DataTableBulkDeleteAction
 									table={table}
-									onDelete={async (rows: AdminUser[]) => {
-										const ids = rows.map((user) => user.id);
-										try {
-											const result = await bulkDeleteUsers.mutateAsync(ids);
-											if (result.errors && result.errors.length > 0) {
-												const errorMessages = result.errors
-													.map((e) => e.message)
-													.join(". ");
-												if (result.deleted > 0) {
-													toast.success(
-														`${result.deleted} usuario(s) eliminados.`,
-													);
-												}
-												toast.error(
-													`${result.errors.length} usuario(s) no pudieron eliminarse: ${errorMessages}`,
-												);
-											} else {
-												toast.success(
-													`${result.deleted} usuario(s) eliminados correctamente.`,
-												);
-											}
-										} catch (error) {
-											const message =
-												error instanceof Error
-													? error.message
-													: "No se pudieron eliminar los usuarios. Vuelve a intentarlo.";
-											toast.error(message);
-										}
-									}}
+									onDelete={handleBulkDelete}
 									itemName="usuarios"
 									itemNameSingular="usuario"
 								/>
@@ -199,20 +269,26 @@ function ClientesPage() {
 
 				<DeleteUserModal
 					open={deleteModalOpen}
-					onOpenChange={(open) => {
-						setDeleteModalOpen(open);
-						if (!open) setUserToDelete(null);
-					}}
+					onOpenChange={handleDeleteModalOpenChange}
 					user={userToDelete}
 				/>
 
 				<UserPasswordModal
 					open={passwordModalOpen}
-					onOpenChange={(open) => {
-						setPasswordModalOpen(open);
-						if (!open) setUserForPassword(null);
-					}}
+					onOpenChange={handlePasswordModalOpenChange}
 					user={userForPassword}
+				/>
+
+				<BanUserModal
+					open={banModalOpen}
+					onOpenChange={handleBanModalOpenChange}
+					user={userToBan}
+				/>
+
+				<UserSessionsModal
+					open={sessionsModalOpen}
+					onOpenChange={handleSessionsModalOpenChange}
+					user={userForSessions}
 				/>
 			</div>
 		</>

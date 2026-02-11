@@ -22,20 +22,23 @@ import { Textarea } from "@renovabit/ui/components/ui/textarea";
 import { useForm, useStore } from "@tanstack/react-form";
 import { useEffect, useRef } from "react";
 import { ImageUpload } from "@/components/forms/image-upload";
+import { ACCEPT_IMAGE_STRING } from "@/constants/file-upload";
 import { useBrands } from "@/features/brands/hooks";
+
 import { useCategories } from "@/features/categories/hooks";
+
 import { getFieldErrorId, normalizeFieldErrors } from "@/libs/form-utils";
+import { slugify } from "@/libs/slugify";
 import {
 	defaultProductFormValues,
 	type ProductFormValues,
-	productFormSchema,
+	ProductFormValuesSchema,
+	type ProductSpecificationEntry,
 	STATUS_LABELS,
-	slugify,
 } from "../../models/product-model";
 
 const formId = "product-form";
 
-/** Serializa valores para comparar dirty; excluye File y datos no serializables. */
 function serializeForDirtyCompare(
 	values: Partial<ProductFormValues> | undefined,
 ): string {
@@ -51,16 +54,32 @@ function serializeForDirtyCompare(
 	return JSON.stringify({ ...rest, images: safeImages });
 }
 
-interface Brand {
-	id: string;
-	name: string;
-	isActive: boolean;
+function updateSpecificationEntries(
+	entries: ProductSpecificationEntry[],
+	id: string,
+	patch: Partial<Pick<ProductSpecificationEntry, "key" | "value">>,
+): ProductSpecificationEntry[] {
+	return entries.map((item) => (item.id === id ? { ...item, ...patch } : item));
 }
 
-interface Category {
-	id: string;
-	name: string;
-	isActive: boolean;
+function removeSpecificationEntry(
+	entries: ProductSpecificationEntry[],
+	id: string,
+): ProductSpecificationEntry[] {
+	return entries.filter((item) => item.id !== id);
+}
+
+function addEmptySpecification(
+	entries: ProductSpecificationEntry[],
+): ProductSpecificationEntry[] {
+	return [
+		...entries,
+		{
+			id: `spec-${Date.now()}`,
+			key: "",
+			value: "",
+		},
+	];
 }
 
 type ProductFormProps = {
@@ -69,7 +88,6 @@ type ProductFormProps = {
 	onCancel: () => void;
 	isPending?: boolean;
 	submitLabel: string;
-	/** Se llama cuando cambia si el formulario tiene cambios sin guardar */
 	onDirtyChange?: (dirty: boolean) => void;
 };
 
@@ -85,8 +103,8 @@ export function ProductForm({
 	const { data: brandsData = [] } = useBrands(true);
 	const { data: categoriesData = [] } = useCategories(true);
 
-	const brands = (brandsData as Brand[]).filter((b) => b.isActive);
-	const categories = (categoriesData as Category[]).filter((c) => c.isActive);
+	const brands = brandsData.filter((b) => b.isActive);
+	const categories = categoriesData.filter((c) => c.isActive);
 
 	const form = useForm({
 		defaultValues: {
@@ -94,8 +112,8 @@ export function ProductForm({
 			...initialValues,
 		},
 		validators: {
-			onChange: productFormSchema,
-			onSubmit: productFormSchema,
+			onChange: ProductFormValuesSchema,
+			onSubmit: ProductFormValuesSchema,
 		},
 		onSubmit: async ({ value }) => {
 			await onSubmit(value);
@@ -592,8 +610,10 @@ export function ProductForm({
 									{field.state.value.map((img, index) => (
 										<div key={index}>
 											<ImageUpload
+												accept={ACCEPT_IMAGE_STRING}
 												value={img.file || img.url}
 												onChange={(val: string | File | undefined) => {
+													field.handleBlur();
 													if (val === undefined) {
 														const newImages = field.state.value.filter(
 															(_, i) => i !== index,
@@ -606,7 +626,7 @@ export function ProductForm({
 														newImages[index] = {
 															...newImages[index],
 															file: val,
-															url: "",
+															url: undefined,
 															order: newImages[index]?.order ?? index,
 														};
 													} else if (typeof val === "string") {
@@ -631,7 +651,6 @@ export function ProductForm({
 												field.handleChange([
 													...field.state.value,
 													{
-														url: "",
 														alt: "",
 														order: field.state.value.length,
 													},
@@ -657,12 +676,12 @@ export function ProductForm({
 
 				{/* Especificaciones */}
 				<form.Field
-					name="specEntries"
+					name="specifications"
 					children={(field) => {
 						const isInvalid =
 							field.state.meta.isTouched && !field.state.meta.isValid;
 						const errorId = getFieldErrorId(formId, field.name);
-						const entries = field.state.value;
+						const entries = field.state.value ?? [];
 
 						return (
 							<Field data-invalid={isInvalid}>
@@ -679,11 +698,9 @@ export function ProductForm({
 												value={entry.key}
 												onChange={(e) => {
 													field.handleChange(
-														entries.map((item) =>
-															item.id === entry.id
-																? { ...item, key: e.target.value }
-																: item,
-														),
+														updateSpecificationEntries(entries, entry.id, {
+															key: e.target.value,
+														}),
 													);
 												}}
 												disabled={isPending}
@@ -700,11 +717,9 @@ export function ProductForm({
 												value={entry.value}
 												onChange={(e) => {
 													field.handleChange(
-														entries.map((item) =>
-															item.id === entry.id
-																? { ...item, value: e.target.value }
-																: item,
-														),
+														updateSpecificationEntries(entries, entry.id, {
+															value: e.target.value,
+														}),
 													);
 												}}
 												disabled={isPending}
@@ -716,7 +731,7 @@ export function ProductForm({
 												size="icon"
 												onClick={() => {
 													field.handleChange(
-														entries.filter((item) => item.id !== entry.id),
+														removeSpecificationEntry(entries, entry.id),
 													);
 												}}
 												disabled={isPending}
@@ -731,14 +746,7 @@ export function ProductForm({
 										variant="outline"
 										size="sm"
 										onClick={() => {
-											field.handleChange([
-												...entries,
-												{
-													id: `spec-${Date.now()}`,
-													key: "",
-													value: "",
-												},
-											]);
+											field.handleChange(addEmptySpecification(entries));
 										}}
 										disabled={isPending}
 									>

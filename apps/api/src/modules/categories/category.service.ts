@@ -11,9 +11,16 @@ export const categoryService = {
 			orderBy: (table, { asc }) => [asc(table.order), asc(table.name)],
 			with: {
 				children: {
-					where: (table, { eq }) => eq(table.isActive, true),
+					where: (table, { eq, and }) =>
+						and(eq(table.showInNavbar, true), eq(table.isActive, true)),
 					orderBy: (table, { asc }) => [asc(table.order), asc(table.name)],
-					with: { children: true },
+					with: {
+						children: {
+							where: (table, { eq, and }) =>
+								and(eq(table.showInNavbar, true), eq(table.isActive, true)),
+							orderBy: (table, { asc }) => [asc(table.order), asc(table.name)],
+						},
+					},
 				},
 			},
 		});
@@ -82,6 +89,10 @@ export const categoryService = {
 			recursions.push(
 				this.propagateStatusToChildren(id, "showInNavbar", false),
 			);
+		} else if (willShowInNavbar === true && oldCategory?.parentId) {
+			recursions.push(
+				this.propagateStatusToAncestors(id, "showInNavbar", true),
+			);
 		}
 
 		// Cleanup old image if changed
@@ -136,6 +147,25 @@ export const categoryService = {
 		await Promise.all(
 			ids.map((id) => this.propagateStatusToChildren(id, field, value)),
 		);
+	},
+
+	async propagateStatusToAncestors(
+		categoryId: string,
+		field: "isActive" | "showInNavbar",
+		value: boolean,
+	) {
+		const category = await db.query.categories.findFirst({
+			columns: { parentId: true },
+			where: (table, { eq }) => eq(table.id, categoryId),
+		});
+		if (!category?.parentId) return;
+
+		await db
+			.update(categories)
+			.set({ [field]: value })
+			.where(eq(categories.id, category.parentId));
+
+		await this.propagateStatusToAncestors(category.parentId, field, value);
 	},
 
 	async checkUniqueness(

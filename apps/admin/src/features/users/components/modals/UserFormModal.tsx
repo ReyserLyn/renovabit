@@ -1,4 +1,3 @@
-import type { UserUpdateBody } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import {
 	Dialog,
@@ -10,19 +9,27 @@ import {
 } from "@renovabit/ui/components/ui/dialog";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { getAuthMessage } from "@/libs/better-auth/auth-error-messages";
 import { useAdminCreateUser, useUpdateUser } from "../../hooks";
 import type {
-	AdminUser,
+	User,
+	UserAdminCreateInput,
 	UserFormValues,
+	UserUpdateBody,
 	UserUpdateFormValues,
 } from "../../model/user-model";
-import { validateUser } from "../../services/users-service";
 import { UserForm } from "../forms/UserForm";
+
+function isUserFormValues(
+	v: UserFormValues | UserUpdateFormValues,
+): v is UserFormValues {
+	return "password" in v && typeof v.password === "string";
+}
 
 interface UserFormModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	user: AdminUser | null;
+	user: User | null;
 }
 
 export function UserFormModal({
@@ -46,69 +53,48 @@ export function UserFormModal({
 		}
 	}, [open]);
 
-	const handleSubmit = async (
-		values: UserFormValues | UserUpdateFormValues,
-	) => {
-		const displayUsername = values.displayUsername?.trim();
-		const firstWord = displayUsername?.split(/\s+/)[0];
-		const username = firstWord ? firstWord.toLowerCase() : undefined;
+	const handleSubmit = useCallback(
+		async (values: UserFormValues | UserUpdateFormValues) => {
+			const promise = (async () => {
+				if (isEditing && user) {
+					const body: UserUpdateBody = {
+						name: values.name?.trim() || undefined,
+						email: values.email?.trim() || undefined,
+						phone: values.phone?.trim() || undefined,
+						displayUsername: values.displayUsername?.trim() || undefined,
+						role: values.role,
+					};
 
-		const promise = (async () => {
-			if (isEditing && user) {
-				const updateValues = values as UserUpdateFormValues;
+					await updateUser.mutateAsync({ id: user.id, body });
+				} else if (isUserFormValues(values)) {
+					const body: UserAdminCreateInput = {
+						name: values.name.trim(),
+						email: values.email.trim(),
+						password: values.password,
+						confirmPassword: values.confirmPassword,
+						displayUsername: values.displayUsername!.trim(),
+						phone: values.phone?.trim() || undefined,
+						role: values.role,
+					};
 
-				const body: UserUpdateBody = {
-					name: updateValues.name?.trim() || undefined,
-					email: updateValues.email?.trim() || undefined,
-					phone: updateValues.phone?.trim() || undefined,
-					username,
-					displayUsername: displayUsername || undefined,
-					role: updateValues.role,
-				};
+					await createUser.mutateAsync(body);
+				}
 
-				await validateUser({
-					id: user.id,
-					email: updateValues.email,
-					username,
-				});
+				onOpenChange(false);
+			})();
 
-				await updateUser.mutateAsync({ id: user.id, body });
-			} else {
-				const createValues = values as UserFormValues;
-
-				const body = {
-					name: createValues.name,
-					email: createValues.email,
-					password: createValues.password,
-					confirmPassword: createValues.confirmPassword,
-					phone: createValues.phone,
-					username,
-					displayUsername: displayUsername || undefined,
-					role: createValues.role,
-				};
-
-				await validateUser({
-					email: createValues.email,
-					username,
-				});
-
-				await createUser.mutateAsync(body);
-			}
-
-			onOpenChange(false);
-		})();
-
-		await toast.promise(promise, {
-			loading: isEditing ? "Guardando cambios…" : "Creando usuario…",
-			success: isEditing
-				? "Usuario actualizado correctamente."
-				: "Usuario creado con éxito.",
-			error: (err) =>
-				err instanceof Error
-					? err.message
-					: "No se pudo guardar el usuario. Comprueba la conexión e inténtalo de nuevo.",
-		});
-	};
+			await toast.promise(promise, {
+				loading: isEditing ? "Guardando cambios…" : "Creando usuario…",
+				success: isEditing
+					? "Usuario actualizado correctamente."
+					: "Usuario creado con éxito.",
+				error: (err) =>
+					getAuthMessage(err) ||
+					"No se pudo guardar el usuario. Comprueba la conexión e inténtalo de nuevo.",
+			});
+		},
+		[isEditing, user, updateUser, createUser, onOpenChange],
+	);
 
 	const handleOpenChange = useCallback(
 		(next: boolean, ev?: { cancel?: () => void }) => {
@@ -154,13 +140,13 @@ export function UserFormModal({
 										name: user.name || "",
 										email: user.email,
 										phone: user.phone || "",
-										username: user.username || "",
 										displayUsername:
 											user.displayUsername || user.username || "",
 										role: user.role,
 									}
 								: undefined
 						}
+						initialValuesKey={user?.id ?? "new"}
 						isPending={isPending}
 						onSubmit={handleSubmit}
 						onCancel={() => handleOpenChange(false)}

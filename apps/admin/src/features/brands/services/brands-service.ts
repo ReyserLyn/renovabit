@@ -1,7 +1,7 @@
-import { BrandInsertBody, BrandUpdateBody } from "@renovabit/db/schema";
 import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { api } from "@/libs/eden-client/eden-client";
 import { handleEdenError } from "@/libs/eden-client/utils";
+import { BrandInsertBody, BrandUpdateBody } from "../model/brand-model";
 
 export const brandsKeys = {
 	all: ["brands"] as const,

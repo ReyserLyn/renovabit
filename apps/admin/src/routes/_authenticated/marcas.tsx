@@ -1,5 +1,4 @@
 import { Add01Icon } from "@hugeicons/core-free-icons";
-import type { Brand } from "@renovabit/db/schema";
 import { Button } from "@renovabit/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -11,11 +10,12 @@ import { PrimaryActionButton } from "@/components/layout/primary-action-button";
 import { DataTableBulkDeleteAction } from "@/components/table/bulk-delete-action";
 import { DataTable } from "@/components/table/data-table";
 import { TableSkeleton } from "@/components/table/table-skeleton";
-import { BrandFormModal } from "@/features/brands/components/forms/BrandFormModal";
+import { BrandFormModal } from "@/features/brands/components/modals/BrandFormModal";
 import { DeleteBrandModal } from "@/features/brands/components/modals/DeleteBrandModal";
 import { ToggleBrandStatusModal } from "@/features/brands/components/modals/ToggleBrandStatusModal";
 import { getColumns } from "@/features/brands/components/table/columns";
 import { useBrands, useBulkDeleteBrands } from "@/features/brands/hooks";
+import type { Brand } from "@/features/brands/model/brand-model";
 import { brandsKeys } from "@/features/brands/services/brands-service";
 import { useBreadcrumbs } from "@/libs/breadcrumbs";
 
